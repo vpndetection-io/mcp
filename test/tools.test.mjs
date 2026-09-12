@@ -72,6 +72,40 @@ test('an upstream failure becomes a tool execution error, not a throw', async ()
     assert.ok(JSON.parse(out.content[0].text).error.kind, 'the error carries a kind the model can act on');
 });
 
+// The hosted server depends on this package AND on `vpndetection`, so the two
+// can each resolve their own copy of the module. Two copies of a class are two
+// identities, so an `instanceof` check would quietly report every upstream
+// failure as `internal` - losing the real kind and the retryable flag. This
+// stands in a foreign error object carrying the right shape and no shared
+// prototype, which is exactly what that situation produces.
+test('an upstream error is classified by shape, not by class identity', async () => {
+    const foreign = Object.assign(new Error('invalid API key'), {
+        name: 'VPNDetectionError',
+        kind: 'unauthorized',
+        retryable: false,
+    });
+    const out = await throwingClient(foreign).handler({ ip: '1.1.1.1' });
+
+    const { error } = JSON.parse(out.content[0].text);
+    assert.equal(out.isError, true);
+    assert.equal(error.kind, 'unauthorized', 'a duplicate module copy must not degrade the kind');
+    assert.equal(error.retryable, false);
+});
+
+test('an unrecognised throw still produces a readable error', async () => {
+    const out = await throwingClient(new Error('socket exploded')).handler({ ip: '1.1.1.1' });
+    const { error } = JSON.parse(out.content[0].text);
+    assert.equal(error.kind, 'internal');
+});
+
+// Rejects from the CLIENT rather than from fetch: the SDK's own retry layer
+// turns a transport throw into its own `network` error, so a stub one level
+// lower would never reach the classifier under test.
+function throwingClient(err) {
+    const client = { lookup: async () => { throw err; } };
+    return createTools({ client: client }).find((d) => d.tool.name === 'lookup_ip');
+}
+
 test('every lookup fixture validates against the published outputSchema', async () => {
     const ajv = new Ajv({ strict: false, allErrors: true });
     addFormats(ajv);

@@ -1,9 +1,8 @@
 import { z } from 'zod';
-import { VPNDetectionError } from 'vpndetection';
 
 import type { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import type { CallToolResult, Tool } from '@modelcontextprotocol/sdk/types.js';
-import type { DatasetFormat, VPNDetection } from 'vpndetection';
+import type { DatasetFormat, Result, VPNDetection } from 'vpndetection';
 
 import {
     CallToolRequestSchema, ListToolsRequestSchema,
@@ -20,9 +19,10 @@ export const BATCH_LIMIT = 100;
 export interface ToolContext {
     client: VPNDetection;
     /**
-     * Whether to offer the dataset tools. The hosted transport sets this from
-     * the presented key's scopes; the stdio one leaves it on, because a local
-     * user holds one key and a 403 explains itself better than a hidden tool.
+     * Whether to offer the dataset tools. On by default: a key without the
+     * `db.download` scope gets a plain refusal from the API, which reads better
+     * than a tool that silently does not exist, and deciding otherwise would
+     * mean re-validating the key here against a policy `db_dl_api` owns.
      */
     database?: boolean;
 }
@@ -149,11 +149,12 @@ async function lookupIps(ctx: ToolContext, args: Record<string, unknown>): Promi
     const results: Record<string, unknown> = {};
     const served: Record<string, unknown>[] = [];
     for (const [addr, answer] of answers) {
-        if (answer instanceof VPNDetectionError) {
-            results[addr] = { error: { kind: answer.kind, message: answer.message } };
+        const failed = asClientError(answer);
+        if (failed !== undefined) {
+            results[addr] = { error: { kind: failed.kind, message: failed.message } };
             continue;
         }
-        const body = wireBody(answer);
+        const body = wireBody(answer as Result);
         results[addr] = body;
         served.push(body);
     }
@@ -251,13 +252,41 @@ function ok(structured: Record<string, unknown>): CallToolResult {
  * act on. The text block is what it reads instead.
  */
 function toolError(err: unknown): CallToolResult {
-    const detail = err instanceof VPNDetectionError
-        ? { kind: err.kind, message: err.message, retryable: err.retryable }
+    const known = asClientError(err);
+    const detail = known !== undefined
+        ? { kind: known.kind, message: known.message, retryable: known.retryable === true }
         : { kind: 'internal', message: err instanceof Error ? err.message : String(err) };
     return {
         content: [{ type: 'text', text: JSON.stringify({ error: detail }, null, 2) }],
         isError: true,
     };
+}
+
+/**
+ * Recognises a `VPNDetectionError` by SHAPE, not by `instanceof`.
+ *
+ * This package and whatever mounts it can each end up with their own copy of the
+ * `vpndetection` module - the hosted service depends on both - and two copies of
+ * one class are two identities, so `instanceof` silently returns false and every
+ * upstream failure degrades to a generic `internal`. A caller then sees "internal"
+ * for what was really `unauthorized`, and loses the `retryable` flag that decides
+ * whether trying again is worth anything.
+ */
+function asClientError(err: unknown): ClientError | undefined {
+    if (err === null || typeof err !== 'object') {
+        return undefined;
+    }
+    const e = err as Partial<ClientError> & { name?: unknown };
+    if (e.name !== 'VPNDetectionError' || typeof e.kind !== 'string') {
+        return undefined;
+    }
+    return e as ClientError;
+}
+
+interface ClientError {
+    kind: string;
+    message: string;
+    retryable?: boolean;
 }
 
 // One zod declaration yields both the published schema and the runtime parse, so
