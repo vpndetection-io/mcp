@@ -170,7 +170,10 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
                 title: 'List licensed datasets',
                 description: 'The datasets this API key\'s organisation is licensed to download, '
                     + 'with the licence type and term. A dataset absent from this list is one the '
-                    + 'organisation does not hold.',
+                    + 'organisation does not hold. Each entry has a `base` id, which is what the '
+                    + 'licence names, and a `versions` array whose `id` is what the other dataset '
+                    + 'tools take - pass `versions[].id` (`cdn_ip_v1`), never the `base` '
+                    + '(`cdn_ip`).',
                 inputSchema: { type: 'object', additionalProperties: false },
                 outputSchema: objectSchema({
                     datasets: { type: 'array', items: LICENSED_DATASET_SCHEMA },
@@ -190,7 +193,10 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
                     + 'build date and the file sizes. Use this to answer questions about what a '
                     + 'dataset contains without downloading it - the files reach several GB.',
                 inputSchema: jsonSchema(z.object({
-                    dataset_id: z.string().describe('The dataset id, as returned by `list_databases`.'),
+                    dataset_id: z.string().describe(
+                        'A VERSIONED dataset id, from `versions[].id` in `list_databases` - '
+                        + '`cdn_ip_v1`, not `cdn_ip`. The unversioned base id is a licence '
+                        + 'reference and is not accepted here.'),
                 })),
                 outputSchema: DATASET_METADATA_SCHEMA,
                 annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
@@ -207,7 +213,9 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
                 description: 'The published digests for one dataset file, for verifying a copy you '
                     + 'already hold or deciding whether a build has changed since you last fetched it.',
                 inputSchema: jsonSchema(z.object({
-                    dataset_id: z.string().describe('The dataset id, as returned by `list_databases`.'),
+                    dataset_id: z.string().describe(
+                        'A VERSIONED dataset id, from `versions[].id` in `list_databases` - '
+                        + '`cdn_ip_v1`, not `cdn_ip`.'),
                     format: formats.describe('Which published file to digest.'),
                 })),
                 outputSchema: {
