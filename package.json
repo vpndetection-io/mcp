@@ -8,10 +8,10 @@
   "homepage": "https://vpndetection.io",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vpndetection-io/sdk-mcp.git"
+    "url": "git+https://github.com/vpndetection-io/mcp.git"
   },
   "bugs": {
-    "url": "https://github.com/vpndetection-io/sdk-mcp/issues"
+    "url": "https://github.com/vpndetection-io/mcp/issues"
   },
   "keywords": [
     "mcp",
