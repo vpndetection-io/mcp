@@ -2,14 +2,14 @@
   "openapi": "3.0.3",
   "info": {
     "title": "VPNDetection API",
-    "description": "The VPNDetection API: classify any IP address, and download the datasets\nbehind the answers.\n\nSee https://docs.vpndetection.io for guides and https://github.com/vpndetection-io\nfor the official client libraries.\n",
+    "description": "The VPNDetection API: classify any IP address, and download the databases\nbehind the answers.\n\nSee https://docs.vpndetection.io for guides and https://github.com/vpndetection-io\nfor the official client libraries.\n",
     "contact": {
       "name": "VPNDetection Support",
       "email": "support@vpndetection.io",
       "url": "https://vpndetection.io"
     },
     "termsOfService": "https://vpndetection.io/terms",
-    "version": "2026.09.10"
+    "version": "2026.09.13"
   },
   "servers": [
     {
@@ -29,7 +29,7 @@
     },
     {
       "name": "Database",
-      "description": "List and download the licensed datasets.",
+      "description": "List and download the licensed databases.",
       "x-displayName": "Database"
     }
   ],
@@ -289,6 +289,129 @@
         ]
       }
     },
+    "/myip": {
+      "get": {
+        "operationId": "lookupMyIp",
+        "tags": [
+          "Lookup"
+        ],
+        "summary": "Lookup your own address",
+        "description": "Answers what is known about the address this request came from, which is\nthe same answer `GET /{ip}` gives for that address: the plan behind the\npresented key decides which fields come back, and the request counts\nagainst the same allowance.\n\nThe address is the one our edge observed, so a request through a proxy\nor a VPN reports the exit it left through rather than the machine that\nmade it. That is usually the point of asking.\n",
+        "responses": {
+          "200": {
+            "description": "The classification of your own address. Present fields are those\nyour plan includes; see the tier table in the API description.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LookupResponse"
+                },
+                "examples": {
+                  "free": {
+                    "summary": "No API key, or a key on the free plan",
+                    "value": {
+                      "ip": "45.83.91.1",
+                      "is_vpn": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The presented API key is unknown, revoked, or expired.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LookupError"
+                },
+                "examples": {
+                  "invalid": {
+                    "value": {
+                      "error": "invalid API key"
+                    }
+                  },
+                  "revoked": {
+                    "value": {
+                      "error": "API key revoked"
+                    }
+                  },
+                  "expired": {
+                    "value": {
+                      "error": "API key expired"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The key restricts which source addresses may use it, and this\nrequest did not come from one of them.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LookupError"
+                },
+                "example": {
+                  "error": "source address not allowed for this API key"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Either the request rate was too high, or an allowance is spent.\nThe two are told apart by the message, not the status.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LookupError"
+                },
+                "examples": {
+                  "rateLimited": {
+                    "value": {
+                      "error": "rate limit exceeded"
+                    }
+                  },
+                  "keylessDaily": {
+                    "value": {
+                      "error": "daily limit for unauthenticated requests exceeded; use an API key"
+                    }
+                  },
+                  "quotaExceeded": {
+                    "value": {
+                      "error": "request allowance exceeded; raise or remove your overage limit"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "The VPN dataset could not be consulted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LookupError"
+                },
+                "example": {
+                  "error": "lookup failed"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {},
+          {
+            "apiKeyQuery": []
+          },
+          {
+            "apiKeyHeader": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/api/v1/database/list": {
       "get": {
         "operationId": "listDatabases",
@@ -296,7 +419,7 @@
           "Database"
         ],
         "summary": "List",
-        "description": "Every dataset this organization holds a licence for, with the term and the license_type right beside each one.\n",
+        "description": "Every database this organization holds a licence for, with the term and the license_type right beside each one.\n",
         "responses": {
           "200": {
             "description": "OK",
@@ -305,15 +428,15 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "datasets": {
+                    "databases": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/LicensedDataset"
+                        "$ref": "#/components/schemas/Database"
                       }
                     }
                   },
                   "required": [
-                    "datasets"
+                    "databases"
                   ]
                 }
               }
@@ -359,13 +482,9 @@
             "name": "format",
             "required": true,
             "schema": {
-              "type": "string",
-              "enum": [
-                "csvgz",
-                "mmdb"
-              ]
+              "$ref": "#/components/schemas/DatabaseFormat"
             },
-            "description": "Not every dataset is built in every format. The `_provider`\ncatalogues are keyed by provider id rather than by IP range, so no\nMMDB exists for them.\n"
+            "description": "Not every database is built in every format. The `_provider`\ncatalogues are keyed by provider id rather than by IP range, so no\nMMDB exists for them.\n"
           }
         ],
         "responses": {
@@ -380,7 +499,7 @@
             }
           },
           "400": {
-            "description": "The dataset is not built in the requested format",
+            "description": "The database is not built in the requested format",
             "content": {
               "application/json": {
                 "schema": {
@@ -393,7 +512,7 @@
             "$ref": "#/components/responses/Unauthorized"
           },
           "403": {
-            "description": "Your organization holds no license for this dataset, or its term has ended",
+            "description": "Your organization holds no license for this database, or its term has ended",
             "content": {
               "application/json": {
                 "schema": {
@@ -403,7 +522,7 @@
             }
           },
           "404": {
-            "description": "No such dataset",
+            "description": "No such database",
             "content": {
               "application/json": {
                 "schema": {
@@ -443,7 +562,7 @@
           "Database"
         ],
         "summary": "Metadata",
-        "description": "Poll this to decide whether today's build is worth fetching: it carries\n`updated` and `entries` without downloading anything.\n\nNo `format` parameter - one document describes every format the dataset\nis built in.\n",
+        "description": "Poll this to decide whether today's build is worth fetching: it carries\n`updated` and `entries` without downloading anything.\n\nNo `format` parameter - one document describes every format the database\nis built in.\n",
         "parameters": [
           {
             "in": "query",
@@ -460,7 +579,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DatasetMetadata"
+                  "$ref": "#/components/schemas/DatabaseMetadata"
                 }
               }
             }
@@ -513,11 +632,7 @@
             "name": "format",
             "required": true,
             "schema": {
-              "type": "string",
-              "enum": [
-                "csvgz",
-                "mmdb"
-              ]
+              "$ref": "#/components/schemas/DatabaseFormat"
             }
           }
         ],
@@ -536,21 +651,7 @@
                       "type": "string"
                     },
                     "checksums": {
-                      "type": "object",
-                      "properties": {
-                        "md5": {
-                          "type": "string"
-                        },
-                        "sha1": {
-                          "type": "string"
-                        },
-                        "sha256": {
-                          "type": "string"
-                        },
-                        "sha512": {
-                          "type": "string"
-                        }
-                      }
+                      "$ref": "#/components/schemas/DbChecksums"
                     }
                   },
                   "required": [
@@ -563,7 +664,7 @@
             }
           },
           "400": {
-            "description": "The dataset is not built in the requested format",
+            "description": "The database is not built in the requested format",
             "content": {
               "application/json": {
                 "schema": {
@@ -901,15 +1002,37 @@
           "rc"
         ]
       },
-      "DatasetFormatSize": {
+      "LicenseType": {
+        "type": "string",
+        "description": "What a license permits you to do with the data.",
+        "enum": [
+          "evaluation",
+          "standard",
+          "redistribute"
+        ]
+      },
+      "Standing": {
+        "type": "string",
+        "description": "Where your license for a database family stands today. `licensed` is a\nlive grant, `expired` one whose term has ended, and `unlicensed` a\ndatabase published but never bought.\n",
+        "enum": [
+          "expired",
+          "licensed",
+          "unlicensed"
+        ]
+      },
+      "DatabaseFormat": {
+        "type": "string",
+        "description": "A file format a database version is published in.",
+        "enum": [
+          "csvgz",
+          "mmdb"
+        ]
+      },
+      "DatabaseFormatSize": {
         "type": "object",
         "properties": {
           "format": {
-            "type": "string",
-            "enum": [
-              "csvgz",
-              "mmdb"
-            ]
+            "$ref": "#/components/schemas/DatabaseFormat"
           },
           "bytes": {
             "type": "integer",
@@ -922,13 +1045,13 @@
           "bytes"
         ]
       },
-      "LicensedDataset": {
+      "Database": {
         "type": "object",
-        "description": "One dataset FAMILY your organization is licensed for. A license covers\nthe family, while a download names a specific version, so the ids you\npass to the download and checksum endpoints come from `versions`.\n",
+        "description": "One database FAMILY your organization is licensed for. A license covers\nthe family, while a download names a specific version, so the ids you\npass to the download and checksum endpoints come from `versions`.\n",
         "properties": {
           "base": {
             "type": "string",
-            "description": "The dataset family, e.g. `vpn_ip`. What the license is held against.",
+            "description": "The database family, e.g. `vpn_ip`. What the license is held against.",
             "example": "vpn_ip"
           },
           "name": {
@@ -939,13 +1062,7 @@
             "type": "string"
           },
           "license_type": {
-            "type": "string",
-            "enum": [
-              "evaluation",
-              "standard",
-              "redistribute"
-            ],
-            "description": "What your license permits you to do with the data."
+            "$ref": "#/components/schemas/LicenseType"
           },
           "starts": {
             "type": "string",
@@ -975,19 +1092,13 @@
             "description": "False when the license has lapsed; downloads are refused."
           },
           "standing": {
-            "type": "string",
-            "enum": [
-              "expired",
-              "licensed",
-              "unlicensed"
-            ],
-            "description": "`licensed` is a live grant, `expired` one whose term has ended, and\n`unlicensed` a dataset published but never bought.\n"
+            "$ref": "#/components/schemas/Standing"
           },
           "versions": {
             "type": "array",
             "description": "Every published version of this family. The `id` here is what the\ndownload and checksum endpoints take.\n",
             "items": {
-              "$ref": "#/components/schemas/LicensedVersion"
+              "$ref": "#/components/schemas/DatabaseVersion"
             }
           }
         },
@@ -1005,12 +1116,12 @@
           "versions"
         ]
       },
-      "LicensedVersion": {
+      "DatabaseVersion": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "description": "The versioned dataset id, e.g. `vpn_ip_v1`. Pass this to download.",
+            "description": "The versioned database id, e.g. `vpn_ip_v1`. Pass this to download.",
             "example": "vpn_ip_v1"
           },
           "version": {
@@ -1023,18 +1134,14 @@
           "formats": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/DatasetFormatSize"
+              "$ref": "#/components/schemas/DatabaseFormatSize"
             }
           },
-          "sampleFormats": {
+          "sample_formats": {
             "type": "array",
             "description": "The formats an evaluation sample is published in, if any.",
             "items": {
-              "type": "string",
-              "enum": [
-                "csvgz",
-                "mmdb"
-              ]
+              "$ref": "#/components/schemas/DatabaseFormat"
             }
           }
         },
@@ -1109,7 +1216,31 @@
           "created"
         ]
       },
-      "DatasetMetadataColumn": {
+      "DbChecksums": {
+        "type": "object",
+        "description": "The published digests for one database file.",
+        "properties": {
+          "md5": {
+            "type": "string"
+          },
+          "sha1": {
+            "type": "string"
+          },
+          "sha256": {
+            "type": "string"
+          },
+          "sha512": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "md5",
+          "sha1",
+          "sha256",
+          "sha512"
+        ]
+      },
+      "DatabaseMetadataColumn": {
         "type": "object",
         "properties": {
           "name": {
@@ -1127,7 +1258,7 @@
           "type"
         ]
       },
-      "DatasetMetadata": {
+      "DatabaseMetadata": {
         "type": "object",
         "properties": {
           "id": {
@@ -1150,7 +1281,7 @@
             "additionalProperties": {
               "type": "array",
               "items": {
-                "$ref": "#/components/schemas/DatasetMetadataColumn"
+                "$ref": "#/components/schemas/DatabaseMetadataColumn"
               }
             },
             "description": "Columns, keyed by format"
@@ -1204,7 +1335,7 @@
         }
       },
       "NotLicensed": {
-        "description": "Your organization holds no license for this dataset, or its term has ended",
+        "description": "Your organization holds no license for this database, or its term has ended",
         "content": {
           "application/json": {
             "schema": {
@@ -1214,7 +1345,7 @@
         }
       },
       "UnknownDataset": {
-        "description": "No such dataset",
+        "description": "No such database",
         "content": {
           "application/json": {
             "schema": {

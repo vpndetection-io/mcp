@@ -148,12 +148,12 @@ test('every id-taking tool names both spellings', () => {
 // The unwrap DEPTH is the documented way these bindings break: the nodejs SDK
 // shipped 1.0.x reading a top-level `sha256` off a body that nests it.
 test('each database tool answers at the documented depth', async () => {
-    const catalog = { datasets: [{ base: 'cdn_ip', versions: [{ id: 'cdn_ip_v1' }] }] };
+    const catalog = { databases: [{ base: 'cdn_ip', versions: [{ id: 'cdn_ip_v1' }] }] };
     const sums = { md5: 'm', sha1: 's1', sha256: 's256', sha512: 's512' };
 
     const listed = await toolsFor(serving(catalog))
         .find((d) => d.tool.name === 'list_databases').handler({});
-    assert.deepEqual(listed.structuredContent, { databases: catalog.datasets },
+    assert.deepEqual(listed.structuredContent, catalog,
         'the listing is returned as served, under `databases`');
 
     const meta = { id: 'cdn_ip_v1', entries: 5 };

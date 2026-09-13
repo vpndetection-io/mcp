@@ -45,9 +45,11 @@ export interface ObjectSchema {
 
 export const LOOKUP_RESULT_SCHEMA: ObjectSchema = ${ts(lookup)};
 
-export const LICENSED_DATASET_SCHEMA: ObjectSchema = ${ts(schema('LicensedDataset'))};
+export const DATABASE_SCHEMA: ObjectSchema = ${ts(schema('Database'))};
 
-export const DATASET_METADATA_SCHEMA: ObjectSchema = ${ts(schema('DatasetMetadata'))};
+export const DATABASE_METADATA_SCHEMA: ObjectSchema = ${ts(schema('DatabaseMetadata'))};
+
+export const DB_CHECKSUMS_SCHEMA: ObjectSchema = ${ts(schema('DbChecksums'))};
 `;
 
 writeFileSync(resolve(root, 'src/schema.gen.ts'), out);

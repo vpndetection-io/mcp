@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import type { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import type { CallToolResult, Tool } from '@modelcontextprotocol/sdk/types.js';
-import type { DatasetFormat, Result, VPNDetection } from 'vpndetection';
+import type { DatabaseFormat, Result, VPNDetection } from 'vpndetection';
 
 import {
     CallToolRequestSchema, ListToolsRequestSchema,
@@ -10,7 +10,7 @@ import {
 
 import { batchCoverage, COVERAGE_SCHEMA, coverageOf, wireBody } from './coverage.js';
 import {
-    DATASET_METADATA_SCHEMA, LICENSED_DATASET_SCHEMA, LOOKUP_RESULT_SCHEMA,
+    DATABASE_METADATA_SCHEMA, DATABASE_SCHEMA, DB_CHECKSUMS_SCHEMA, LOOKUP_RESULT_SCHEMA,
 } from './schema.gen.js';
 
 /** The most addresses one `lookup_ips` call may carry. */
@@ -189,7 +189,7 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
                     + 'on to this: it is answered per key and is not the same for everyone.',
                 inputSchema: { type: 'object', additionalProperties: false },
                 outputSchema: objectSchema({
-                    databases: { type: 'array', items: LICENSED_DATASET_SCHEMA },
+                    databases: { type: 'array', items: DATABASE_SCHEMA },
                 }, ['databases']),
                 annotations: {
                     readOnlyHint: true,
@@ -213,7 +213,7 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
                 inputSchema: jsonSchema(z.object({
                     dataset_id: z.string().describe(VERSIONED_ID),
                 })),
-                outputSchema: DATASET_METADATA_SCHEMA,
+                outputSchema: DATABASE_METADATA_SCHEMA,
                 annotations: {
                     readOnlyHint: true,
                     idempotentHint: true,
@@ -236,11 +236,7 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
                     dataset_id: z.string().describe(VERSIONED_ID),
                     format: formats.describe('Which published file to digest.'),
                 })),
-                outputSchema: {
-                    type: 'object',
-                    properties: { checksums: { type: 'object', additionalProperties: true } },
-                    required: ['checksums'],
-                },
+                outputSchema: objectSchema({ checksums: DB_CHECKSUMS_SCHEMA }, ['checksums']),
                 annotations: {
                     readOnlyHint: true,
                     idempotentHint: true,
@@ -253,7 +249,7 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
                     format: formats,
                 }).parse(args);
                 const checksums = await ctx.client.database.checksums(
-                    parsed.dataset_id, parsed.format as DatasetFormat);
+                    parsed.dataset_id, parsed.format as DatabaseFormat);
                 return ok({ checksums: checksums });
             },
         },
