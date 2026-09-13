@@ -16,10 +16,22 @@ import {
 /** The most addresses one `lookup_ips` call may carry. */
 export const BATCH_LIMIT = 100;
 
+/** The most history rows one `list_downloads` call may ask for. The API clamps to the same. */
+export const DOWNLOADS_LIMIT = 200;
+
+// Both spellings of a database id, stated wherever one is taken. `list_databases`
+// answers a `base` id (what a licence names) and a `versions[].id`; everything
+// else accepts only the versioned one. A model that has just read
+// `base: "cdn_ip"` will otherwise pass it and get a refusal that reads like a
+// bad database rather than a wrong spelling.
+const VERSIONED_ID = 'A VERSIONED database id, from `versions[].id` in `list_databases` - '
+    + '`cdn_ip_v1`, not `cdn_ip`. The unversioned base id is a licence reference and is '
+    + 'not accepted here.';
+
 export interface ToolContext {
     client: VPNDetection;
     /**
-     * Whether to offer the dataset tools. On by default: a key without the
+     * Whether to offer the database tools. On by default: a key without the
      * `db.download` scope gets a plain refusal from the API, which reads better
      * than a tool that silently does not exist, and deciding otherwise would
      * mean re-validating the key here against a policy `db_dl_api` owns.
@@ -167,39 +179,46 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
         {
             tool: {
                 name: 'list_databases',
-                title: 'List licensed datasets',
-                description: 'The datasets this API key\'s organisation is licensed to download, '
-                    + 'with the licence type and term. A dataset absent from this list is one the '
-                    + 'organisation does not hold. Each entry has a `base` id, which is what the '
-                    + 'licence names, and a `versions` array whose `id` is what the other dataset '
-                    + 'tools take - pass `versions[].id` (`cdn_ip_v1`), never the `base` '
-                    + '(`cdn_ip`).',
+                title: 'List databases',
+                description: 'The database catalog as this API key\'s organization may see it, '
+                    + 'one entry per database FAMILY, with the licence type and term. A database '
+                    + 'absent from this list is one the organization does not hold. Each entry has '
+                    + 'a `base` id, which is what the licence names, and a `versions` array whose '
+                    + '`id` is what the other database tools take - pass `versions[].id` '
+                    + '(`cdn_ip_v1`), never the `base` (`cdn_ip`). Ask again rather than holding '
+                    + 'on to this: it is answered per key and is not the same for everyone.',
                 inputSchema: { type: 'object', additionalProperties: false },
                 outputSchema: objectSchema({
-                    datasets: { type: 'array', items: LICENSED_DATASET_SCHEMA },
-                }, ['datasets']),
-                annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+                    databases: { type: 'array', items: LICENSED_DATASET_SCHEMA },
+                }, ['databases']),
+                annotations: {
+                    readOnlyHint: true,
+                    idempotentHint: true,
+                    openWorldHint: true,
+                },
             },
             handler: async () => {
-                return ok({ datasets: await ctx.client.database.list() });
+                return ok({ databases: await ctx.client.database.list() });
             },
         },
         {
             tool: {
                 name: 'database_metadata',
-                title: 'Describe a dataset',
-                description: 'The shape of a dataset before you fetch it: the columns in each '
+                title: 'Describe a database',
+                description: 'What is inside one database before you fetch it: the columns in each '
                     + 'published format with their types, a few sample rows, the row count, the '
                     + 'build date and the file sizes. Use this to answer questions about what a '
-                    + 'dataset contains without downloading it - the files reach several GB.',
+                    + 'database contains without downloading it - the files reach several GB - and '
+                    + 'to budget a transfer before starting one.',
                 inputSchema: jsonSchema(z.object({
-                    dataset_id: z.string().describe(
-                        'A VERSIONED dataset id, from `versions[].id` in `list_databases` - '
-                        + '`cdn_ip_v1`, not `cdn_ip`. The unversioned base id is a licence '
-                        + 'reference and is not accepted here.'),
+                    dataset_id: z.string().describe(VERSIONED_ID),
                 })),
                 outputSchema: DATASET_METADATA_SCHEMA,
-                annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+                annotations: {
+                    readOnlyHint: true,
+                    idempotentHint: true,
+                    openWorldHint: true,
+                },
             },
             handler: async (args) => {
                 const { dataset_id } = z.object({ dataset_id: z.string() }).parse(args);
@@ -209,13 +228,12 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
         {
             tool: {
                 name: 'database_checksum',
-                title: 'Get a dataset\'s checksums',
-                description: 'The published digests for one dataset file, for verifying a copy you '
-                    + 'already hold or deciding whether a build has changed since you last fetched it.',
+                title: 'Get a database\'s checksums',
+                description: 'The published digests for one database file, for verifying a copy '
+                    + 'you already hold or deciding whether a build has changed since you last '
+                    + 'fetched it.',
                 inputSchema: jsonSchema(z.object({
-                    dataset_id: z.string().describe(
-                        'A VERSIONED dataset id, from `versions[].id` in `list_databases` - '
-                        + '`cdn_ip_v1`, not `cdn_ip`.'),
+                    dataset_id: z.string().describe(VERSIONED_ID),
                     format: formats.describe('Which published file to digest.'),
                 })),
                 outputSchema: {
@@ -223,7 +241,11 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
                     properties: { checksums: { type: 'object', additionalProperties: true } },
                     required: ['checksums'],
                 },
-                annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+                annotations: {
+                    readOnlyHint: true,
+                    idempotentHint: true,
+                    openWorldHint: true,
+                },
             },
             handler: async (args) => {
                 const parsed = z.object({
@@ -233,6 +255,40 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
                 const checksums = await ctx.client.database.checksums(
                     parsed.dataset_id, parsed.format as DatasetFormat);
                 return ok({ checksums: checksums });
+            },
+        },
+        {
+            tool: {
+                name: 'list_downloads',
+                title: 'List recent download attempts',
+                description: 'This organization\'s own recent download attempts, newest first, '
+                    + 'REFUSALS INCLUDED - a denial carries the `outcome` and `http_status` that '
+                    + 'answer "it stopped working", which nothing else here can. Use it to explain '
+                    + 'a failing fetch, to confirm a transfer ran, or to check whether a request '
+                    + 'was theirs. This is a bounded WINDOW of at most '
+                    + `${DOWNLOADS_LIMIT} rows, so a database missing from the answer means it is `
+                    + 'not in this window - never that it was never downloaded.',
+                inputSchema: jsonSchema(z.object({
+                    limit: z.number().int().min(1).max(DOWNLOADS_LIMIT).optional().describe(
+                        `How many attempts to return, newest first. At most ${DOWNLOADS_LIMIT}; `
+                        + 'the API defaults to 50.'),
+                })),
+                outputSchema: objectSchema({
+                    downloads: { type: 'array', items: { type: 'object', additionalProperties: true } },
+                }, ['downloads']),
+                annotations: {
+                    readOnlyHint: true,
+                    idempotentHint: false,
+                    openWorldHint: true,
+                },
+            },
+            handler: async (args) => {
+                const { limit } = z.object({
+                    limit: z.number().int().min(1).max(DOWNLOADS_LIMIT).optional(),
+                }).parse(args);
+                const downloads = await ctx.client.database.downloads(
+                    limit === undefined ? {} : { limit: limit });
+                return ok({ downloads: downloads });
             },
         },
     ];

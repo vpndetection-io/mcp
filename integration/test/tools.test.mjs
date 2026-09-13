@@ -48,8 +48,9 @@ test('the server starts and lists its tools', async () => {
         const names = tools.map((t) => t.name);
         assert.deepEqual(names, [
             'lookup_ip', 'lookup_ips', 'list_databases', 'database_metadata', 'database_checksum',
+            'list_downloads',
         ]);
-        assert.ok(!names.some((n) => n.includes('download')));
+        assert.ok(!names.some((n) => n.includes('download') && n !== 'list_downloads'));
     } finally {
         await client.close();
     }

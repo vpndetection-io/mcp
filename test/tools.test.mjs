@@ -8,7 +8,7 @@ import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import { VPNDetection } from 'vpndetection';
 
-import { BATCH_LIMIT, createTools } from '../dist/index.js';
+import { BATCH_LIMIT, createTools, DOWNLOADS_LIMIT } from '../dist/index.js';
 
 const data = JSON.parse(readFileSync(new URL('../testdata/testdata.json', import.meta.url), 'utf8'));
 
@@ -37,17 +37,19 @@ test('every tool is well formed', () => {
     }
 });
 
-test('no tool downloads a dataset', () => {
+test('no tool downloads a database', () => {
     const names = toolsFor(serving({})).map((d) => d.tool.name);
     assert.deepEqual(names, [
         'lookup_ip', 'lookup_ips', 'list_databases', 'database_metadata', 'database_checksum',
+        'list_downloads',
     ]);
     for (const n of names) {
-        assert.doesNotMatch(n, /download/, 'a download tool would hand an agent a multi-GB file');
+        assert.doesNotMatch(n, /download(?!s$)/,
+            'a download tool would hand an agent a multi-GB file');
     }
 });
 
-test('the dataset tools can be withheld', () => {
+test('the database tools can be withheld', () => {
     const names = toolsFor(serving({}), { database: false }).map((d) => d.tool.name);
     assert.deepEqual(names, ['lookup_ip', 'lookup_ips']);
 });
@@ -128,6 +130,57 @@ test('a bogon answer also validates', async () => {
     const validate = ajv.compile(lookup.tool.outputSchema);
     const out = await lookup.handler({ ip: '10.0.0.1' });
     assert.ok(validate(out.structuredContent), ajv.errorsText(validate.errors));
+});
+
+// Both spellings exist and only one is accepted, so the description is the only
+// thing standing between a model that has just read `base` and a refusal that
+// looks like a missing database. Shared constant, so the two cannot drift apart -
+// they did, and `database_checksum` carried a truncated copy.
+test('every id-taking tool names both spellings', () => {
+    const byName = new Map(toolsFor(serving({})).map((d) => [d.tool.name, d]));
+    for (const n of ['database_metadata', 'database_checksum']) {
+        const described = byName.get(n).tool.inputSchema.properties.dataset_id.description;
+        assert.match(described, /versions\[\]\.id/, `${n}: does not name the versioned id`);
+        assert.match(described, /base id/, `${n}: does not warn about the base id`);
+    }
+});
+
+// The unwrap DEPTH is the documented way these bindings break: the nodejs SDK
+// shipped 1.0.x reading a top-level `sha256` off a body that nests it.
+test('each database tool answers at the documented depth', async () => {
+    const catalog = { datasets: [{ base: 'cdn_ip', versions: [{ id: 'cdn_ip_v1' }] }] };
+    const sums = { md5: 'm', sha1: 's1', sha256: 's256', sha512: 's512' };
+
+    const listed = await toolsFor(serving(catalog))
+        .find((d) => d.tool.name === 'list_databases').handler({});
+    assert.deepEqual(listed.structuredContent, { databases: catalog.datasets },
+        'the listing is returned as served, under `databases`');
+
+    const meta = { id: 'cdn_ip_v1', entries: 5 };
+    const described = await toolsFor(serving(meta))
+        .find((d) => d.tool.name === 'database_metadata').handler({ dataset_id: 'cdn_ip_v1' });
+    assert.equal(described.structuredContent.id, 'cdn_ip_v1', 'metadata is NOT wrapped');
+
+    const digested = await toolsFor(serving({ checksums: sums }))
+        .find((d) => d.tool.name === 'database_checksum')
+        .handler({ dataset_id: 'cdn_ip_v1', format: 'csvgz' });
+    assert.equal(digested.structuredContent.sha256, undefined, 'digests must stay nested');
+    assert.deepEqual(digested.structuredContent.checksums, sums);
+
+    const history = { downloads: [{ dataset_id: 'cdn_ip_v1', outcome: 'denied', http_status: 403 }] };
+    const attempts = await toolsFor(serving(history))
+        .find((d) => d.tool.name === 'list_downloads').handler({});
+    assert.deepEqual(attempts.structuredContent, history,
+        'a refusal is carried through, not filtered out');
+});
+
+test('the downloads window is published and enforced', async () => {
+    const def = toolsFor(serving({ downloads: [] })).find((d) => d.tool.name === 'list_downloads');
+    assert.equal(def.tool.inputSchema.properties.limit.maximum, DOWNLOADS_LIMIT);
+
+    const out = await def.handler({ limit: DOWNLOADS_LIMIT + 1 });
+    assert.equal(out.isError, true, 'over the cap must be refused, not silently truncated');
+    assert.equal(out.structuredContent, undefined, 'an error must not be validated as a success');
 });
 
 test('the tool list is deterministic, so clients can cache it', () => {

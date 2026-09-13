@@ -1,4 +1,4 @@
-export { createTools, registerTools, BATCH_LIMIT } from './tools.js';
+export { createTools, registerTools, BATCH_LIMIT, DOWNLOADS_LIMIT } from './tools.js';
 export type { ToolContext, ToolDef } from './tools.js';
 export { coverageOf, batchCoverage, COVERAGE_SCHEMA } from './coverage.js';
 export type { Coverage } from './coverage.js';

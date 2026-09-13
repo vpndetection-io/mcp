@@ -5,7 +5,7 @@
 
 The official [Model Context Protocol](https://modelcontextprotocol.io) server for the [VPNDetection](https://vpndetection.io) API.
 
-It gives an AI agent five read-only tools for anonymity detection: whether an address belongs to a VPN, a residential, datacenter or mobile proxy, a Tor node, a public relay, a hosting provider or a CDN, plus the catalogue of datasets your organisation is licensed to download.
+It gives an AI agent six read-only tools for anonymity detection: whether an address belongs to a VPN, a residential, datacenter or mobile proxy, a Tor node, a public relay, a hosting provider or a CDN, plus the catalogue of databases your organization is licensed to download.
 
 ## Getting Started
 
@@ -30,7 +30,7 @@ Requires Node.js 22 or newer.
 
 ### With an API key
 
-A key unlocks the provider name, the classification datasets and the proxy families. Put it in the environment:
+A key unlocks the provider name, the classification databases and the proxy families. Put it in the environment:
 
 ```json
 {
@@ -52,11 +52,12 @@ A key unlocks the provider name, the classification datasets and the proxy famil
 |---|---|
 | `lookup_ip` | Classify one address. |
 | `lookup_ips` | Classify up to 100 addresses in one call, keyed by address. |
-| `list_databases` | The datasets your organisation is licensed for. |
-| `database_metadata` | A dataset's columns, sample rows, row count, build date and file sizes. |
-| `database_checksum` | The published digests for one dataset file. |
+| `list_databases` | The databases your organization is licensed for. |
+| `database_metadata` | A database's columns, sample rows, row count, build date and file sizes. |
+| `database_checksum` | The published digests for one database file. |
+| `list_downloads` | Your organization's recent download attempts, refusals included. |
 
-Every tool is read-only. There is deliberately no download tool: the datasets run to several GB, which is not something an agent should pull into a conversation. Fetch them with the [client libraries](https://github.com/vpndetection-io) or the API instead.
+Every tool is read-only. There is deliberately no download tool: the databases run to several GB, which is not something an agent should pull into a conversation. Fetch them with the [client libraries](https://github.com/vpndetection-io) or the API instead.
 
 ## Reading a result
 
