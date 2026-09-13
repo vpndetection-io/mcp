@@ -52,12 +52,17 @@ A key unlocks the provider name, the classification databases and the proxy fami
 |---|---|
 | `lookup_ip` | Classify one address. |
 | `lookup_ips` | Classify up to 100 addresses in one call, keyed by address. |
+| `my_account` | What this key is entitled to and what it has spent: plan, field tier, requests so far, allowance, and when it resets. |
 | `list_databases` | The databases your organization is licensed for. |
 | `database_metadata` | A database's columns, sample rows, row count, build date and file sizes. |
 | `database_checksum` | The published digests for one database file. |
 | `list_downloads` | Your organization's recent download attempts, refusals included. |
 
 Every tool is read-only. There is deliberately no download tool: the databases run to several GB, which is not something an agent should pull into a conversation. Fetch them with the [client libraries](https://github.com/vpndetection-io) or the API instead.
+
+**There is deliberately no `my_ip` tool, although every client library has one.** Over a hosted transport the address our edge observes belongs to whatever proxied the call - Claude's infrastructure, not the person asking - so the tool would answer confidently and wrongly for the only reading anyone would put on it. `my_account` has no such problem and is the same answer from any transport, because it describes the credential rather than the connection. A test pins the tool's absence so it cannot be added back by accident.
+
+Usage counts against the anniversary of the subscription, not the calendar month and not the billing period. A null `hard_limit` means we never stop serving; it is not a limit of zero.
 
 ## Reading a result
 
