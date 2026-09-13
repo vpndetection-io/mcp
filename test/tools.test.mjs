@@ -40,8 +40,8 @@ test('every tool is well formed', () => {
 test('no tool downloads a database', () => {
     const names = toolsFor(serving({})).map((d) => d.tool.name);
     assert.deepEqual(names, [
-        'lookup_ip', 'lookup_ips', 'list_databases', 'database_metadata', 'database_checksum',
-        'list_downloads',
+        'lookup_ip', 'lookup_ips', 'my_account', 'list_databases', 'database_metadata',
+        'database_checksum', 'list_downloads',
     ]);
     for (const n of names) {
         assert.doesNotMatch(n, /download(?!s$)/,
@@ -51,7 +51,7 @@ test('no tool downloads a database', () => {
 
 test('the database tools can be withheld', () => {
     const names = toolsFor(serving({}), { database: false }).map((d) => d.tool.name);
-    assert.deepEqual(names, ['lookup_ip', 'lookup_ips']);
+    assert.deepEqual(names, ['lookup_ip', 'lookup_ips', 'my_account']);
 });
 
 test('the batch cap is published and enforced', async () => {
@@ -187,4 +187,44 @@ test('the tool list is deterministic, so clients can cache it', () => {
     const a = toolsFor(serving({})).map((d) => d.tool.name);
     const b = toolsFor(serving({})).map((d) => d.tool.name);
     assert.deepEqual(a, b);
+});
+
+const ACCOUNT_BODY = {
+    org_id: '85bb51e4-2eb6-4a31-8e4d-02ba8b98fe61',
+    apikey: { id: '0ab424cc-7619-4dad-b027-afacdc2cedb0', expires: null, allowed_cidrs: [] },
+    plan: { key: 'max', tier: 'max' },
+    usage: {
+        requests: 580,
+        quota: 5000000,
+        hard_limit: null,
+        window_start: '2026-09-04T07:00:00Z',
+        window_end: '2026-10-04T07:00:00Z',
+    },
+};
+
+test('my_account reports the plan and the usage', async () => {
+    const def = toolsFor(serving(ACCOUNT_BODY)).find((d) => d.tool.name === 'my_account');
+
+    const result = await def.handler({});
+
+    assert.equal(result.structuredContent.account.plan.key, 'max');
+    assert.equal(result.structuredContent.account.plan.tier, 'max');
+    assert.equal(result.structuredContent.account.usage.requests, 580);
+    // Null means NEVER stop, which is not the same as a limit of zero, and the
+    // description says so because a model would otherwise read it as a stop.
+    assert.equal(result.structuredContent.account.usage.hard_limit, null);
+});
+
+// The number it reports moves with every other call, which is the whole point
+// of asking - a model told otherwise could cache it across a long session.
+test('my_account is not advertised as idempotent', () => {
+    const def = toolsFor(serving(ACCOUNT_BODY)).find((d) => d.tool.name === 'my_account');
+    assert.equal(def.tool.annotations.idempotentHint, false);
+});
+
+// Over a hosted transport the observed address belongs to whatever proxied the
+// call, so a my_ip tool would answer confidently and wrongly.
+test('there is no my_ip tool', () => {
+    const names = toolsFor(serving({})).map((d) => d.tool.name);
+    assert.ok(!names.includes('my_ip'), 'my_ip cannot mean what a model would read it to mean');
 });

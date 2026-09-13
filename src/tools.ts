@@ -108,6 +108,8 @@ export function createTools(ctx: ToolContext): ToolDef[] {
         },
     ];
 
+    defs.push(accountTool(ctx));
+
     if (ctx.database !== false) {
         defs.push(...databaseTools(ctx));
     }
@@ -171,6 +173,46 @@ async function lookupIps(ctx: ToolContext, args: Record<string, unknown>): Promi
         served.push(body);
     }
     return ok({ results: results, coverage: batchCoverage(served) });
+}
+
+/**
+ * What the presented key is entitled to, and what it has spent.
+ *
+ * There is deliberately NO `my_ip` counterpart. The SDKs have one, but over a
+ * HOSTED transport the address our edge observes belongs to whatever proxied
+ * the call - Claude's infrastructure, not the person asking - so the tool would
+ * answer confidently and wrongly for the reading a model would put on it. The
+ * account is the same answer whoever forwards the request, because it describes
+ * the credential rather than the connection.
+ */
+function accountTool(ctx: ToolContext): ToolDef {
+    return {
+        tool: {
+            name: 'my_account',
+            title: 'Plan and usage for this key',
+            description: 'What this API key is entitled to and how much of it has been used: the '
+                + 'plan, the field tier that decides how much of a lookup answer comes back, the '
+                + 'requests counted so far, the allowance, and when it resets. Use it to explain '
+                + 'why a field is missing from a lookup, or before a large batch. Usage counts '
+                + 'against the anniversary of the subscription rather than the calendar month, '
+                + 'and can lag a few seconds behind. A null `hard_limit` means we never stop '
+                + 'serving - it is NOT a limit of zero.',
+            inputSchema: { type: 'object', additionalProperties: false },
+            outputSchema: objectSchema({
+                account: { type: 'object', additionalProperties: true },
+            }, ['account']),
+            annotations: {
+                readOnlyHint: true,
+                // Not idempotent: the number it reports moves with every other
+                // call, which is the whole point of asking.
+                idempotentHint: false,
+                openWorldHint: true,
+            },
+        },
+        handler: async () => {
+            return ok({ account: await ctx.client.myAccount() });
+        },
+    };
 }
 
 function databaseTools(ctx: ToolContext): ToolDef[] {
