@@ -9,6 +9,7 @@ import addFormats from 'ajv-formats';
 import { VPNDetection } from 'vpndetection';
 
 import { BATCH_LIMIT, createTools, DOWNLOADS_LIMIT } from '../dist/index.js';
+import { DOWNLOADS_LIMIT as SPEC_DOWNLOADS_LIMIT } from '../dist/schema.gen.js';
 
 const data = JSON.parse(readFileSync(new URL('../testdata/testdata.json', import.meta.url), 'utf8'));
 
@@ -227,4 +228,51 @@ test('my_account is not advertised as idempotent', () => {
 test('there is no my_ip tool', () => {
     const names = toolsFor(serving({})).map((d) => d.tool.name);
     assert.ok(!names.includes('my_ip'), 'my_ip cannot mean what a model would read it to mean');
+});
+
+// A rejected argument is the one failure a model can fix unaided, so it must not
+// arrive as `internal` - which says the server broke and invites an identical
+// retry. Every one of these used to.
+test('a rejected argument is the model\'s to fix, not an internal failure', async () => {
+    const defs = toolsFor(serving({}));
+    const byName = new Map(defs.map((d) => [d.tool.name, d]));
+    const cases = [
+        ['lookup_ip', { ip: 12345 }, 'ip'],
+        ['lookup_ips', { ips: [] }, 'ips'],
+        ['database_checksum', { dataset_id: 'cdn_ip_v1', format: 'zip' }, 'format'],
+        ['list_downloads', { limit: DOWNLOADS_LIMIT + 1 }, 'limit'],
+    ];
+    for (const [name, args, field] of cases) {
+        const res = await byName.get(name).handler(args);
+        assert.equal(res.isError, true, name);
+        const { error } = JSON.parse(res.content[0].text);
+        assert.equal(error.kind, 'invalid_argument', `${name} must not be 'internal'`);
+        assert.equal(error.retryable, false, `${name} is not worth retrying unchanged`);
+        // zod's formatter names the field; the raw `issues` array is JSON the
+        // model would have to decode before it could act on it.
+        assert.match(error.message, new RegExp(field), `${name} must name the field`);
+        assert.doesNotMatch(error.message, /"code":/, `${name} must not be a raw issue array`);
+    }
+});
+
+// The bound a client is SHOWN and the bound it MEETS come from one declaration,
+// so they cannot drift. Two lookalike zod objects is how they used to.
+test('every published cap is the cap the handler enforces', async () => {
+    const byName = new Map(toolsFor(serving({})).map((d) => [d.tool.name, d]));
+
+    const batch = byName.get('lookup_ips').tool.inputSchema.properties.ips;
+    assert.equal(batch.maxItems, BATCH_LIMIT);
+    const overBatch = await byName.get('lookup_ips')
+        .handler({ ips: Array(BATCH_LIMIT + 1).fill('1.1.1.1') });
+    assert.equal(overBatch.isError, true, 'the advertised batch cap must be enforced');
+
+    const limit = byName.get('list_downloads').tool.inputSchema.properties.limit;
+    assert.equal(limit.maximum, DOWNLOADS_LIMIT);
+});
+
+// Read off the spec's own maximum rather than restated, the same contract the
+// output schemas already had.
+test('the downloads cap comes from the spec, not a hardcoded copy', () => {
+    assert.equal(DOWNLOADS_LIMIT, SPEC_DOWNLOADS_LIMIT);
+    assert.equal(typeof DOWNLOADS_LIMIT, 'number');
 });
