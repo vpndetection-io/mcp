@@ -51,7 +51,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.20.2",
-    "vpndetection": "^4.0.0",
+    "vpndetection": "^4.1.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {

@@ -1165,8 +1165,9 @@
           },
           "bytes": {
             "type": "integer",
+            "format": "int64",
             "nullable": true,
-            "description": "Size of the published file, or null when it has not been published yet"
+            "description": "Size of the published file, or null when it has not been published\nyet. int64 because it is not hypothetical: resproxy_ip_14d's MMDB is\n4.58 GB, so a 32-bit field cannot carry the catalogue and `list`\nthrows for every caller rather than for that one entry.\n"
           }
         },
         "required": [
@@ -1315,8 +1316,9 @@
           },
           "bytes": {
             "type": "integer",
+            "format": "int64",
             "nullable": true,
-            "description": "Object size at redirect time, NOT bytes delivered: the transfer is a\npresigned redirect straight to object storage, so we never observe it.\n"
+            "description": "Object size at redirect time, NOT bytes delivered: the transfer is a\npresigned redirect straight to object storage, so we never observe it.\nint64 for the same reason as DatabaseFormatSize.bytes - it is the\nsize of the same object.\n"
           },
           "http_status": {
             "type": "integer",
@@ -1436,14 +1438,16 @@
           "size": {
             "type": "object",
             "additionalProperties": {
-              "type": "integer"
+              "type": "integer",
+              "format": "int64"
             },
             "description": "Bytes per format"
           },
           "sample_size": {
             "type": "object",
             "additionalProperties": {
-              "type": "integer"
+              "type": "integer",
+              "format": "int64"
             },
             "description": "Bytes per format of the evaluation sample, where one is published"
           },
