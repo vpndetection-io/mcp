@@ -10,13 +10,10 @@
     },
     "dependencies": {
         "@modelcontextprotocol/sdk": "^1.20.2",
-        "vpndetection-mcp": "^4.0.0"
+        "vpndetection-mcp": "^5.0.0"
     },
     "scripts": {
         "test": "node --test test/*.test.mjs",
         "integration": "node scripts/run.mjs"
-    },
-    "devDependencies": {
-        "@mslm/libjs-eslint-config": "2.4.0"
     }
 }

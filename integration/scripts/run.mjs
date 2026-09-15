@@ -46,6 +46,7 @@ function main() {
         return;
     }
     console.log(`==> ${PACKAGE}@${range} matches published ${versions.join(', ')}`);
+    assertRangeAdmitsLatest(range, versions);
 
     // Empty counts as absent: Actions interpolates a secret that does not exist
     // to an empty string, and an empty key is sent as no key at all.
@@ -86,6 +87,33 @@ function publishedVersions(range) {
     }
     const parsed = JSON.parse(out.trim());
     return Array.isArray(parsed) ? parsed : [parsed];
+}
+
+/**
+ * Refuses a range that has fallen behind the newest release.
+ *
+ * A range that still matches SOMETHING passes every other check here while
+ * testing a client the library left behind - this suite ran `^4.0.0` against
+ * 4.2.0 for the whole life of 5.0.0, and the red it eventually produced would
+ * have read as a broken staging API rather than as a stale pin. Checked in the
+ * runner because `release-preflight.sh` cannot see it: `integration_pin_of` is
+ * keyed on the repo directory and has arms for the twelve language SDKs, not
+ * for `mcp`, so the gate reports `ok` having read nothing.
+ *
+ * Not the same thing as the range being EMPTY, which is handled above and is a
+ * skip: before a first release there is genuinely nothing to test.
+ */
+function assertRangeAdmitsLatest(range, versions) {
+    const latest = execFileSync('npm', ['view', PACKAGE, 'dist-tags.latest'], {
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+    }).trim();
+    if (versions.includes(latest)) {
+        return;
+    }
+    throw new Error(
+        `${PACKAGE}@${range} does not admit the newest published ${latest} - it would test `
+        + `${versions[versions.length - 1]} instead. Bump the range in integration/package.json.`);
 }
 
 // The suite is worthless if npm handed it a link to the working tree, and that
