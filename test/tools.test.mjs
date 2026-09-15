@@ -41,7 +41,7 @@ test('every tool is well formed', () => {
 test('no tool downloads a database', () => {
     const names = toolsFor(serving({})).map((d) => d.tool.name);
     assert.deepEqual(names, [
-        'lookup_ip', 'lookup_ips', 'my_account', 'list_databases', 'database_metadata',
+        'lookup_ip', 'lookup_ips', 'my_entitlement', 'list_databases', 'database_metadata',
         'database_checksum', 'list_downloads',
     ]);
     for (const n of names) {
@@ -52,7 +52,7 @@ test('no tool downloads a database', () => {
 
 test('the database tools can be withheld', () => {
     const names = toolsFor(serving({}), { database: false }).map((d) => d.tool.name);
-    assert.deepEqual(names, ['lookup_ip', 'lookup_ips', 'my_account']);
+    assert.deepEqual(names, ['lookup_ip', 'lookup_ips', 'my_entitlement']);
 });
 
 test('the batch cap is published and enforced', async () => {
@@ -190,7 +190,7 @@ test('the tool list is deterministic, so clients can cache it', () => {
     assert.deepEqual(a, b);
 });
 
-const ACCOUNT_BODY = {
+const ENTITLEMENT_BODY = {
     org_id: '85bb51e4-2eb6-4a31-8e4d-02ba8b98fe61',
     apikey: { id: '0ab424cc-7619-4dad-b027-afacdc2cedb0', expires: null, allowed_cidrs: [] },
     plan: { key: 'max', tier: 'max' },
@@ -203,23 +203,23 @@ const ACCOUNT_BODY = {
     },
 };
 
-test('my_account reports the plan and the usage', async () => {
-    const def = toolsFor(serving(ACCOUNT_BODY)).find((d) => d.tool.name === 'my_account');
+test('my_entitlement reports the plan and the usage', async () => {
+    const def = toolsFor(serving(ENTITLEMENT_BODY)).find((d) => d.tool.name === 'my_entitlement');
 
     const result = await def.handler({});
 
-    assert.equal(result.structuredContent.account.plan.key, 'max');
-    assert.equal(result.structuredContent.account.plan.tier, 'max');
-    assert.equal(result.structuredContent.account.usage.requests, 580);
+    assert.equal(result.structuredContent.entitlement.plan.key, 'max');
+    assert.equal(result.structuredContent.entitlement.plan.tier, 'max');
+    assert.equal(result.structuredContent.entitlement.usage.requests, 580);
     // Null means NEVER stop, which is not the same as a limit of zero, and the
     // description says so because a model would otherwise read it as a stop.
-    assert.equal(result.structuredContent.account.usage.hard_limit, null);
+    assert.equal(result.structuredContent.entitlement.usage.hard_limit, null);
 });
 
 // The number it reports moves with every other call, which is the whole point
 // of asking - a model told otherwise could cache it across a long session.
-test('my_account is not advertised as idempotent', () => {
-    const def = toolsFor(serving(ACCOUNT_BODY)).find((d) => d.tool.name === 'my_account');
+test('my_entitlement is not advertised as idempotent', () => {
+    const def = toolsFor(serving(ENTITLEMENT_BODY)).find((d) => d.tool.name === 'my_entitlement');
     assert.equal(def.tool.annotations.idempotentHint, false);
 });
 

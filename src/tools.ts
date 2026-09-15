@@ -211,7 +211,7 @@ async function lookupIps(ctx: ToolContext, args: Record<string, unknown>): Promi
 function accountTool(ctx: ToolContext): ToolDef {
     return {
         tool: {
-            name: 'my_account',
+            name: 'my_entitlement',
             title: 'Plan and usage for this key',
             description: 'What this API key is entitled to and how much of it has been used: the '
                 + 'plan, the field tier that decides how much of a lookup answer comes back, the '
@@ -222,8 +222,8 @@ function accountTool(ctx: ToolContext): ToolDef {
                 + 'serving - it is NOT a limit of zero.',
             inputSchema: { type: 'object', additionalProperties: false },
             outputSchema: objectSchema({
-                account: { type: 'object', additionalProperties: true },
-            }, ['account']),
+                entitlement: { type: 'object', additionalProperties: true },
+            }, ['entitlement']),
             annotations: {
                 readOnlyHint: true,
                 // Not idempotent: the number it reports moves with every other
@@ -233,7 +233,7 @@ function accountTool(ctx: ToolContext): ToolDef {
             },
         },
         handler: async () => {
-            return ok({ account: await ctx.client.myAccount() });
+            return ok({ entitlement: await ctx.client.myEntitlement() });
         },
     };
 }
