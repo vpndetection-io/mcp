@@ -15,11 +15,23 @@ import { createTools, LOOKUP_GATED_MEMBERS } from '../dist/index.js';
 
 const data = JSON.parse(readFileSync(new URL('../testdata/testdata.json', import.meta.url), 'utf8'));
 
+// Answers every lookup with `body`. A batch arrives as one POST per chunk and
+// is answered from the addresses in its body, `body` under each of them.
 function serving(body, status = 200) {
     const state = { calls: 0 };
-    const fn = async () => {
+    const fn = async (input, init) => {
         state.calls++;
-        return new Response(JSON.stringify(body), {
+        const url = typeof input === 'string' ? input : input.url;
+        let answer = body;
+        if (new URL(url).pathname === '/batch') {
+            const text = typeof input === 'string' ? (init?.body ?? '') : await input.text();
+            const results = {};
+            for (const ip of JSON.parse(text || '{}').ips ?? []) {
+                results[ip] = { ...body, ip: ip };
+            }
+            answer = { results: results, errors: {} };
+        }
+        return new Response(JSON.stringify(answer), {
             status: status, headers: { 'content-type': 'application/json' },
         });
     };

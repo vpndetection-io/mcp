@@ -12,8 +12,8 @@ importers:
         specifier: ^1.20.2
         version: 1.30.0(zod@4.5.4)
       vpndetection:
-        specifier: ^5.0.0
-        version: 5.0.0
+        specifier: ^5.1.0
+        version: 5.1.0
       zod:
         specifier: ^4.1.12
         version: 4.5.4
@@ -830,8 +830,8 @@ packages:
     resolution: {integrity: sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==}
     engines: {node: '>= 0.8'}
 
-  vpndetection@5.0.0:
-    resolution: {integrity: sha512-aKMPGT7+keKUZHOPhH0bX45wi5fKROJbValRPJT9qvBwZvZ7ZUhp7gvAa6sQou07DGiQSCVh1HCKGJw52GmMCw==}
+  vpndetection@5.1.0:
+    resolution: {integrity: sha512-SjmuyN8YJLey5j74JdeXatFoRpF6uzmBsi3F0Resvz2Oz6J5rMrmVSdb1qAb6CMgw6mxLjl3zN/SMZCp2CBgxA==}
     engines: {node: '>=22'}
 
   which@2.0.2:
@@ -1696,7 +1696,7 @@ snapshots:
 
   vary@1.1.2: {}
 
-  vpndetection@5.0.0:
+  vpndetection@5.1.0:
     dependencies:
       lru-cache: 11.5.2
       p-limit: 6.2.0
