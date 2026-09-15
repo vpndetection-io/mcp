@@ -20,12 +20,12 @@ export const BATCH_LIMIT = 100;
 export { DOWNLOADS_LIMIT };
 
 // Both spellings of a database id, stated wherever one is taken. `list_databases`
-// answers a `base` id (what a licence names) and a `versions[].id`; everything
+// answers a `base` id (what a license names) and a `versions[].id`; everything
 // else accepts only the versioned one. A model that has just read
 // `base: "cdn_ip"` will otherwise pass it and get a refusal that reads like a
 // bad database rather than a wrong spelling.
 const VERSIONED_ID = 'A VERSIONED database id, from `versions[].id` in `list_databases` - '
-    + '`cdn_ip_v1`, not `cdn_ip`. The unversioned base id is a licence reference and is '
+    + '`cdn_ip_v1`, not `cdn_ip`. The unversioned base id is a license reference and is '
     + 'not accepted here.';
 
 const FORMATS = z.enum(['csvgz', 'mmdb']);
@@ -245,9 +245,9 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
                 name: 'list_databases',
                 title: 'List databases',
                 description: 'The database catalog as this API key\'s organization may see it, '
-                    + 'one entry per database FAMILY, with the licence type and term. A database '
+                    + 'one entry per database FAMILY, with the license type and term. A database '
                     + 'absent from this list is one the organization does not hold. Each entry has '
-                    + 'a `base` id, which is what the licence names, and a `versions` array whose '
+                    + 'a `base` id, which is what the license names, and a `versions` array whose '
                     + '`id` is what the other database tools take - pass `versions[].id` '
                     + '(`cdn_ip_v1`), never the `base` (`cdn_ip`). Ask again rather than holding '
                     + 'on to this: it is answered per key and is not the same for everyone.',

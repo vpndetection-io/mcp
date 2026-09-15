@@ -9,7 +9,7 @@
       "url": "https://vpndetection.io"
     },
     "termsOfService": "https://vpndetection.io/terms",
-    "version": "2026.09.13"
+    "version": "2026.09.15"
   },
   "servers": [
     {
@@ -29,9 +29,29 @@
       "x-displayName": "Database"
     },
     {
+      "name": "Entitlement",
+      "description": "What your key may spend, and what it has.",
+      "x-displayName": "Entitlement"
+    },
+    {
       "name": "Account",
-      "description": "Your key, your plan, your usage.",
+      "description": "Who the credential belongs to, and what it may do.",
       "x-displayName": "Account"
+    },
+    {
+      "name": "Organization",
+      "description": "The organization it is scoped to.",
+      "x-displayName": "Organization"
+    },
+    {
+      "name": "API keys",
+      "description": "Creating, listing and rotating credentials.",
+      "x-displayName": "API keys"
+    },
+    {
+      "name": "Authorization",
+      "description": "Obtaining and revoking tokens.",
+      "x-displayName": "Authorization"
     }
   ],
   "paths": {
@@ -758,11 +778,11 @@
         ]
       }
     },
-    "/api/v1/account/me": {
+    "/api/v1/entitlement/me": {
       "get": {
-        "operationId": "accountMe",
+        "operationId": "myEntitlement",
         "tags": [
-          "Account"
+          "Entitlement"
         ],
         "summary": "Your key, plan and usage",
         "description": "Answers what the presented key is, what plan is behind it, and what has\nbeen spent against that plan's allowance in the current window.\n",
@@ -772,7 +792,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AccountMe"
+                  "$ref": "#/components/schemas/Entitlement"
                 },
                 "examples": {
                   "paid": {
@@ -828,7 +848,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AccountError"
+                  "$ref": "#/components/schemas/EntitlementError"
                 },
                 "examples": {
                   "missing": {
@@ -860,7 +880,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AccountError"
+                  "$ref": "#/components/schemas/EntitlementError"
                 },
                 "example": {
                   "error": "source address not allowed for this API key"
@@ -873,7 +893,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AccountError"
+                  "$ref": "#/components/schemas/EntitlementError"
                 },
                 "example": {
                   "error": "usage is temporarily unavailable"
@@ -893,6 +913,584 @@
             "bearerAuth": []
           }
         ]
+      }
+    },
+    "/api/v1/account/identity": {
+      "get": {
+        "operationId": "accountIdentity",
+        "tags": [
+          "Account"
+        ],
+        "summary": "Identity - who this credential belongs to",
+        "description": "The identity behind this credential: what it is, the organization it is\nscoped to, and the scopes it currently holds.\n\n`user` is present for an OAuth token and ABSENT for an API key, which\nhas an organization but no person behind it. `credential.kind` says\nwhich you are holding, so a client can branch without guessing from a\nmissing field.\n\nNarrower than what the console shows its own user on purpose: an\nintegration needs a name to display and an organization to address, not\na profile. The `scopes` array is what the credential may do RIGHT NOW,\nso a client can render its own capabilities rather than discovering\nthem from a 403.\n",
+        "security": [
+          {
+            "bearerAuth": [
+              "account.read"
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The caller.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Identity"
+                },
+                "examples": {
+                  "ok": {
+                    "summary": "A token granted read access",
+                    "value": {
+                      "rc": "SUCCESS",
+                      "user": {
+                        "id": "3d86d1ef-f70b-4063-a3b8-f69605a8fc57",
+                        "fullname": "Ada Lovelace",
+                        "email": "ada@example.com"
+                      },
+                      "org": {
+                        "id": "7b309476-0e70-4225-9a46-5e25650094dd"
+                      },
+                      "scopes": [
+                        "account.read",
+                        "apikeys.read"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AccountUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccountForbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/account/org": {
+      "get": {
+        "operationId": "accountOrg",
+        "tags": [
+          "Organization"
+        ],
+        "summary": "Your organization",
+        "description": "The organization this credential is scoped to.\n\nThere is no way to name a different one. A credential describes exactly\none organization, so an identifier in the path could only ever be your\nown or a refusal.\n",
+        "security": [
+          {
+            "bearerAuth": [
+              "org.read"
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The organization.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountOrgWrap"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AccountUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccountForbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/account/org/members": {
+      "get": {
+        "operationId": "accountOrgMembers",
+        "tags": [
+          "Organization"
+        ],
+        "summary": "Who else is in your organization",
+        "description": "Read-only. Adding or removing a member is an invitation flow with email\nin the middle rather than a POST, and modelling it as one here would\npromise something this API does not do.\n",
+        "security": [
+          {
+            "bearerAuth": [
+              "org.read"
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The members.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountRc"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AccountUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccountForbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/account/apikeys": {
+      "get": {
+        "operationId": "accountListApikeys",
+        "tags": [
+          "API keys"
+        ],
+        "summary": "List your API keys",
+        "description": "Metadata only. A key's secret is never in a list - not here and not in\nthe console - because a list is the response that ends up in logs,\ncaches and support tickets.\n\n`retrievable` says whether the secret could still be read back at all.\nA key issued before this product stored secrets recoverably was never\nkept, so `reveal` will refuse it permanently; rotating produces one\nthat can be read.\n",
+        "security": [
+          {
+            "bearerAuth": [
+              "apikeys.read"
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The organization's keys, newest first.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApikeyList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AccountUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccountForbidden"
+          }
+        }
+      },
+      "post": {
+        "operationId": "accountCreateApikey",
+        "tags": [
+          "API keys"
+        ],
+        "summary": "Create an API key",
+        "description": "Creates a key and returns its secret.\n\nThis is the ONLY response that ever carries the secret, and only\nbecause this is the moment it comes into existence. Store it now.\n",
+        "security": [
+          {
+            "bearerAuth": [
+              "apikeys.manage"
+            ]
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountCreateApikeyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The new key, including its secret.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountCreatedApikey"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/AccountInvalid"
+          },
+          "401": {
+            "$ref": "#/components/responses/AccountUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccountForbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/account/apikeys/{id}/rotate": {
+      "post": {
+        "operationId": "accountRotateApikey",
+        "tags": [
+          "API keys"
+        ],
+        "summary": "Rotate an API key",
+        "description": "Replaces the secret behind a key, keeping its id, name and settings.\nThe previous secret stops working immediately.\n",
+        "security": [
+          {
+            "bearerAuth": [
+              "apikeys.manage"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApikeyIdParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The key, with its new secret.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountCreatedApikey"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AccountUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccountForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/AccountNotFound"
+          }
+        }
+      }
+    },
+    "/api/v1/account/apikeys/{id}/revoke": {
+      "post": {
+        "operationId": "accountRevokeApikey",
+        "tags": [
+          "API keys"
+        ],
+        "summary": "Revoke an API key",
+        "description": "Stops the key working. Revocation is soft: the key stays listed with a\n`revoked_at`, because the organization still owns whatever it did while\nit was alive.\n",
+        "security": [
+          {
+            "bearerAuth": [
+              "apikeys.manage"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApikeyIdParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Revoked.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountRc"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AccountUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccountForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/AccountNotFound"
+          }
+        }
+      }
+    },
+    "/api/v1/account/apikeys/{id}/reveal": {
+      "post": {
+        "operationId": "accountRevealApikey",
+        "tags": [
+          "API keys"
+        ],
+        "summary": "Read back a key's secret",
+        "description": "Returns an existing key's secret.\n\nIts own scope rather than part of `apikeys.manage`, because the two are\ndifferent acts: rotating replaces a secret you never see, while this\nhands one over.\n\nRefused with `NOT_RETRIEVABLE` for a key issued before this product\nstored secrets recoverably - that secret was never kept, so no retry\nwill ever produce it. Rotate the key instead.\n",
+        "security": [
+          {
+            "bearerAuth": [
+              "apikeys.reveal"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/ApikeyIdParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The key's secret.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountRevealedApikey"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/AccountUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/AccountForbidden"
+          },
+          "404": {
+            "description": "No such key in this organization, or its secret was never stored\nrecoverably (`NOT_RETRIEVABLE`).\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountRc"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/.well-known/oauth-authorization-server": {
+      "get": {
+        "operationId": "oauthMetadata",
+        "tags": [
+          "Authorization"
+        ],
+        "summary": "Discovery document",
+        "description": "RFC 8414 authorization server metadata: the endpoints, the grant types\nand the scopes this server supports.\n\nRead this rather than hardcoding endpoints. It is also served at\n`/.well-known/openid-configuration`, identically, because several\nclients probe that path first.\n",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "The server's metadata.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OauthMetadata"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/oauth/device_authorization": {
+      "post": {
+        "operationId": "oauthDeviceAuthorization",
+        "tags": [
+          "Authorization"
+        ],
+        "summary": "Begin a device authorization",
+        "description": "Starts the device flow. Show the `user_code` to the person and send them\nto `verification_uri`; `verification_uri_complete` has the code already\nembedded, which is what to open if you can open a browser at all.\n\nThen poll `/oauth/token`, no faster than `interval` seconds.\n",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/DeviceAuthorizationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A pending device authorization.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeviceAuthorization"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`invalid_request`, `invalid_client`, `unauthorized_client`, or\n`slow_down` when this address has started too many authorizations.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OauthError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/oauth/authorize": {
+      "get": {
+        "operationId": "oauthAuthorize",
+        "tags": [
+          "Authorization"
+        ],
+        "summary": "Send a user here to approve",
+        "description": "The browser entry point for the authorization-code flow. This is a\nredirect target, not something to call from code.\n\nAn unknown `client_id` or an unregistered `redirect_uri` is shown to the\nUSER and never redirected, because sending an error to an address we\nhave not verified belongs to you is how an open redirector works.\nEverything else comes back to your `redirect_uri` with `error`, your\n`state`, and `iss`.\n",
+        "security": [],
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "redirect_uri",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "response_type",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "code"
+              ]
+            }
+          },
+          {
+            "name": "code_challenge",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code_challenge_method",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "S256"
+              ]
+            },
+            "description": "S256 only. `plain` is refused rather than downgraded."
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Returned unchanged. Use it to bind the response to your request."
+          },
+          {
+            "name": "resource",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "RFC 8707. What the token is FOR, so it cannot be replayed elsewhere."
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "A redirect to the consent screen, or back to your redirect_uri with an error."
+          },
+          "400": {
+            "description": "Shown to the user. An unverified redirect target is never sent an error."
+          }
+        }
+      }
+    },
+    "/oauth/token": {
+      "post": {
+        "operationId": "oauthToken",
+        "tags": [
+          "Authorization"
+        ],
+        "summary": "Exchange a grant for tokens",
+        "description": "Three grant types.\n\n`urn:ietf:params:oauth:grant-type:device_code` polls a device\nauthorization. Until the person approves it answers\n`authorization_pending`; poll faster than `interval` and it answers\n`slow_down`, which means widen your interval and keep it widened.\n\n`authorization_code` exchanges a code from `/oauth/authorize`, with the\n`code_verifier` matching the challenge you sent.\n\n`refresh_token` exchanges a refresh token. The presented token is\nconsumed whatever happens next, so store the new one before using it.\n",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tokens.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "An RFC 6749 error. `authorization_pending` and `slow_down` are\nnormal answers while polling a device authorization, not failures.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OauthError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/oauth/revoke": {
+      "post": {
+        "operationId": "oauthRevoke",
+        "tags": [
+          "Authorization"
+        ],
+        "summary": "Revoke a token",
+        "description": "RFC 7009. Always answers 200, including for a token that was never\nvalid - an endpoint that distinguished the two would be a way to test\nwhether a stolen string is a live credential.\n\nRevoking a REFRESH token ends the whole authorization and takes its\naccess tokens with it. Revoking an access token affects only that token.\n",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/RevokeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Always, whatever was presented.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
@@ -1463,7 +2061,7 @@
           "schema"
         ]
       },
-      "AccountMe": {
+      "Entitlement": {
         "type": "object",
         "required": [
           "org_id",
@@ -1478,17 +2076,17 @@
             "description": "The organization the key belongs to."
           },
           "apikey": {
-            "$ref": "#/components/schemas/AccountApikey"
+            "$ref": "#/components/schemas/EntitlementApikey"
           },
           "plan": {
-            "$ref": "#/components/schemas/AccountPlan"
+            "$ref": "#/components/schemas/EntitlementPlan"
           },
           "usage": {
-            "$ref": "#/components/schemas/AccountUsage"
+            "$ref": "#/components/schemas/EntitlementUsage"
           }
         }
       },
-      "AccountApikey": {
+      "EntitlementApikey": {
         "type": "object",
         "description": "The credential itself. The key is never echoed - only its id, which is\nwhat the console shows and what you can act on.\n",
         "required": [
@@ -1516,7 +2114,7 @@
           }
         }
       },
-      "AccountPlan": {
+      "EntitlementPlan": {
         "type": "object",
         "required": [
           "key",
@@ -1540,7 +2138,7 @@
           }
         }
       },
-      "AccountUsage": {
+      "EntitlementUsage": {
         "type": "object",
         "required": [
           "requests",
@@ -1578,7 +2176,7 @@
           }
         }
       },
-      "AccountError": {
+      "EntitlementError": {
         "type": "object",
         "required": [
           "error"
@@ -1588,6 +2186,452 @@
             "type": "string"
           }
         }
+      },
+      "AccountRc": {
+        "type": "object",
+        "properties": {
+          "rc": {
+            "type": "string",
+            "description": "The outcome. `SUCCESS` on success; otherwise the reason."
+          }
+        },
+        "required": [
+          "rc"
+        ]
+      },
+      "Identity": {
+        "type": "object",
+        "properties": {
+          "rc": {
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/AccountUser"
+          },
+          "org": {
+            "$ref": "#/components/schemas/AccountOrgRef"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "What this credential may do right now."
+          }
+        },
+        "required": [
+          "rc",
+          "user",
+          "org",
+          "scopes"
+        ]
+      },
+      "AccountUser": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fullname": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "AccountOrgRef": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "AccountOrgWrap": {
+        "type": "object",
+        "properties": {
+          "rc": {
+            "type": "string"
+          },
+          "org": {
+            "$ref": "#/components/schemas/AccountOrg"
+          }
+        },
+        "required": [
+          "rc",
+          "org"
+        ]
+      },
+      "AccountOrg": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "ApikeyList": {
+        "type": "object",
+        "properties": {
+          "rc": {
+            "type": "string"
+          },
+          "keys": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ApikeyDetail"
+            }
+          }
+        },
+        "required": [
+          "rc",
+          "keys"
+        ]
+      },
+      "ApikeyDetail": {
+        "description": "Key METADATA. Never the key itself.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "key_prefix": {
+            "type": "string",
+            "description": "The leading, non-secret part, so a key is recognisable without storing it."
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expires": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "last_used_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "revoked_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "allowed_cidrs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Source-IP allowlist. EMPTY MEANS UNRESTRICTED, not deny-all."
+          },
+          "allowed_scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "retrievable": {
+            "type": "boolean",
+            "description": "Whether this key's secret can still be read back. False permanently for a key issued before secrets were stored recoverably."
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "key_prefix",
+          "created"
+        ]
+      },
+      "AccountCreateApikeyRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "A label you will recognise later. Shown wherever the key is listed."
+          },
+          "allowed_scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "What the new key may do. Omit for a key that carries no named scope, which is the safe default."
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "AccountCreatedApikey": {
+        "type": "object",
+        "properties": {
+          "rc": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string",
+            "description": "The secret. Returned once, here, and never again."
+          },
+          "key_prefix": {
+            "type": "string"
+          },
+          "allowed_cidrs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "allowed_scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "rc",
+          "id",
+          "key"
+        ]
+      },
+      "AccountRevealedApikey": {
+        "type": "object",
+        "properties": {
+          "rc": {
+            "type": "string"
+          },
+          "key": {
+            "type": "string",
+            "description": "The secret."
+          }
+        },
+        "required": [
+          "rc",
+          "key"
+        ]
+      },
+      "OauthMetadata": {
+        "type": "object",
+        "properties": {
+          "issuer": {
+            "type": "string"
+          },
+          "authorization_endpoint": {
+            "type": "string"
+          },
+          "token_endpoint": {
+            "type": "string"
+          },
+          "device_authorization_endpoint": {
+            "type": "string"
+          },
+          "revocation_endpoint": {
+            "type": "string"
+          },
+          "scopes_supported": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "response_types_supported": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "grant_types_supported": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "code_challenge_methods_supported": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "client_id_metadata_document_supported": {
+            "type": "boolean",
+            "description": "A client_id may be an https URL serving your client metadata."
+          }
+        },
+        "required": [
+          "issuer",
+          "authorization_endpoint",
+          "token_endpoint"
+        ]
+      },
+      "DeviceAuthorizationRequest": {
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string",
+            "description": "Space-delimited. Anything your client is not registered for is dropped rather than refused."
+          },
+          "resource": {
+            "type": "string",
+            "description": "RFC 8707: what the token is for."
+          }
+        },
+        "required": [
+          "client_id"
+        ]
+      },
+      "DeviceAuthorization": {
+        "type": "object",
+        "properties": {
+          "device_code": {
+            "type": "string",
+            "description": "Yours. Poll with it; never show it to anyone."
+          },
+          "user_code": {
+            "type": "string",
+            "description": "Short and typable. This is what the person confirms."
+          },
+          "verification_uri": {
+            "type": "string"
+          },
+          "verification_uri_complete": {
+            "type": "string",
+            "description": "The same page with the code already filled in."
+          },
+          "expires_in": {
+            "type": "integer"
+          },
+          "interval": {
+            "type": "integer",
+            "description": "Seconds between polls."
+          }
+        },
+        "required": [
+          "device_code",
+          "user_code",
+          "verification_uri",
+          "expires_in",
+          "interval"
+        ]
+      },
+      "TokenRequest": {
+        "type": "object",
+        "properties": {
+          "grant_type": {
+            "type": "string"
+          },
+          "client_id": {
+            "type": "string"
+          },
+          "device_code": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "code_verifier": {
+            "type": "string"
+          },
+          "redirect_uri": {
+            "type": "string"
+          },
+          "refresh_token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "grant_type",
+          "client_id"
+        ]
+      },
+      "TokenResponse": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string"
+          },
+          "token_type": {
+            "type": "string"
+          },
+          "expires_in": {
+            "type": "integer"
+          },
+          "refresh_token": {
+            "type": "string"
+          },
+          "scope": {
+            "type": "string",
+            "description": "What was actually granted, which may be narrower than what was asked for."
+          }
+        },
+        "required": [
+          "access_token",
+          "token_type",
+          "expires_in"
+        ]
+      },
+      "RevokeRequest": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "client_id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "token"
+        ]
+      },
+      "OauthError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "error_description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "error"
+        ]
       }
     },
     "responses": {
@@ -1630,6 +2674,58 @@
             }
           }
         }
+      },
+      "AccountUnauthorized": {
+        "description": "No credential was presented, or it is not valid.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AccountRc"
+            }
+          }
+        }
+      },
+      "AccountForbidden": {
+        "description": "The credential does not hold the scope this endpoint requires. The\nmissing scope is deliberately not named.\n",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AccountRc"
+            }
+          }
+        }
+      },
+      "AccountNotFound": {
+        "description": "No such key in this organization.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AccountRc"
+            }
+          }
+        }
+      },
+      "AccountInvalid": {
+        "description": "The request body is missing a required field.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/AccountRc"
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "ApikeyIdParam": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "The key's id, as returned by the list endpoint. Never the key itself.",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
       }
     }
   },
@@ -1647,9 +2743,23 @@
       ]
     },
     {
-      "name": "VPNDetection Account API",
+      "name": "VPNDetection Entitlement API",
       "tags": [
-        "Account"
+        "Entitlement"
+      ]
+    },
+    {
+      "name": "VPNDetection IAM API",
+      "tags": [
+        "Account",
+        "Organization",
+        "API keys"
+      ]
+    },
+    {
+      "name": "VPNDetection Authorization",
+      "tags": [
+        "Authorization"
       ]
     }
   ]
