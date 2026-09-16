@@ -281,6 +281,34 @@ test('a rejected argument is the model\'s to fix, not an internal failure', asyn
     }
 });
 
+// zod rejects an array argument one issue per bad element. Spelled out in full, a
+// megabyte of numbers passed as `ips` came back as ~37 MB of error text.
+test('a rejection lists its first ten issues and counts the rest', async () => {
+    const lookupIps = toolsFor(serving({})).find((d) => d.tool.name === 'lookup_ips');
+    const cases = [
+        [1, undefined],
+        [10, undefined],
+        [11, '... and 1 more issue'],
+        [50000, '... and 49990 more issues'],
+    ];
+    for (const [bad, tail] of cases) {
+        const res = await lookupIps.handler({ ips: Array.from({ length: bad }, (_, i) => i) });
+        assert.equal(res.isError, true, `${bad} bad`);
+        const { error } = JSON.parse(res.content[0].text);
+        assert.equal(error.kind, 'invalid_argument', `${bad} bad`);
+
+        const at = [...error.message.matchAll(/→ at ips\[(\d+)\]/g)].map((m) => Number(m[1]));
+        const firstTen = Array.from({ length: Math.min(bad, 10) }, (_, i) => i);
+        assert.deepEqual(at, firstTen, `${bad} bad: the first ten are listed, in order`);
+        if (tail === undefined) {
+            assert.doesNotMatch(error.message, /more issue/, `${bad} bad: nothing is left to count`);
+        } else {
+            assert.equal(error.message.split('\n').at(-1), tail, `${bad} bad: the rest are counted`);
+        }
+        assert.ok(res.content[0].text.length < 2000, `${bad} bad: ${res.content[0].text.length} chars`);
+    }
+});
+
 // Every bound the spec states is READ off it, not restated here: a second copy is
 // free to keep advertising the old number. The default is the one a model reads as
 // prose, so it is asserted against the published description.

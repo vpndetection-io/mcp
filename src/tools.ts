@@ -391,11 +391,24 @@ function errorDetail(err: unknown): Record<string, unknown> {
         // decode before it can act on.
         return {
             kind: 'invalid_argument',
-            message: z.prettifyError(rejected),
+            message: rejectionMessage(rejected),
             retryable: false,
         };
     }
     return { kind: 'internal', message: err instanceof Error ? err.message : String(err) };
+}
+
+// zod reports an array argument one issue per bad element, so listing every issue turned
+// a megabyte of numbers passed as `ips` into ~37 MB of error text. The first few say as much.
+const ISSUES_LISTED = 10;
+
+function rejectionMessage(rejected: z.ZodError): string {
+    const listed = z.prettifyError({ issues: rejected.issues.slice(0, ISSUES_LISTED) });
+    const unlisted = rejected.issues.length - ISSUES_LISTED;
+    if (unlisted <= 0) {
+        return listed;
+    }
+    return `${listed}\n... and ${unlisted} more ${unlisted === 1 ? 'issue' : 'issues'}`;
 }
 
 /**

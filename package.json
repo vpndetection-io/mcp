@@ -1,6 +1,6 @@
 {
     "name": "vpndetection-mcp",
-    "version": "5.2.0",
+    "version": "5.2.1",
     "description": "Official MCP server for the VPNDetection API. Gives an LLM agent VPN, proxy, Tor, hosting and CDN detection for any IP address.",
     "type": "module",
     "packageManager": "pnpm@11.1.0",
