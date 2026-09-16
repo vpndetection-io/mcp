@@ -8,8 +8,7 @@ import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import { VPNDetection } from 'vpndetection';
 
-import { BATCH_LIMIT, createTools, DOWNLOADS_LIMIT } from '../dist/index.js';
-import { DOWNLOADS_LIMIT as SPEC_DOWNLOADS_LIMIT } from '../dist/schema.gen.js';
+import { createTools, DOWNLOADS_LIMIT } from '../dist/index.js';
 
 const data = JSON.parse(readFileSync(new URL('../testdata/testdata.json', import.meta.url), 'utf8'));
 
@@ -55,15 +54,36 @@ test('the database tools can be withheld', () => {
     assert.deepEqual(names, ['lookup_ip', 'lookup_ips', 'my_entitlement']);
 });
 
-test('the batch cap is published and enforced', async () => {
-    const defs = toolsFor(serving({ ip: '1.1.1.1', is_vpn: false }));
-    const batch = defs.find((d) => d.tool.name === 'lookup_ips');
-    assert.equal(batch.tool.inputSchema.properties.ips.maxItems, BATCH_LIMIT);
+// Uncapped by decision: the caller's whole list goes in one call and the SDK
+// splits it at the endpoint's own bound. A private address is answered locally,
+// so it never takes room in a batch.
+test('lookup_ips takes any number of addresses, one POST /batch per 1000', async () => {
+    const posts = [];
+    const batchServer = async (input) => {
+        const { ips } = JSON.parse(await input.text());
+        posts.push({ method: input.method, path: new URL(input.url).pathname, ips: ips });
+        const results = Object.fromEntries(ips.map((ip) => [ip, { ip: ip, is_vpn: false }]));
+        return new Response(JSON.stringify({ results: results, errors: {} }), {
+            status: 200, headers: { 'content-type': 'application/json' },
+        });
+    };
+    const batch = toolsFor(batchServer).find((d) => d.tool.name === 'lookup_ips');
+    assert.equal(batch.tool.inputSchema.properties.ips.maxItems, undefined, 'no cap is published');
 
-    const tooMany = Array.from({ length: BATCH_LIMIT + 1 }, (_, i) => `9.9.${(i >> 8) & 255}.${i & 255}`);
-    const out = await batch.handler({ ips: tooMany });
-    assert.equal(out.isError, true, 'over the cap must be refused, not silently truncated');
-    assert.equal(out.structuredContent, undefined, 'an error must not be validated as a success');
+    const routable = Array.from({ length: 2500 }, (_, i) => `9.9.${(i >> 8) & 255}.${i & 255}`);
+    const bogons = Array.from({ length: 100 }, (_, i) => `10.0.0.${i}`);
+    const out = await batch.handler({ ips: [...routable, ...bogons] });
+
+    assert.equal(out.isError, undefined, 'a long list must be answered, not refused');
+    assert.deepEqual(posts.map((p) => `${p.method} ${p.path}`), Array(3).fill('POST /batch'));
+    assert.deepEqual(posts.map((p) => p.ips.length).sort((a, b) => b - a), [1000, 1000, 500]);
+    assert.deepEqual(posts.flatMap((p) => p.ips).sort(), [...routable].sort(),
+        'every routable address is sent exactly once, and no private one is sent at all');
+
+    const { results } = out.structuredContent;
+    assert.equal(Object.keys(results).length, 2600, 'one entry per address');
+    assert.ok(routable.every((ip) => results[ip].is_vpn === false), 'a served answer per address');
+    assert.ok(bogons.every((ip) => results[ip].is_bogon === true), 'a local answer per bogon');
 });
 
 test('an upstream failure becomes a tool execution error, not a throw', async () => {
@@ -175,13 +195,18 @@ test('each database tool answers at the documented depth', async () => {
         'a refusal is carried through, not filtered out');
 });
 
+// The bound a client is SHOWN and the bound it MEETS come from one declaration,
+// so they cannot drift. Two lookalike zod objects is how they used to.
 test('the downloads window is published and enforced', async () => {
     const def = toolsFor(serving({ downloads: [] })).find((d) => d.tool.name === 'list_downloads');
-    assert.equal(def.tool.inputSchema.properties.limit.maximum, DOWNLOADS_LIMIT);
+    const { minimum, maximum } = def.tool.inputSchema.properties.limit;
+    assert.equal(maximum, DOWNLOADS_LIMIT);
 
-    const out = await def.handler({ limit: DOWNLOADS_LIMIT + 1 });
-    assert.equal(out.isError, true, 'over the cap must be refused, not silently truncated');
-    assert.equal(out.structuredContent, undefined, 'an error must not be validated as a success');
+    for (const outside of [maximum + 1, minimum - 1]) {
+        const out = await def.handler({ limit: outside });
+        assert.equal(out.isError, true, `${outside} must be refused, not silently clamped`);
+        assert.equal(out.structuredContent, undefined, 'an error must not be validated as a success');
+    }
 });
 
 test('the tool list is deterministic, so clients can cache it', () => {
@@ -241,6 +266,7 @@ test('a rejected argument is the model\'s to fix, not an internal failure', asyn
         ['lookup_ips', { ips: [] }, 'ips'],
         ['database_checksum', { dataset_id: 'cdn_ip_v1', format: 'zip' }, 'format'],
         ['list_downloads', { limit: DOWNLOADS_LIMIT + 1 }, 'limit'],
+        ['list_downloads', { limit: 0 }, 'limit'],
     ];
     for (const [name, args, field] of cases) {
         const res = await byName.get(name).handler(args);
@@ -255,24 +281,22 @@ test('a rejected argument is the model\'s to fix, not an internal failure', asyn
     }
 });
 
-// The bound a client is SHOWN and the bound it MEETS come from one declaration,
-// so they cannot drift. Two lookalike zod objects is how they used to.
-test('every published cap is the cap the handler enforces', async () => {
-    const byName = new Map(toolsFor(serving({})).map((d) => [d.tool.name, d]));
+// Every bound the spec states is READ off it, not restated here: a second copy is
+// free to keep advertising the old number. The default is the one a model reads as
+// prose, so it is asserted against the published description.
+test('the downloads bounds and default come from the spec', () => {
+    const spec = JSON.parse(readFileSync(new URL('../spec/openapi.json', import.meta.url), 'utf8'));
+    const { schema } = spec.paths['/api/v1/database/downloads'].get.parameters
+        .find((p) => p.name === 'limit' && p.in === 'query');
 
-    const batch = byName.get('lookup_ips').tool.inputSchema.properties.ips;
-    assert.equal(batch.maxItems, BATCH_LIMIT);
-    const overBatch = await byName.get('lookup_ips')
-        .handler({ ips: Array(BATCH_LIMIT + 1).fill('1.1.1.1') });
-    assert.equal(overBatch.isError, true, 'the advertised batch cap must be enforced');
+    const published = toolsFor(serving({ downloads: [] }))
+        .find((d) => d.tool.name === 'list_downloads').tool.inputSchema.properties.limit;
+    assert.equal(published.maximum, schema.maximum);
+    assert.match(published.description, new RegExp(`defaults to ${schema.default}\\.`));
 
-    const limit = byName.get('list_downloads').tool.inputSchema.properties.limit;
-    assert.equal(limit.maximum, DOWNLOADS_LIMIT);
-});
-
-// Read off the spec's own maximum rather than restated, the same contract the
-// output schemas already had.
-test('the downloads cap comes from the spec, not a hardcoded copy', () => {
-    assert.equal(DOWNLOADS_LIMIT, SPEC_DOWNLOADS_LIMIT);
-    assert.equal(typeof DOWNLOADS_LIMIT, 'number');
+    // The one bound this spec does not state, which leaves `.min(1)` the tool's own.
+    // Failing here on a re-pin is the prompt to derive it like the other two.
+    assert.equal(schema.minimum, undefined,
+        'the spec now states a minimum for ?limit: read it in gen-schema.mjs, drop the literal');
+    assert.equal(published.minimum, 1);
 });

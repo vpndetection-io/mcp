@@ -11,10 +11,14 @@ import {
 import { batchCoverage, COVERAGE_SCHEMA, coverageOf, wireBody } from './coverage.js';
 import {
     DATABASE_METADATA_SCHEMA, DATABASE_SCHEMA, DB_CHECKSUMS_SCHEMA, DOWNLOADS_LIMIT,
-    LOOKUP_RESULT_SCHEMA,
+    DOWNLOADS_LIMIT_DEFAULT, LOOKUP_RESULT_SCHEMA,
 } from './schema.gen.js';
 
-/** The most addresses one `lookup_ips` call may carry. */
+/**
+ * @deprecated Nothing enforces this since 5.2.0: `lookup_ips` takes any number of
+ * addresses. It is the cap the tool had before, kept only so an importer still
+ * compiles, and it goes at the next major.
+ */
 export const BATCH_LIMIT = 100;
 
 export { DOWNLOADS_LIMIT };
@@ -38,9 +42,13 @@ const LOOKUP_INPUT = z.object({
     ip: z.string().describe('The IPv4 or IPv6 address to classify.'),
 });
 
+// Uncapped by decision (2026-09-16): a caller passes every address it has. The SDK
+// sends them to POST /batch in chunks of that endpoint's 1000, so the spec's
+// `maxItems: 1000` bounds a REQUEST, not this tool - never derive a cap from it.
+// One call is bounded by its transport instead: the hosted server took a request
+// body of at most 1 MB when this was decided, about 58,000 IPv4 addresses.
 const LOOKUP_BATCH_INPUT = z.object({
-    ips: z.array(z.string()).min(1).max(BATCH_LIMIT)
-        .describe(`The addresses to classify, at most ${BATCH_LIMIT}.`),
+    ips: z.array(z.string()).min(1).describe('The IPv4 or IPv6 addresses to classify.'),
 });
 
 const METADATA_INPUT = z.object({
@@ -52,10 +60,13 @@ const CHECKSUM_INPUT = z.object({
     format: FORMATS.describe('Which published file to digest.'),
 });
 
+// The maximum and the default are read off the spec. It states no minimum for this
+// parameter, so `.min(1)` is this tool's own bound; a test fails on the re-pin that
+// brings one, which is when to derive it like the other two.
 const DOWNLOADS_INPUT = z.object({
     limit: z.number().int().min(1).max(DOWNLOADS_LIMIT).optional().describe(
         `How many attempts to return, newest first. At most ${DOWNLOADS_LIMIT}; `
-        + 'the API defaults to 50.'),
+        + `the API defaults to ${DOWNLOADS_LIMIT_DEFAULT}.`),
 });
 
 export interface ToolContext {
@@ -109,9 +120,10 @@ export function createTools(ctx: ToolContext): ToolDef[] {
             tool: {
                 name: 'lookup_ips',
                 title: 'Look up several IP addresses',
-                description: `Classify up to ${BATCH_LIMIT} addresses in one call, returning a map `
-                    + 'keyed by address so duplicates collapse and the order you passed them stops '
-                    + 'mattering. Prefer this over repeated `lookup_ip` calls when you already have '
+                description: 'Classify a list of addresses in one call, returning a map keyed by '
+                    + 'address so duplicates collapse and the order you passed them stops mattering. '
+                    + 'Pass the whole list rather than splitting it yourself: a long one is batched '
+                    + 'for you. Prefer this over repeated `lookup_ip` calls when you already have '
                     + 'the list, for example when triaging a log file. An address that fails '
                     + 'carries its error in place of a result rather than failing the batch.',
                 inputSchema: jsonSchema(LOOKUP_BATCH_INPUT),

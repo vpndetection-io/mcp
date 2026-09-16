@@ -22,6 +22,8 @@ const members = Object.keys(lookup.properties);
 // tier and can never be part of an absence note.
 const gated = members.filter((m) => !(lookup.required ?? []).includes(m));
 
+const downloadsLimit = queryParam('/api/v1/database/downloads', 'limit');
+
 const out = `${banner()}
 
 export const LOOKUP_MEMBERS: readonly string[] = [
@@ -35,7 +37,10 @@ ${gated.map((m) => `    '${m}',`).join('\n')}
 export const SPEC_VERSION = '${spec.info.version}';
 
 /** The most history rows \`list_downloads\` may ask for. The API clamps to the same. */
-export const DOWNLOADS_LIMIT = ${queryParamMax('/api/v1/database/downloads', 'limit')};
+export const DOWNLOADS_LIMIT = ${numeric(downloadsLimit, 'maximum')};
+
+/** What the API returns when \`list_downloads\` names no limit. */
+export const DOWNLOADS_LIMIT_DEFAULT = ${numeric(downloadsLimit, 'default')};
 
 // Matches the shape the MCP Tool type wants for inputSchema/outputSchema, so a
 // generated schema can be handed straight to a tool definition.
@@ -105,18 +110,26 @@ function flattenSingleAllOf(node) {
     return { ...allOf[0], ...rest };
 }
 
-// The published cap, read off the spec rather than restated here. A hardcoded
-// copy is a second claim about the same contract, free to drift the moment the
-// endpoint's maximum moves - which the output schemas already avoid by being
-// generated.
-function queryParamMax(path, name) {
+// The bounds the API enforces on one query parameter, read off the spec rather
+// than restated in the manifest. Each reaches a tool description and its runtime
+// check by re-pinning the spec, the same contract the output schemas have. The
+// DEFAULT is the copy that misleads soonest: it is stated in prose a model
+// reads, and nothing rejects it once the API moves off it.
+function queryParam(path, name) {
     const params = spec.paths[path]?.get?.parameters ?? [];
     const param = params.find((q) => q.name === name && q.in === 'query');
-    const max = param?.schema?.maximum;
-    if (typeof max !== 'number') {
-        throw new Error(`spec has no numeric maximum for GET ${path} ?${name}`);
+    if (param?.schema === undefined) {
+        throw new Error(`spec has no query parameter ?${name} on GET ${path}`);
     }
-    return max;
+    return { path: path, name: name, schema: param.schema };
+}
+
+function numeric(param, field) {
+    const value = param.schema[field];
+    if (typeof value !== 'number') {
+        throw new Error(`spec has no numeric ${field} for GET ${param.path} ?${param.name}`);
+    }
+    return value;
 }
 
 function ts(node) {
