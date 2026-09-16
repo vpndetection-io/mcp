@@ -5,6 +5,9 @@
         "moduleResolution": "NodeNext",
         "lib": ["ESNext"],
         "strict": true,
+        // TS 6 defaults are types [] and noUncheckedSideEffectImports true; kept at 5.x behavior.
+        "types": ["*"],
+        "noUncheckedSideEffectImports": false,
         "declaration": true,
         "sourceMap": true,
         "outDir": "dist",
