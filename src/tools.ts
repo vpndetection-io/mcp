@@ -11,7 +11,7 @@ import {
 import { batchCoverage, COVERAGE_SCHEMA, coverageOf, wireBody } from './coverage.js';
 import {
     DATABASE_METADATA_SCHEMA, DATABASE_SCHEMA, DB_CHECKSUMS_SCHEMA, DOWNLOADS_LIMIT,
-    DOWNLOADS_LIMIT_DEFAULT, LOOKUP_RESULT_SCHEMA,
+    DOWNLOADS_LIMIT_DEFAULT, DOWNLOADS_LIMIT_MIN, LOOKUP_RESULT_SCHEMA,
 } from './schema.gen.js';
 
 /**
@@ -60,11 +60,8 @@ const CHECKSUM_INPUT = z.object({
     format: FORMATS.describe('Which published file to digest.'),
 });
 
-// The maximum and the default are read off the spec. It states no minimum for this
-// parameter, so `.min(1)` is this tool's own bound; a test fails on the re-pin that
-// brings one, which is when to derive it like the other two.
 const DOWNLOADS_INPUT = z.object({
-    limit: z.number().int().min(1).max(DOWNLOADS_LIMIT).optional().describe(
+    limit: z.number().int().min(DOWNLOADS_LIMIT_MIN).max(DOWNLOADS_LIMIT).optional().describe(
         `How many attempts to return, newest first. At most ${DOWNLOADS_LIMIT}; `
         + `the API defaults to ${DOWNLOADS_LIMIT_DEFAULT}.`),
 });

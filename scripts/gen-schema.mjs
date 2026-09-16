@@ -39,6 +39,9 @@ export const SPEC_VERSION = '${spec.info.version}';
 /** The most history rows \`list_downloads\` may ask for. The API clamps to the same. */
 export const DOWNLOADS_LIMIT = ${numeric(downloadsLimit, 'maximum')};
 
+/** The fewest it may ask for. */
+export const DOWNLOADS_LIMIT_MIN = ${numeric(downloadsLimit, 'minimum')};
+
 /** What the API returns when \`list_downloads\` names no limit. */
 export const DOWNLOADS_LIMIT_DEFAULT = ${numeric(downloadsLimit, 'default')};
 

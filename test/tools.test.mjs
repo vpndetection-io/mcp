@@ -292,11 +292,6 @@ test('the downloads bounds and default come from the spec', () => {
     const published = toolsFor(serving({ downloads: [] }))
         .find((d) => d.tool.name === 'list_downloads').tool.inputSchema.properties.limit;
     assert.equal(published.maximum, schema.maximum);
+    assert.equal(published.minimum, schema.minimum);
     assert.match(published.description, new RegExp(`defaults to ${schema.default}\\.`));
-
-    // The one bound this spec does not state, which leaves `.min(1)` the tool's own.
-    // Failing here on a re-pin is the prompt to derive it like the other two.
-    assert.equal(schema.minimum, undefined,
-        'the spec now states a minimum for ?limit: read it in gen-schema.mjs, drop the literal');
-    assert.equal(published.minimum, 1);
 });
