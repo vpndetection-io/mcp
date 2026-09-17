@@ -61,6 +61,10 @@ export const DATABASE_SCHEMA: ObjectSchema = ${ts(schema('Database'))};
 export const DATABASE_METADATA_SCHEMA: ObjectSchema = ${ts(schema('DatabaseMetadata'))};
 
 export const DB_CHECKSUMS_SCHEMA: ObjectSchema = ${ts(schema('DbChecksums'))};
+
+export const DOWNLOAD_SCHEMA: ObjectSchema = ${ts(schema('Download'))};
+
+export const ENTITLEMENT_SCHEMA: ObjectSchema = ${ts(schema('Entitlement'))};
 `;
 
 writeFileSync(resolve(root, 'src/schema.gen.ts'), out);

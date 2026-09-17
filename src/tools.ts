@@ -11,8 +11,8 @@ import { DATABASE_FORMATS } from 'vpndetection';
 
 import { batchCoverage, COVERAGE_SCHEMA, coverageOf, wireBody } from './coverage.js';
 import {
-    DATABASE_METADATA_SCHEMA, DATABASE_SCHEMA, DB_CHECKSUMS_SCHEMA, DOWNLOADS_LIMIT,
-    DOWNLOADS_LIMIT_DEFAULT, DOWNLOADS_LIMIT_MIN, LOOKUP_RESULT_SCHEMA,
+    DATABASE_METADATA_SCHEMA, DATABASE_SCHEMA, DB_CHECKSUMS_SCHEMA, DOWNLOAD_SCHEMA, DOWNLOADS_LIMIT,
+    DOWNLOADS_LIMIT_DEFAULT, DOWNLOADS_LIMIT_MIN, ENTITLEMENT_SCHEMA, LOOKUP_RESULT_SCHEMA,
 } from './schema.gen.js';
 
 /**
@@ -71,6 +71,29 @@ const DOWNLOADS_INPUT = z.object({
         `How many attempts to return, newest first. At most ${DOWNLOADS_LIMIT}; `
         + `the API defaults to ${DOWNLOADS_LIMIT_DEFAULT}.`),
 });
+
+// What `lookup_ips` answers in place of a result for an address that failed. It
+// is this package's own shape - the client SDK's classification of the failure,
+// not the wire's `{status, error}` - so it is declared here in full rather than
+// generated, and never left free-form.
+const ENTRY_ERROR_SCHEMA = {
+    type: 'object',
+    properties: {
+        error: {
+            type: 'object',
+            properties: {
+                kind: {
+                    type: 'string',
+                    description: 'How the client SDK classified the failure, such as `bad_request` '
+                        + 'for a string that is not an IP address.',
+                },
+                message: { type: 'string' },
+            },
+            required: ['kind', 'message'],
+        },
+    },
+    required: ['error'],
+} as const;
 
 export interface ToolContext {
     client: VPNDetection;
@@ -134,7 +157,7 @@ export function createTools(ctx: ToolContext): ToolDef[] {
                     results: {
                         type: 'object',
                         description: 'Keyed by address. A value is either a result or an error.',
-                        additionalProperties: true,
+                        additionalProperties: { anyOf: [LOOKUP_RESULT_SCHEMA, ENTRY_ERROR_SCHEMA] },
                     },
                     coverage: COVERAGE_SCHEMA,
                 }, ['results', 'coverage']),
@@ -237,7 +260,7 @@ function accountTool(ctx: ToolContext): ToolDef {
                 + 'serving - it is NOT a limit of zero.',
             inputSchema: { type: 'object', additionalProperties: false },
             outputSchema: objectSchema({
-                entitlement: { type: 'object', additionalProperties: true },
+                entitlement: ENTITLEMENT_SCHEMA,
             }, ['entitlement']),
             annotations: {
                 readOnlyHint: true,
@@ -337,7 +360,7 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
                     + 'not in this window - never that it was never downloaded.',
                 inputSchema: jsonSchema(DOWNLOADS_INPUT),
                 outputSchema: objectSchema({
-                    downloads: { type: 'array', items: { type: 'object', additionalProperties: true } },
+                    downloads: { type: 'array', items: DOWNLOAD_SCHEMA },
                 }, ['downloads']),
                 annotations: {
                     readOnlyHint: true,

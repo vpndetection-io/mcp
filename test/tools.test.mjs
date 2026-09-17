@@ -153,6 +153,32 @@ test('a bogon answer also validates', async () => {
     assert.ok(validate(out.structuredContent), ajv.errorsText(validate.errors));
 });
 
+// A batch answer holds results AND the package's own entry errors side by side,
+// so the map's value schema has to admit both shapes.
+test('a batch with a failed address validates against the published outputSchema', async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    const batchServer = async () => {
+        const body = {
+            results: { '9.9.9.9': { ip: '9.9.9.9', is_vpn: false } },
+            errors: { 'nope': { status: 400, error: 'not a valid IP address' } },
+        };
+        return new Response(JSON.stringify(body), {
+            status: 200, headers: { 'content-type': 'application/json' },
+        });
+    };
+    const batch = toolsFor(batchServer).find((d) => d.tool.name === 'lookup_ips');
+    const validate = ajv.compile(batch.tool.outputSchema);
+
+    const out = await batch.handler({ ips: ['9.9.9.9', 'nope'] });
+
+    assert.equal(out.isError, undefined, 'one failed address must not fail the batch');
+    const { results } = out.structuredContent;
+    assert.equal(results['9.9.9.9'].is_vpn, false, 'the served address carries its result');
+    assert.equal(results['nope'].error.kind, 'bad_request', 'the failed address carries its error');
+    assert.ok(validate(out.structuredContent), ajv.errorsText(validate.errors));
+});
+
 // Every nullable field null at once, so the schema has to admit each of them.
 const NULL_CATALOG = {
     databases: [{
@@ -173,6 +199,25 @@ test('a catalog with every nullable field null validates', async () => {
     assert.ok(validate(out.structuredContent), ajv.errorsText(validate.errors));
 });
 
+// The same for a download attempt. `sample` is required as well, and not nullable.
+const NULL_DOWNLOADS = {
+    downloads: [{
+        dataset_id: 'cdn_ip_v1', format: 'csvgz', outcome: 'unknown', sample: false, bytes: null,
+        http_status: null, apikey_id: null, client_ip: null, user_agent: null,
+        created: '2026-09-12T10:00:00.000Z',
+    }],
+};
+
+test('a download history with every nullable field null validates', async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    const def = toolsFor(serving(NULL_DOWNLOADS)).find((d) => d.tool.name === 'list_downloads');
+    const validate = ajv.compile(def.tool.outputSchema);
+    const out = await def.handler({});
+    assert.equal(out.isError, undefined);
+    assert.ok(validate(out.structuredContent), ajv.errorsText(validate.errors));
+});
+
 // JSON Schema has no `nullable`; OpenAPI 3.0 does. A validator that follows JSON
 // Schema ignores the keyword and rejects the nulls above, as the Python MCP SDK
 // does. Ajv honors it as an OpenAPI extension, so the test above passes with or
@@ -181,6 +226,20 @@ test('no published schema leans on OpenAPI\'s nullable', () => {
     for (const { tool } of toolsFor(serving({}))) {
         assert.deepEqual(keywordPaths(tool.inputSchema, 'nullable'), [], `${tool.name}: inputSchema`);
         assert.deepEqual(keywordPaths(tool.outputSchema, 'nullable'), [], `${tool.name}: outputSchema`);
+    }
+});
+
+// Every output schema comes from the spec, never a free-form object this package
+// makes up (decided 2026-09-17). The one left is the spec's own: a sample row's
+// columns are whatever that database's are.
+const SPEC_FREE_FORM = {
+    database_metadata: ['/properties/sample/additionalProperties/items'],
+};
+
+test('no output schema is free-form unless the spec declares it', () => {
+    for (const { tool } of toolsFor(serving({}))) {
+        assert.deepEqual(freeFormPaths(tool.outputSchema), SPEC_FREE_FORM[tool.name] ?? [],
+            `${tool.name}: outputSchema`);
     }
 });
 
@@ -270,6 +329,16 @@ test('my_entitlement reports the plan and the usage', async () => {
     // Null means NEVER stop, which is not the same as a limit of zero, and the
     // description says so because a model would otherwise read it as a stop.
     assert.equal(result.structuredContent.entitlement.usage.hard_limit, null);
+});
+
+test('my_entitlement validates against the published outputSchema', async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    const def = toolsFor(serving(ENTITLEMENT_BODY)).find((d) => d.tool.name === 'my_entitlement');
+    const validate = ajv.compile(def.tool.outputSchema);
+    const out = await def.handler({});
+    assert.equal(out.isError, undefined);
+    assert.ok(validate(out.structuredContent), ajv.errorsText(validate.errors));
 });
 
 // The number it reports moves with every other call, which is the whole point
@@ -367,4 +436,19 @@ function keywordPaths(node, keyword, path = '') {
         }
         return keywordPaths(v, keyword, `${path}/${k}`);
     });
+}
+
+// Where a schema declares an object without saying what is in it: no `properties`,
+// and `additionalProperties` absent or `true`.
+function freeFormPaths(node, path = '') {
+    if (node === null || typeof node !== 'object') {
+        return [];
+    }
+    const types = Array.isArray(node.type) ? node.type : [node.type];
+    const freeForm = types.includes('object') && node.properties === undefined
+        && (node.additionalProperties === undefined || node.additionalProperties === true);
+    return [
+        ...(freeForm ? [path === '' ? '/' : path] : []),
+        ...Object.entries(node).flatMap(([k, v]) => freeFormPaths(v, `${path}/${k}`)),
+    ];
 }
