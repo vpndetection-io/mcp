@@ -10,13 +10,13 @@ importers:
     dependencies:
       '@modelcontextprotocol/sdk':
         specifier: ^1.20.2
-        version: 1.30.0(zod@4.5.4)
+        version: 1.30.0(zod@4.6.1)
       vpndetection:
         specifier: ^5.1.0
-        version: 5.1.0
+        version: 5.2.0
       zod:
         specifier: ^4.1.12
-        version: 4.5.4
+        version: 4.6.1
     devDependencies:
       '@mslmio/eslint-config':
         specifier: ^1.1.0
@@ -778,8 +778,8 @@ packages:
     resolution: {integrity: sha512-BNGbWLfd0eUPabhkXUVm0j8uuvREyTh5ovRa/dyow/BqAbZJyC+5fU+IzQOzmAKzYqYRAISoRhdQr3eIZ/PXqg==}
     engines: {node: '>= 0.8'}
 
-  vpndetection@5.1.0:
-    resolution: {integrity: sha512-SjmuyN8YJLey5j74JdeXatFoRpF6uzmBsi3F0Resvz2Oz6J5rMrmVSdb1qAb6CMgw6mxLjl3zN/SMZCp2CBgxA==}
+  vpndetection@5.2.0:
+    resolution: {integrity: sha512-wHMFgfw6cowSmr66tYz47ayMWwhhaDCq1Oj788R2Y05kxVgGEPBLcehi1HvsuoIc+hCO/3EVtCd58uuEIlO11Q==}
     engines: {node: '>=22'}
 
   which@2.0.2:
@@ -807,8 +807,8 @@ packages:
     peerDependencies:
       zod: ^3.25.28 || ^4
 
-  zod@4.5.4:
-    resolution: {integrity: sha512-sC95tT5iHHH9gtpj6A81kh+NEaRAUFN+qlUPDUbRfOMvNf5QCBqsb3WgvnpVtK5Y+4UfA6KqufotuTvMGiTlsA==}
+  zod@4.6.1:
+    resolution: {integrity: sha512-341aRWQsve0rvronKNTqZpjmzdbUDlFuzHaI/XLg/Ej82qffDJRRfBTCuv7+9q/rMjB6LSLyEBnW4InJeMtt/Q==}
 
 snapshots:
 
@@ -882,7 +882,7 @@ snapshots:
 
   '@keyv/serialize@1.1.1': {}
 
-  '@modelcontextprotocol/sdk@1.30.0(zod@4.5.4)':
+  '@modelcontextprotocol/sdk@1.30.0(zod@4.6.1)':
     dependencies:
       '@hono/node-server': 2.1.1(hono@4.13.7)
       ajv: 8.20.0
@@ -899,8 +899,8 @@ snapshots:
       json-schema-typed: 8.0.2
       pkce-challenge: 5.0.1
       raw-body: 3.0.2
-      zod: 4.5.4
-      zod-to-json-schema: 3.25.2(zod@4.5.4)
+      zod: 4.6.1
+      zod-to-json-schema: 3.25.2(zod@4.6.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -1606,7 +1606,7 @@ snapshots:
 
   vary@1.1.2: {}
 
-  vpndetection@5.1.0:
+  vpndetection@5.2.0:
     dependencies:
       lru-cache: 11.5.2
       p-limit: 6.2.0
@@ -1624,8 +1624,8 @@ snapshots:
 
   yocto-queue@1.2.2: {}
 
-  zod-to-json-schema@3.25.2(zod@4.5.4):
+  zod-to-json-schema@3.25.2(zod@4.6.1):
     dependencies:
-      zod: 4.5.4
+      zod: 4.6.1
 
-  zod@4.5.4: {}
+  zod@4.6.1: {}
