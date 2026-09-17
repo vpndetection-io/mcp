@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const spec = JSON.parse(readFileSync(resolve(root, 'spec/openapi.json'), 'utf8'));
 
-const schema = (name) => deref(spec, spec.components.schemas[name]);
+const schema = (name) => toJsonSchema(spec, spec.components.schemas[name]);
 
 const lookup = schema('LookupResponse');
 const members = Object.keys(lookup.properties);
@@ -66,15 +66,23 @@ export const DB_CHECKSUMS_SCHEMA: ObjectSchema = ${ts(schema('DbChecksums'))};
 writeFileSync(resolve(root, 'src/schema.gen.ts'), out);
 console.log(`src/schema.gen.ts  (spec ${spec.info.version}, ${members.length} lookup members)`);
 
-// Inlines every $ref. MCP clients validate tool output with an ordinary JSON
-// Schema validator that has no document to resolve a local $ref against, so a
-// schema carrying one would fail validation rather than skip it.
-function deref(doc, node, seen = new Set()) {
+// Rewrites a spec schema into the JSON Schema an MCP client validates tool
+// output with, which is not the dialect the spec is written in.
+//
+// Every $ref is inlined: that validator has no document to resolve a local $ref
+// against, so a schema carrying one would fail validation rather than skip it.
+//
+// OpenAPI 3.0's `nullable: true` becomes a `null` member of `type`. JSON Schema
+// has no `nullable` keyword, so a validator that follows it ignores the keyword
+// and rejects every null the API serves - the Python MCP SDK's does. Ajv, which
+// the TS SDK and this repo's tests use, honors `nullable` as an OpenAPI
+// extension, so no TS client can see the difference.
+function toJsonSchema(doc, node, seen = new Set()) {
     if (node === null || typeof node !== 'object') {
         return node;
     }
     if (Array.isArray(node)) {
-        return node.map((n) => deref(doc, n, seen));
+        return node.map((n) => toJsonSchema(doc, n, seen));
     }
     if (typeof node.$ref === 'string') {
         if (seen.has(node.$ref)) {
@@ -88,14 +96,25 @@ function deref(doc, node, seen = new Set()) {
         if (target === undefined) {
             throw new Error(`unresolvable $ref: ${node.$ref}`);
         }
-        return deref(doc, target, new Set([...seen, node.$ref]));
+        return toJsonSchema(doc, target, new Set([...seen, node.$ref]));
     }
     const out = {};
     for (const [k, v] of Object.entries(node)) {
         if (k === 'example' || k === 'examples') {
             continue;
         }
-        out[k] = deref(doc, v, seen);
+        if (k === 'nullable' && typeof v === 'boolean') {
+            continue;
+        }
+        out[k] = toJsonSchema(doc, v, seen);
+    }
+    if (node.nullable === true) {
+        // Only `type` widens. OpenAPI 3.0.3 leaves every other constraint as
+        // written, so an enum admits null only where it lists null itself.
+        if (typeof node.type !== 'string') {
+            throw new Error(`nullable with no single type to widen: ${JSON.stringify(node)}`);
+        }
+        out.type = [node.type, 'null'];
     }
     return flattenSingleAllOf(out);
 }

@@ -7,6 +7,7 @@ import type { DatabaseFormat, Result, VPNDetection } from 'vpndetection';
 import {
     CallToolRequestSchema, ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
+import { DATABASE_FORMATS } from 'vpndetection';
 
 import { batchCoverage, COVERAGE_SCHEMA, coverageOf, wireBody } from './coverage.js';
 import {
@@ -32,7 +33,12 @@ const VERSIONED_ID = 'A VERSIONED database id, from `versions[].id` in `list_dat
     + '`cdn_ip_v1`, not `cdn_ip`. The unversioned base id is a license reference and is '
     + 'not accepted here.';
 
-const FORMATS = z.enum(['csvgz', 'mmdb']);
+// The formats come from the SDK's own exported vocabulary rather than a literal
+// here. It is typed by the union generated from the spec, so a format this
+// package spells wrong does not compile, and one the API adds arrives with a
+// version bump instead of a silent divergence. The tuple cast is about z.enum
+// wanting a non-empty tuple, not a claim about the wire.
+const FORMATS = z.enum([...DATABASE_FORMATS] as [DatabaseFormat, ...DatabaseFormat[]]);
 
 // Each tool's arguments, declared ONCE. `jsonSchema()` publishes the object and
 // the handler parses with the same one, so the cap a client is shown is the cap
@@ -314,7 +320,7 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
             handler: async (args) => {
                 const parsed = CHECKSUM_INPUT.parse(args);
                 const checksums = await ctx.client.database.checksums(
-                    parsed.dataset_id, parsed.format as DatabaseFormat);
+                    parsed.dataset_id, parsed.format);
                 return ok({ checksums: checksums });
             },
         },

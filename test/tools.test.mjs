@@ -153,6 +153,37 @@ test('a bogon answer also validates', async () => {
     assert.ok(validate(out.structuredContent), ajv.errorsText(validate.errors));
 });
 
+// Every nullable field null at once, so the schema has to admit each of them.
+const NULL_CATALOG = {
+    databases: [{
+        base: 'cdn_ip', name: 'CDN IP', summary: 'CDN ranges', license_type: null,
+        starts: null, expires: null, renews_at: null, notice_due_at: null,
+        in_term: false, standing: 'unlicensed',
+        versions: [{ id: 'cdn_ip_v1', version: 1, formats: [{ format: 'mmdb', bytes: null }] }],
+    }],
+};
+
+test('a catalog with every nullable field null validates', async () => {
+    const ajv = new Ajv({ strict: false, allErrors: true });
+    addFormats(ajv);
+    const def = toolsFor(serving(NULL_CATALOG)).find((d) => d.tool.name === 'list_databases');
+    const validate = ajv.compile(def.tool.outputSchema);
+    const out = await def.handler({});
+    assert.equal(out.isError, undefined);
+    assert.ok(validate(out.structuredContent), ajv.errorsText(validate.errors));
+});
+
+// JSON Schema has no `nullable`; OpenAPI 3.0 does. A validator that follows JSON
+// Schema ignores the keyword and rejects the nulls above, as the Python MCP SDK
+// does. Ajv honors it as an OpenAPI extension, so the test above passes with or
+// without it and cannot be the check.
+test('no published schema leans on OpenAPI\'s nullable', () => {
+    for (const { tool } of toolsFor(serving({}))) {
+        assert.deepEqual(keywordPaths(tool.inputSchema, 'nullable'), [], `${tool.name}: inputSchema`);
+        assert.deepEqual(keywordPaths(tool.outputSchema, 'nullable'), [], `${tool.name}: outputSchema`);
+    }
+});
+
 // Both spellings exist and only one is accepted, so the description is the only
 // thing standing between a model that has just read `base` and a refusal that
 // looks like a missing database. Shared constant, so the two cannot drift apart -
@@ -323,3 +354,17 @@ test('the downloads bounds and default come from the spec', () => {
     assert.equal(published.minimum, schema.minimum);
     assert.match(published.description, new RegExp(`defaults to ${schema.default}\\.`));
 });
+
+// Where a keyword appears in a schema. A keyword's value is never an object, so
+// a PROPERTY that happens to share the name is not mistaken for one.
+function keywordPaths(node, keyword, path = '') {
+    if (node === null || typeof node !== 'object') {
+        return [];
+    }
+    return Object.entries(node).flatMap(([k, v]) => {
+        if (k === keyword && (v === null || typeof v !== 'object')) {
+            return [`${path}/${k}`];
+        }
+        return keywordPaths(v, keyword, `${path}/${k}`);
+    });
+}
