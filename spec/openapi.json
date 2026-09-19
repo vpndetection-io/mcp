@@ -9,7 +9,7 @@
       "url": "https://vpndetection.io"
     },
     "termsOfService": "https://vpndetection.io/terms",
-    "version": "2026.09.16"
+    "version": "2026.09.18"
   },
   "servers": [
     {
@@ -667,7 +667,7 @@
           "Database"
         ],
         "summary": "List",
-        "description": "Every database this organization may SEE, with where its licence stands.\nNot just the ones you hold: a customer with one grant should be able to\ntell what else is published without asking. `standing` is the\ndifference - `licensed`, `expired`, or `unlicensed` for one never\nbought.\n",
+        "description": "Every database this organization may SEE, with where its license stands.\nNot just the ones you hold: a customer with one grant should be able to\ntell what else is published without asking. `standing` is the\ndifference - `licensed`, `expired`, or `unlicensed` for one never\nbought.\n",
         "responses": {
           "200": {
             "description": "OK",
