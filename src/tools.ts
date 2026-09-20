@@ -283,10 +283,11 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
                 name: 'list_databases',
                 title: 'List databases',
                 description: 'The database catalog as this API key\'s organization may see it, '
-                    + 'one entry per database FAMILY, with the license type and term. A database '
-                    + 'absent from this list is one the organization does not hold. Each entry has '
-                    + 'a `base` id, which is what the license names, and a `versions` array whose '
-                    + '`id` is what the other database tools take - pass `versions[].id` '
+                    + 'one entry per database FAMILY, with `standing` saying where their license '
+                    + 'stands: `licensed` if the family is theirs today, `expired` if the term has '
+                    + 'ended, `unlicensed` if it is published but has never been bought. Each entry '
+                    + 'has a `base` id, which is what the license names, and a `versions` array '
+                    + 'whose `id` is what the other database tools take - pass `versions[].id` '
                     + '(`cdn_ip_v1`), never the `base` (`cdn_ip`). Ask again rather than holding '
                     + 'on to this: it is answered per key and is not the same for everyone.',
                 inputSchema: { type: 'object', additionalProperties: false },
