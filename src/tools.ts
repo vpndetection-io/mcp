@@ -151,7 +151,9 @@ export function createTools(ctx: ToolContext): ToolDef[] {
                     + 'Pass the whole list rather than splitting it yourself: a long one is batched '
                     + 'for you. Prefer this over repeated `lookup_ip` calls when you already have '
                     + 'the list, for example when triaging a log file. An address that fails '
-                    + 'carries its error in place of a result rather than failing the batch.',
+                    + 'carries its error in place of a result rather than failing the batch. '
+                    + 'Always read `coverage.note` before concluding anything from a field that is '
+                    + 'not in the result.',
                 inputSchema: jsonSchema(LOOKUP_BATCH_INPUT),
                 outputSchema: objectSchema({
                     results: {

@@ -440,6 +440,18 @@ test('the list_databases description names every standing the spec declares', ()
     }
 });
 
+// An absent member reads as a negative finding unless the model is told otherwise,
+// so every tool that answers with a coverage block says to read its note.
+test('every tool that answers with coverage says to read its note', () => {
+    const withCoverage = toolsFor(serving({}))
+        .filter((d) => d.tool.outputSchema.properties?.coverage !== undefined);
+    assert.deepEqual(withCoverage.map((d) => d.tool.name), ['lookup_ip', 'lookup_ips']);
+    for (const { tool } of withCoverage) {
+        assert.ok(tool.description.includes('Always read `coverage.note`'),
+            `${tool.name}: the description never says to read \`coverage.note\``);
+    }
+});
+
 // Where a keyword appears in a schema. A keyword's value is never an object, so
 // a PROPERTY that happens to share the name is not mistaken for one.
 function keywordPaths(node, keyword, path = '') {
