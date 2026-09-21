@@ -9,7 +9,7 @@
       "url": "https://vpndetection.io"
     },
     "termsOfService": "https://vpndetection.io/terms",
-    "version": "2026.09.18"
+    "version": "2026.09.21"
   },
   "servers": [
     {
@@ -2088,7 +2088,7 @@
       },
       "Database": {
         "type": "object",
-        "description": "One database FAMILY your organization is licensed for. A license covers\nthe family, while a download names a specific version, so the ids you\npass to the download and checksum endpoints come from `versions`.\n",
+        "description": "One database FAMILY, with your organization's license beside it. A license covers\nthe family, while a download names a specific version, so the ids you\npass to the download and checksum endpoints come from `versions`.\n",
         "properties": {
           "base": {
             "type": "string",
