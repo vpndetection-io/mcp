@@ -5,7 +5,7 @@ import type { CallToolResult, Tool } from '@modelcontextprotocol/sdk/types.js';
 import type { DatabaseFormat, Result, VPNDetection } from 'vpndetection';
 
 import {
-    CallToolRequestSchema, ListToolsRequestSchema,
+    CallToolRequestSchema, ErrorCode, ListToolsRequestSchema, McpError,
 } from '@modelcontextprotocol/sdk/types.js';
 import { DATABASE_FORMATS } from 'vpndetection';
 
@@ -197,7 +197,10 @@ export function registerTools(server: Server, defs: ToolDef[]): void {
     server.setRequestHandler(CallToolRequestSchema, async (req) => {
         const def = byName.get(req.params.name);
         if (def === undefined) {
-            throw new Error(`Unknown tool: ${req.params.name}`);
+            // The caller's mistake, as the MCP spec and the SDK's own McpServer
+            // answer it. A plain Error would reach the client as -32603, "the
+            // server broke", for a model that only guessed a tool name.
+            throw new McpError(ErrorCode.InvalidParams, `Unknown tool: ${req.params.name}`);
         }
         return await def.handler(req.params.arguments ?? {});
     });

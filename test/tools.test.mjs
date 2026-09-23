@@ -4,11 +4,15 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { ErrorCode } from '@modelcontextprotocol/sdk/types.js';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import { VPNDetection } from 'vpndetection';
 
-import { createTools, DOWNLOADS_LIMIT } from '../dist/index.js';
+import { createTools, DOWNLOADS_LIMIT, registerTools } from '../dist/index.js';
 
 const data = JSON.parse(readFileSync(new URL('../testdata/testdata.json', import.meta.url), 'utf8'));
 
@@ -378,6 +382,23 @@ test('a rejected argument is the model\'s to fix, not an internal failure', asyn
         // model would have to decode before it could act on it.
         assert.match(error.message, new RegExp(field), `${name} must name the field`);
         assert.doesNotMatch(error.message, /"code":/, `${name} must not be a raw issue array`);
+    }
+});
+
+// A tool name the model guessed, such as one a release renamed, is its mistake
+// too: a protocol error, since no tool exists to answer it, but never -32603.
+test('an unknown tool is invalid params, not an internal error', async () => {
+    const server = new Server({ name: 'test', version: '0' }, { capabilities: { tools: {} } });
+    registerTools(server, toolsFor(serving({})));
+    const [serverSide, clientSide] = InMemoryTransport.createLinkedPair();
+    await server.connect(serverSide);
+    const client = new Client({ name: 'test', version: '0' });
+    await client.connect(clientSide);
+    try {
+        await assert.rejects(client.callTool({ name: 'my_account', arguments: {} }),
+            { code: ErrorCode.InvalidParams, message: /Unknown tool: my_account/ });
+    } finally {
+        await client.close();
     }
 });
 
