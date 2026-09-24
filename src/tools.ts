@@ -9,10 +9,12 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { DATABASE_FORMATS } from 'vpndetection';
 
-import { batchCoverage, COVERAGE_SCHEMA, coverageOf, wireBody } from './coverage.js';
+import {
+    batchCoverage, COVERAGE_SCHEMA, coverageOf, LOOKUP_ANSWER_SCHEMA, wireBody,
+} from './coverage.js';
 import {
     DATABASE_METADATA_SCHEMA, DATABASE_SCHEMA, DB_CHECKSUMS_SCHEMA, DOWNLOAD_SCHEMA, DOWNLOADS_LIMIT,
-    DOWNLOADS_LIMIT_DEFAULT, DOWNLOADS_LIMIT_MIN, ENTITLEMENT_SCHEMA, LOOKUP_RESULT_SCHEMA,
+    DOWNLOADS_LIMIT_DEFAULT, DOWNLOADS_LIMIT_MIN, ENTITLEMENT_SCHEMA,
 } from './schema.gen.js';
 
 /**
@@ -131,7 +133,7 @@ export function createTools(ctx: ToolContext): ToolDef[] {
                     + 'not in the result.',
                 inputSchema: jsonSchema(LOOKUP_INPUT),
                 outputSchema: objectSchema({
-                    result: LOOKUP_RESULT_SCHEMA,
+                    result: LOOKUP_ANSWER_SCHEMA,
                     coverage: COVERAGE_SCHEMA,
                 }, ['result', 'coverage']),
                 annotations: {
@@ -159,7 +161,7 @@ export function createTools(ctx: ToolContext): ToolDef[] {
                     results: {
                         type: 'object',
                         description: 'Keyed by address. A value is either a result or an error.',
-                        additionalProperties: { anyOf: [LOOKUP_RESULT_SCHEMA, ENTRY_ERROR_SCHEMA] },
+                        additionalProperties: { anyOf: [LOOKUP_ANSWER_SCHEMA, ENTRY_ERROR_SCHEMA] },
                     },
                     coverage: COVERAGE_SCHEMA,
                 }, ['results', 'coverage']),

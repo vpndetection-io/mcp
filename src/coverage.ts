@@ -1,6 +1,8 @@
 import type { Result } from 'vpndetection';
 
-import { LOOKUP_GATED_MEMBERS, LOOKUP_MEMBERS, LOOKUP_RESULT_SCHEMA } from './schema.gen.js';
+import {
+    LOOKUP_GATED_MEMBERS, LOOKUP_MEMBERS, LOOKUP_RESULT_SCHEMA, type ObjectSchema,
+} from './schema.gen.js';
 
 /**
  * What a lookup result did and did not cover.
@@ -61,6 +63,24 @@ export function wireBody(result: Result): Record<string, unknown> {
     }
     return out;
 }
+
+/**
+ * A lookup answer as this package serves it: the spec's members, plus the SDK-only
+ * `is_bogon` marker `wireBody` adds. The API never serves that marker, so the spec
+ * cannot generate it and it is declared here instead.
+ */
+export const LOOKUP_ANSWER_SCHEMA: ObjectSchema = {
+    ...LOOKUP_RESULT_SCHEMA,
+    properties: {
+        ...LOOKUP_RESULT_SCHEMA.properties,
+        is_bogon: {
+            type: 'boolean',
+            description: 'Present, and true, only for a private, reserved or otherwise non-routable '
+                + 'address. Such an answer is given locally without calling the API, so every other flag '
+                + 'in it is false by definition rather than by lookup. Absent from every served answer.',
+        },
+    },
+};
 
 /**
  * Derives coverage from the result body alone.

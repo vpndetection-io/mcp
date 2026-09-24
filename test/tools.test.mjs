@@ -157,6 +157,21 @@ test('a bogon answer also validates', async () => {
     assert.ok(validate(out.structuredContent), ajv.errorsText(validate.errors));
 });
 
+// Validating proves nothing about a member the schema never names, because a result
+// schema admits extra keys. `is_bogon` is this package's own, so it must be declared.
+test('every member a bogon answer carries is declared, in both lookup tools', async () => {
+    const defs = toolsFor(serving({}));
+    const one = defs.find((d) => d.tool.name === 'lookup_ip');
+    const many = defs.find((d) => d.tool.name === 'lookup_ips');
+    const undeclared = (answer, schema) => Object.keys(answer).filter((k) => !(k in schema.properties));
+
+    const single = (await one.handler({ ip: '10.0.0.1' })).structuredContent.result;
+    assert.deepEqual(undeclared(single, one.tool.outputSchema.properties.result), []);
+    const entry = (await many.handler({ ips: ['10.0.0.1'] })).structuredContent.results['10.0.0.1'];
+    const entrySchema = many.tool.outputSchema.properties.results.additionalProperties.anyOf[0];
+    assert.deepEqual(undeclared(entry, entrySchema), []);
+});
+
 // A batch answer holds results AND the package's own entry errors side by side,
 // so the map's value schema has to admit both shapes.
 test('a batch with a failed address validates against the published outputSchema', async () => {
