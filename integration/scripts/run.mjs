@@ -96,7 +96,7 @@ function publishedVersions(range) {
  * testing a client the library left behind - this suite ran `^4.0.0` against
  * 4.2.0 for the whole life of 5.0.0, and the red it eventually produced would
  * have read as a broken staging API rather than as a stale pin. Checked in the
- * runner because `release-preflight.sh` cannot see it: `integration_pin_of` is
+ * runner because the release checks cannot see it: `integration_pin_of` is
  * keyed on the repo directory and has arms for the twelve language SDKs, not
  * for `mcp`, so the gate reports `ok` having read nothing.
  *

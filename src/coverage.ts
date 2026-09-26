@@ -86,7 +86,7 @@ export const LOOKUP_ANSWER_SCHEMA: ObjectSchema = {
  * Derives coverage from the result body alone.
  *
  * Deliberately no tier table: the members are read from the pinned spec and the
- * absent ones are whatever the API left out, so a dataset added to `ip_api`
+ * absent ones are whatever the API left out, so a dataset added to the API
  * starts appearing here as soon as `scripts/download-spec.sh` is re-run. The
  * caller's tier is never named, because the plan's identity is not the useful
  * fact - what it failed to check is.

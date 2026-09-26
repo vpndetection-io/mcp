@@ -3,7 +3,7 @@
 // Two things come out of it, and both exist so that no copy of the tier ladder
 // is ever written down here. The MEMBER list is what a coverage note is derived
 // from: a result's absent members are the spec's members minus the ones served,
-// so a dataset added to ip_api appears in the note as soon as the spec is
+// so a dataset added to the API appears in the note as soon as the spec is
 // refreshed. The output SCHEMAS are what MCP clients validate against.
 
 import { readFileSync, writeFileSync } from 'node:fs';

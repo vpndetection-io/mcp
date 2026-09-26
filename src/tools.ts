@@ -103,7 +103,7 @@ export interface ToolContext {
      * Whether to offer the database tools. On by default: a key without the
      * `db.download` scope gets a plain refusal from the API, which reads better
      * than a tool that silently does not exist, and deciding otherwise would
-     * mean re-validating the key here against a policy `db_dl_api` owns.
+     * mean re-validating the key here against a policy the download API owns.
      */
     database?: boolean;
 }
