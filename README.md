@@ -1,4 +1,4 @@
-# [<img src="https://s3.vpndetection.io/vpndetection-public/brand/mark.svg" alt="VPNDetection" width="24"/>](https://vpndetection.io/) VPNDetection MCP Server
+# [<img src="https://s3.vpndetection.io/vpndetection-public/brand/mark.svg" alt="VPNDetection" height="28"/>](https://vpndetection.io/) VPNDetection MCP Server
 
 [![npm](https://img.shields.io/npm/v/vpndetection-mcp.svg)](https://www.npmjs.com/package/vpndetection-mcp)
 [![license](https://img.shields.io/npm/l/vpndetection-mcp.svg)](LICENSE)
