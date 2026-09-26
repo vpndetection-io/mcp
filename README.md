@@ -23,6 +23,15 @@ claude mcp add --transport http vpndetection https://mcp.vpndetection.io/mcp
 
 Then run `/mcp`, pick `vpndetection` and sign in the same way. Once it's connected, ask something like *"is 45.83.91.1 a VPN?"*.
 
+Or install the VPNDetection plugin. It adds the same server, with skills for checking addresses, screening a signup or order export, and working with the databases:
+
+```console
+/plugin marketplace add vpndetection-io/claude-plugin
+/plugin install vpndetection@vpndetection
+```
+
+It asks you to sign in the first time one of its tools runs.
+
 Claude never sees the key. Our server uses it on your behalf, so every call counts against that key's plan. Approving needs permission to share your organization's API keys, and asks you to confirm it's you. You can disconnect it at any time from the console, under **Settings > Sessions & devices > Connected applications**.
 
 ### In any other MCP client
