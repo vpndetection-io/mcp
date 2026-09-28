@@ -128,6 +128,32 @@ test('a bogon is answered in the full documented shape', async () => {
         'nothing is uncovered in a locally synthesized answer');
 });
 
+// A server listening on :: logs every IPv4 visitor as ::ffff:a.b.c.d, and a model triaging that
+// log passes the form on: it must find each answer under the address it passed.
+test('an IPv4-mapped address is the IPv4 address it carries, keyed as passed', async () => {
+    const free = data.lookup.find((c) => c.name === 'free-not-vpn');
+    const stub = serving({ ...free.body, ip: '8.8.8.8' });
+    const paths = [];
+    const tools = toolsFor((input, init) => {
+        paths.push(new URL(typeof input === 'string' ? input : input.url).pathname);
+        return stub.fetch(input, init);
+    });
+    for (const c of data.ipv4Mapped) {
+        paths.length = 0;
+        const out = await tools.get('lookup_ip').handler({ ip: c.ip });
+        assert.equal(out.structuredContent.result.ip, c.carries, c.ip);
+        assert.equal(out.structuredContent.result.is_bogon === true, c.expect, c.ip);
+        assert.deepEqual(paths, c.expect ? [] : [`/${c.carries}`], `${c.ip}: what was sent`);
+    }
+
+    const ips = data.ipv4Mapped.map((c) => c.ip);
+    const out = await tools.get('lookup_ips').handler({ ips: ips });
+    assert.deepEqual(Object.keys(out.structuredContent.results), ips);
+    for (const c of data.ipv4Mapped) {
+        assert.equal(out.structuredContent.results[c.ip].ip, c.carries, c.ip);
+    }
+});
+
 test('batch coverage comes from a served answer, never from a bogon', async () => {
     const free = data.lookup.find((c) => c.name === 'free-not-vpn');
     const stub = serving(free.body);
