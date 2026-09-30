@@ -5,7 +5,7 @@
 
 The official [Model Context Protocol](https://modelcontextprotocol.io) server for the [VPNDetection](https://vpndetection.io) API.
 
-It gives an AI agent seven read-only tools for anonymity detection: whether an address belongs to a VPN, a residential, datacenter or mobile proxy, a Tor node, a public relay, a hosting provider or a CDN, plus the catalogue of databases your organization is licensed to download.
+It gives an AI agent seven read-only tools for anonymity detection: whether an address belongs to a VPN, a residential, datacenter or mobile proxy, a Tor node, a public relay, a hosting provider or a CDN, plus the database catalog and where your organization's license for each one stands.
 
 ## Getting Started
 
@@ -68,7 +68,7 @@ A key unlocks the provider name, the classification databases and the proxy fami
 | `lookup_ip` | Classify one address. |
 | `lookup_ips` | Classify a whole list of addresses in one call, keyed by address. A long list is batched for you. |
 | `my_entitlement` | What this key is entitled to and what it has spent: plan, field tier, requests so far, allowance, and when it resets. |
-| `list_databases` | The databases your organization is licensed for. |
+| `list_databases` | Every database we publish, with its `standing` for your organization: `licensed`, `expired` or `unlicensed`. |
 | `database_metadata` | A database's columns, sample rows, row count, build date and file sizes. |
 | `database_checksum` | The published digests for one database file. |
 | `list_downloads` | Your organization's recent download attempts, refusals included. |
