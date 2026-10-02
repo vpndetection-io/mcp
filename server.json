@@ -1,0 +1,43 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.vpndetection-io/mcp",
+  "title": "VPNDetection",
+  "description": "VPN, proxy, Tor, hosting and CDN detection for any IP address, from the VPNDetection API.",
+  "websiteUrl": "https://vpndetection.io",
+  "repository": {
+    "url": "https://github.com/vpndetection-io/mcp",
+    "source": "github"
+  },
+  "version": "5.3.5",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "vpndetection-mcp",
+      "version": "5.3.5",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "VPNDETECTION_API_KEY",
+          "description": "Your VPNDetection API key; lookups answer without one, with fewer fields",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "VPNDETECTION_BASE_URL",
+          "description": "Overrides the API endpoint",
+          "isRequired": false,
+          "format": "string"
+        }
+      ]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.vpndetection.io/mcp"
+    }
+  ]
+}
