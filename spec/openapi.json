@@ -9,7 +9,7 @@
       "url": "https://vpndetection.io"
     },
     "termsOfService": "https://vpndetection.io/terms",
-    "version": "2026.09.26"
+    "version": "2026.10.03"
   },
   "servers": [
     {
@@ -810,7 +810,7 @@
           "Database"
         ],
         "summary": "Metadata",
-        "description": "Poll this to decide whether today's build is worth fetching: it carries\n`updated` and `entries` without downloading anything.\n\nNo `format` parameter - one document describes every format the database\nis built in.\n",
+        "description": "Poll this to decide whether today's build is worth fetching: it carries\n`updated` and `entries` without downloading anything.\n\nNo `format` parameter - one document describes every format the database\nis built in. Needs no license: it answers for every database `list`\nreturns, whatever its `standing`.\n",
         "parameters": [
           {
             "in": "query",
@@ -834,9 +834,6 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/NotLicensed"
           },
           "404": {
             "$ref": "#/components/responses/UnknownDataset"
@@ -3020,7 +3017,7 @@
         }
       },
       "NotAvailable": {
-        "description": "Licensed, but today's copy has not been published yet",
+        "description": "Today's copy has not been published yet",
         "content": {
           "application/json": {
             "schema": {
