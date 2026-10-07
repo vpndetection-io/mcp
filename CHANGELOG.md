@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.0.0 - 2026-10-07
+
+### Breaking changes
+
+- Serve MCP 2026-07-28 too, on MCP SDK v2; registerTools takes its Server ([`8b35e11`](https://github.com/vpndetection-io/mcp/commit/8b35e11ef8b8134bb7b4067bdc6685772225686a))
+
 ## 5.3.6 - 2026-10-03
 
 ### Features

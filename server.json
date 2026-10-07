@@ -8,12 +8,12 @@
     "url": "https://github.com/vpndetection-io/mcp",
     "source": "github"
   },
-  "version": "5.3.6",
+  "version": "6.0.0",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "vpndetection-mcp",
-      "version": "5.3.6",
+      "version": "6.0.0",
       "transport": {
         "type": "stdio"
       },
