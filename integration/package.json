@@ -9,7 +9,7 @@
         "node": ">=22"
     },
     "dependencies": {
-        "@modelcontextprotocol/sdk": "^1.20.2",
+        "@modelcontextprotocol/client": "^2.2.0",
         "vpndetection-mcp": "^5.0.0"
     },
     "scripts": {

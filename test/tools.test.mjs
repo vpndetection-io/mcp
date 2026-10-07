@@ -3,11 +3,11 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
 
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
-import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { ErrorCode } from '@modelcontextprotocol/sdk/types.js';
+import { Client, ProtocolErrorCode } from '@modelcontextprotocol/client';
+import { StdioClientTransport } from '@modelcontextprotocol/client/stdio';
+import { InMemoryTransport, Server } from '@modelcontextprotocol/server';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import { VPNDetection } from 'vpndetection';
@@ -421,11 +421,34 @@ test('an unknown tool is invalid params, not an internal error', async () => {
     await client.connect(clientSide);
     try {
         await assert.rejects(client.callTool({ name: 'my_account', arguments: {} }),
-            { code: ErrorCode.InvalidParams, message: /Unknown tool: my_account/ });
+            { code: ProtocolErrorCode.InvalidParams, message: /Unknown tool: my_account/ });
     } finally {
         await client.close();
     }
 });
+
+// The installed entry point serves both protocol eras: a 2025-11-25 client opens
+// with `initialize`, a 2026-07-28 one with `server/discover` and no handshake.
+for (const [era, versionNegotiation] of [
+    ['2025-11-25', undefined],
+    ['2026-07-28', { mode: { pin: '2026-07-28' } }],
+]) {
+    test(`the stdio server lists the manifest to a ${era} client`, async () => {
+        const client = new Client({ name: 'test', version: '0' }, { versionNegotiation: versionNegotiation });
+        await client.connect(new StdioClientTransport({
+            command: process.execPath,
+            args: [fileURLToPath(new URL('../dist/stdio.js', import.meta.url))],
+            env: { PATH: process.env.PATH ?? '' },
+        }));
+        try {
+            assert.equal(client.getNegotiatedProtocolVersion(), era);
+            const { tools } = await client.listTools();
+            assert.deepEqual(tools.map((t) => t.name), toolsFor(serving({})).map((d) => d.tool.name));
+        } finally {
+            await client.close();
+        }
+    });
+}
 
 // zod rejects an array argument one issue per bad element. Spelled out in full, a
 // megabyte of numbers passed as `ips` came back as ~37 MB of error text.
