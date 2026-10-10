@@ -6,6 +6,7 @@
 // stated in fixtures proves nothing about what the API actually serves.
 
 import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
 import { test } from 'node:test';
 
 import { Client } from '@modelcontextprotocol/client';
@@ -15,6 +16,9 @@ import { keyFor, observableRungs, RUNGS, skipFor, UNAUTH_RUNG } from '../lib/tie
 
 const BASE_URL = 'https://api-staging.vpndetection.io';
 const VPN_IP = '45.83.91.1';
+
+// Through the export map's own `./package.json` entry, as the runner installed it.
+const INSTALLED_VERSION = createRequire(import.meta.url)('vpndetection-mcp/package.json').version;
 
 async function connect(rung) {
     const transport = new StdioClientTransport({
@@ -44,6 +48,10 @@ async function coverageAt(rung) {
 test('the server starts and lists its tools', async () => {
     const client = await connect(UNAUTH_RUNG);
     try {
+        // npx resolves the installed copy, and a server that is anything else -
+        // one npx fetched for itself, or an older one on the PATH - says so here.
+        assert.equal(client.getServerVersion()?.version, INSTALLED_VERSION,
+            'the server npx started is not the version the runner installed');
         const { tools } = await client.listTools();
         const names = tools.map((t) => t.name);
         assert.deepEqual(names, [

@@ -28,6 +28,14 @@ import { fileURLToPath } from 'node:url';
 import { RUNGS, skipFor } from '../lib/tiers.mjs';
 
 const PACKAGE = 'vpndetection-mcp';
+// The client library the server wraps, which a stranger's install fetches with it.
+const CLIENT = 'vpndetection';
+// Both are public and unscoped, and this is the registry that serves them.
+// Stated rather than inherited, because a developer machine or a runner may
+// point npm's default registry somewhere else, and the install would then
+// resolve something that is not what a stranger gets.
+const NPMJS = 'https://registry.npmjs.org/';
+const REGISTRY = [`--registry=${NPMJS}`];
 
 try {
     main();
@@ -61,7 +69,7 @@ function main() {
     // would stop noticing new releases.
     rmSync(join(dir, 'node_modules'), { recursive: true, force: true });
     rmSync(join(dir, 'package-lock.json'), { force: true });
-    run('npm', ['install', '--no-audit', '--no-fund'], dir);
+    run('npm', ['install', '--no-audit', '--no-fund', ...REGISTRY], dir);
 
     assertInstalledFromRegistry(dir, versions);
     // node's own glob, not the shell's: this spawns without one.
@@ -75,7 +83,7 @@ function main() {
 function publishedVersions(range) {
     let out;
     try {
-        out = execFileSync('npm', ['view', `${PACKAGE}@${range}`, 'version', '--json'], {
+        out = execFileSync('npm', ['view', `${PACKAGE}@${range}`, 'version', '--json', ...REGISTRY], {
             encoding: 'utf8',
             stdio: ['ignore', 'pipe', 'pipe'],
         });
@@ -104,7 +112,7 @@ function publishedVersions(range) {
  * skip: before a first release there is genuinely nothing to test.
  */
 function assertRangeAdmitsLatest(range, versions) {
-    const latest = execFileSync('npm', ['view', PACKAGE, 'dist-tags.latest'], {
+    const latest = execFileSync('npm', ['view', PACKAGE, 'dist-tags.latest', ...REGISTRY], {
         encoding: 'utf8',
         stdio: ['ignore', 'pipe', 'pipe'],
     }).trim();
@@ -116,22 +124,33 @@ function assertRangeAdmitsLatest(range, versions) {
         + `${versions[versions.length - 1]} instead. Bump the range in integration/package.json.`);
 }
 
-// The suite is worthless if npm handed it a link to the working tree, and that
-// failure is silent: every test passes, against the wrong code.
+// The suite is worthless if npm handed it a link to the working tree, or an
+// artifact from anywhere but the registry a stranger installs from, and both
+// failures are silent: every test passes, against the wrong code. So the server
+// and the client library it wraps must each have come from npm, which a check
+// for any `https://` URL could not tell from a private registry.
 function assertInstalledFromRegistry(dir, versions) {
     const installed = join(dir, 'node_modules', PACKAGE);
     if (lstatSync(installed).isSymbolicLink()) {
         throw new Error(`${installed} is a symlink, so the tests would run against local source`);
     }
-    const entry = readJson(join(dir, 'package-lock.json')).packages[`node_modules/${PACKAGE}`];
-    if (entry === undefined || !String(entry.resolved).startsWith('https://')) {
-        throw new Error(`${PACKAGE} was not resolved from a registry: ${JSON.stringify(entry)}`);
+    const packages = readJson(join(dir, 'package-lock.json')).packages;
+    for (const name of [PACKAGE, CLIENT]) {
+        const entries = Object.entries(packages).filter(([path]) => path.endsWith(`node_modules/${name}`));
+        if (entries.length === 0) {
+            throw new Error(`${name} is not in the install at all`);
+        }
+        for (const [path, entry] of entries) {
+            if (!String(entry.resolved).startsWith(NPMJS)) {
+                throw new Error(`${path} was not resolved from ${NPMJS}: ${JSON.stringify(entry)}`);
+            }
+        }
     }
     const version = readJson(join(installed, 'package.json')).version;
     if (!versions.includes(version)) {
         throw new Error(`installed ${version}, which is not one of ${versions.join(', ')}`);
     }
-    console.log(`==> installed ${PACKAGE}@${version} from ${entry.resolved}`);
+    console.log(`==> installed ${PACKAGE}@${version} from ${packages[`node_modules/${PACKAGE}`].resolved}`);
 }
 
 function run(command, args, cwd) {
