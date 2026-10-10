@@ -139,6 +139,7 @@ export function createTools(ctx: ToolContext): ToolDef[] {
                 }, ['result', 'coverage']),
                 annotations: {
                     readOnlyHint: true,
+                    destructiveHint: false,
                     idempotentHint: true,
                     openWorldHint: true,
                 },
@@ -168,6 +169,7 @@ export function createTools(ctx: ToolContext): ToolDef[] {
                 }, ['results', 'coverage']),
                 annotations: {
                     readOnlyHint: true,
+                    destructiveHint: false,
                     idempotentHint: true,
                     openWorldHint: true,
                 },
@@ -281,6 +283,7 @@ function accountTool(ctx: ToolContext): ToolDef {
             }, ['entitlement']),
             annotations: {
                 readOnlyHint: true,
+                destructiveHint: false,
                 // Not idempotent: the number it reports moves with every other
                 // call, which is the whole point of asking.
                 idempotentHint: false,
@@ -314,6 +317,7 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
                 }, ['databases']),
                 annotations: {
                     readOnlyHint: true,
+                    destructiveHint: false,
                     idempotentHint: true,
                     openWorldHint: true,
                 },
@@ -336,6 +340,7 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
                 outputSchema: DATABASE_METADATA_SCHEMA,
                 annotations: {
                     readOnlyHint: true,
+                    destructiveHint: false,
                     idempotentHint: true,
                     openWorldHint: true,
                 },
@@ -358,6 +363,7 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
                 outputSchema: objectSchema({ checksums: DB_CHECKSUMS_SCHEMA }, ['checksums']),
                 annotations: {
                     readOnlyHint: true,
+                    destructiveHint: false,
                     idempotentHint: true,
                     openWorldHint: true,
                 },
@@ -386,6 +392,7 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
                 }, ['downloads']),
                 annotations: {
                     readOnlyHint: true,
+                    destructiveHint: false,
                     idempotentHint: false,
                     openWorldHint: true,
                 },
