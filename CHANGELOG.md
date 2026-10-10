@@ -2,6 +2,14 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.0.1 - 2026-10-10
+
+### Fixes
+
+- Take spec 2026.10.09: rotating a key needs apikeys.reveal ([`06039d8`](https://github.com/vpndetection-io/mcp/commit/06039d86cdebfd95eece42b658c2c5f57c380cf8))
+- Trim the environment, and take a blank variable as unset ([`16928fc`](https://github.com/vpndetection-io/mcp/commit/16928fcef9a94f39ce1505a67c36f843e10eba3e))
+- Refuse an argument my_entitlement and list_databases do not take ([`c53e551`](https://github.com/vpndetection-io/mcp/commit/c53e55122a130b9d2e9d5a5755f40657204ec5b2))
+
 ## 6.0.0 - 2026-10-07
 
 ### Breaking changes
