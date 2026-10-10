@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.0.2 - 2026-10-10
+
+### Fixes
+
+- State destructiveHint on every tool ([`33de726`](https://github.com/vpndetection-io/mcp/commit/33de7266d06c74a6cbdcb739f64f7fb67b42189a))
+
 ## 6.0.1 - 2026-10-10
 
 ### Fixes
