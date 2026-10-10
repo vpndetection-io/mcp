@@ -12,17 +12,13 @@ import { Server } from '@modelcontextprotocol/server';
 import { serveStdio } from '@modelcontextprotocol/server/stdio';
 import { VPNDetection } from 'vpndetection';
 
+import { clientOptions } from './env.js';
 import { createTools, registerTools } from './tools.js';
 
 const version = createRequire(import.meta.url)('../package.json').version as string;
 
 function main(): void {
-    const apiKey = process.env['VPNDETECTION_API_KEY'];
-    const client = new VPNDetection({
-        ...(apiKey === undefined || apiKey === '' ? {} : { apiKey: apiKey }),
-        ...(process.env['VPNDETECTION_BASE_URL'] === undefined
-            ? {} : { baseUrl: process.env['VPNDETECTION_BASE_URL'] }),
-    });
+    const client = new VPNDetection(clientOptions(process.env));
     const tools = createTools({ client: client });
 
     // The opening exchange picks the protocol era, 2025-11-25's `initialize` or

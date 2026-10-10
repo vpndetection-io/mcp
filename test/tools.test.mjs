@@ -2,6 +2,7 @@
 
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { createServer } from 'node:http';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 
@@ -13,6 +14,7 @@ import addFormats from 'ajv-formats';
 import { VPNDetection } from 'vpndetection';
 
 import { createTools, DOWNLOADS_LIMIT, registerTools } from '../dist/index.js';
+import { clientOptions } from '../dist/env.js';
 
 const data = JSON.parse(readFileSync(new URL('../testdata/testdata.json', import.meta.url), 'utf8'));
 
@@ -449,6 +451,53 @@ for (const [era, versionNegotiation] of [
         }
     });
 }
+
+test('a blank variable counts as unset, and every value is trimmed', () => {
+    assert.deepEqual(clientOptions({}), {});
+    assert.deepEqual(clientOptions({ VPNDETECTION_API_KEY: '', VPNDETECTION_BASE_URL: '' }), {});
+    assert.deepEqual(clientOptions({ VPNDETECTION_API_KEY: ' \t', VPNDETECTION_BASE_URL: '  ' }), {});
+    assert.deepEqual(
+        clientOptions({ VPNDETECTION_API_KEY: ' key-1\n', VPNDETECTION_BASE_URL: ' https://api.test/ ' }),
+        { apiKey: 'key-1', baseUrl: 'https://api.test/' });
+});
+
+// What reaches the API from the installed entry point, given a padded base URL
+// and a padded or blank key: a blank one sends no Authorization header at all.
+test('the stdio server trims its environment before the API sees it', async () => {
+    const seen = [];
+    const api = createServer((req, res) => {
+        seen.push(req.headers.authorization);
+        res.writeHead(200, { 'content-type': 'application/json' });
+        res.end(JSON.stringify(NULL_CATALOG));
+    });
+    await new Promise((resolve) => {
+        api.listen(0, '127.0.0.1', resolve);
+    });
+    try {
+        for (const [key, authorization] of [[' key-1 ', 'Bearer key-1'], ['   ', undefined]]) {
+            const client = new Client({ name: 'test', version: '0' });
+            await client.connect(new StdioClientTransport({
+                command: process.execPath,
+                args: [fileURLToPath(new URL('../dist/stdio.js', import.meta.url))],
+                env: {
+                    PATH: process.env.PATH ?? '',
+                    VPNDETECTION_BASE_URL: ` http://127.0.0.1:${api.address().port} `,
+                    VPNDETECTION_API_KEY: key,
+                },
+            }));
+            try {
+                const out = await client.callTool({ name: 'list_databases', arguments: {} });
+                assert.notEqual(out.isError, true, out.content?.[0]?.text);
+                assert.deepEqual(seen.splice(0), [authorization], JSON.stringify(key));
+            } finally {
+                await client.close();
+            }
+        }
+    } finally {
+        api.closeAllConnections();
+        api.close();
+    }
+});
 
 // zod rejects an array argument one issue per bad element. Spelled out in full, a
 // megabyte of numbers passed as `ips` came back as ~37 MB of error text.
