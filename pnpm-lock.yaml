@@ -10,17 +10,17 @@ importers:
     dependencies:
       '@modelcontextprotocol/server':
         specifier: ^2.2.0
-        version: 2.2.0
+        version: 2.3.0
       vpndetection:
         specifier: ^5.1.0
-        version: 5.4.0
+        version: 5.5.1
       zod:
         specifier: ^4.1.12
         version: 4.6.5
     devDependencies:
       '@modelcontextprotocol/client':
         specifier: ^2.2.0
-        version: 2.2.0
+        version: 2.3.0
       '@mslmio/eslint-config':
         specifier: ^1.1.0
         version: 1.1.0(eslint@10.10.0)(typescript@6.0.3)
@@ -107,16 +107,16 @@ packages:
   '@keyv/serialize@1.1.1':
     resolution: {integrity: sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==}
 
-  '@modelcontextprotocol/client@2.2.0':
-    resolution: {integrity: sha512-LxCou/CSYQ6dwEnjhLZY0KnEuc8V4UJ3IEQCl/uR2yHobSQIEdJKUlKLRYRF5i5FqRGHy1eK7une3aAWDHLtig==}
+  '@modelcontextprotocol/client@2.3.0':
+    resolution: {integrity: sha512-pbHtGj6EeFCHngFE8gtNPaKrsj8Mb1IMw45BLcaPML/m2WTxI7pyYmeNQvaux88Lw8BSO5r7nyRbUyIkICmGrg==}
     engines: {node: '>=20'}
 
-  '@modelcontextprotocol/core@2.2.0':
-    resolution: {integrity: sha512-iLhmprRmWI8EcosOA3wVvww22z02NkgqhV4fBH6f/odQBsi7xnJc0HGmi21yWO+/iKw2yzqVE127Zhna5/+JXw==}
+  '@modelcontextprotocol/core@2.3.0':
+    resolution: {integrity: sha512-09BHFaNVBe5pB2AhzCfLj0cqmsKLERvZQ4FblzP90UMGLaXVqdZPByFjURwsUYCmxonUW2yAwgTTvle+8O2/8w==}
     engines: {node: '>=20'}
 
-  '@modelcontextprotocol/server@2.2.0':
-    resolution: {integrity: sha512-qFnltjus6Gk8Lx6J1w2RXmr3YPN22MNT6qD6zjAkaiWIlFIFxWClz0rXHNuJF/KSUyn5YGhkSvXkWDbQHVLFEQ==}
+  '@modelcontextprotocol/server@2.3.0':
+    resolution: {integrity: sha512-+6b0LdsQLmHsvS7J6sQJ4weTpzUn61fU1JKS+321/+IyDYoHW5CR2Tgqcs6GgAAQvlesCo6yX3xttgmx+XGtJw==}
     engines: {node: '>=20'}
 
   '@mslmio/eslint-config@1.1.0':
@@ -509,8 +509,8 @@ packages:
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
 
-  vpndetection@5.4.0:
-    resolution: {integrity: sha512-7QmDDHnuKe8t00nSc86Dt8FALKiba6OEPSTwFcNLfuteKY0b8LuBs583IEuBvd5/e4paL5SCAZJK3DJHMEQ5NQ==}
+  vpndetection@5.5.1:
+    resolution: {integrity: sha512-3rfMThHKcHO6Wj1PaYJmIdXIZkyPwNEGGM0sH7TkQXOFqITYmIo+xVt/wV1GfvubYkNgYPS6iCl1Pm2rqQHzdQ==}
     engines: {node: '>=22'}
 
   which@2.0.2:
@@ -601,9 +601,9 @@ snapshots:
 
   '@keyv/serialize@1.1.1': {}
 
-  '@modelcontextprotocol/client@2.2.0':
+  '@modelcontextprotocol/client@2.3.0':
     dependencies:
-      '@modelcontextprotocol/core': 2.2.0
+      '@modelcontextprotocol/core': 2.3.0
       cross-spawn: 7.0.6
       eventsource: 3.0.7
       eventsource-parser: 3.1.1
@@ -611,13 +611,13 @@ snapshots:
       pkce-challenge: 5.0.1
       zod: 4.6.5
 
-  '@modelcontextprotocol/core@2.2.0':
+  '@modelcontextprotocol/core@2.3.0':
     dependencies:
       zod: 4.6.5
 
-  '@modelcontextprotocol/server@2.2.0':
+  '@modelcontextprotocol/server@2.3.0':
     dependencies:
-      '@modelcontextprotocol/core': 2.2.0
+      '@modelcontextprotocol/core': 2.3.0
       zod: 4.6.5
 
   '@mslmio/eslint-config@1.1.0(eslint@10.10.0)(typescript@6.0.3)':
@@ -1012,7 +1012,7 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
-  vpndetection@5.4.0:
+  vpndetection@5.5.1:
     dependencies:
       lru-cache: 11.5.3
       p-limit: 6.2.0
