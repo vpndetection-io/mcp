@@ -43,6 +43,10 @@ const FORMATS = z.enum([...DATABASE_FORMATS] as [DatabaseFormat, ...DatabaseForm
 // the handler parses with the same one, so the cap a client is shown is the cap
 // it meets. Two lookalike declarations - a schema for the manifest and another
 // in the handler - is how an advertised bound and an enforced bound drift.
+// `my_entitlement` and `list_databases` take none, so an argument either is
+// handed is refused by name.
+const NO_INPUT = z.strictObject({});
+
 const LOOKUP_INPUT = z.object({
     ip: z.string().describe('The IPv4 or IPv6 address to classify.'),
 });
@@ -271,7 +275,7 @@ function accountTool(ctx: ToolContext): ToolDef {
                 + 'against the anniversary of the subscription rather than the calendar month, '
                 + 'and can lag a few seconds behind. A null `hard_limit` means we never stop '
                 + 'serving - it is NOT a limit of zero.',
-            inputSchema: { type: 'object', additionalProperties: false },
+            inputSchema: jsonSchema(NO_INPUT),
             outputSchema: objectSchema({
                 entitlement: ENTITLEMENT_SCHEMA,
             }, ['entitlement']),
@@ -283,7 +287,8 @@ function accountTool(ctx: ToolContext): ToolDef {
                 openWorldHint: true,
             },
         },
-        handler: async () => {
+        handler: async (args) => {
+            NO_INPUT.parse(args);
             return ok({ entitlement: await ctx.client.myEntitlement() });
         },
     };
@@ -303,7 +308,7 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
                     + 'whose `id` is what the other database tools take - pass `versions[].id` '
                     + '(`cdn_ip_v1`), never the `base` (`cdn_ip`). Ask again rather than holding '
                     + 'on to this: it is answered per key and is not the same for everyone.',
-                inputSchema: { type: 'object', additionalProperties: false },
+                inputSchema: jsonSchema(NO_INPUT),
                 outputSchema: objectSchema({
                     databases: { type: 'array', items: DATABASE_SCHEMA },
                 }, ['databases']),
@@ -313,7 +318,8 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
                     openWorldHint: true,
                 },
             },
-            handler: async () => {
+            handler: async (args) => {
+                NO_INPUT.parse(args);
                 return ok({ databases: await ctx.client.database.list() });
             },
         },

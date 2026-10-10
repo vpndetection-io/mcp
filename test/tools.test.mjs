@@ -412,6 +412,28 @@ test('a rejected argument is the model\'s to fix, not an internal failure', asyn
     }
 });
 
+// A tool that takes no argument has always published `additionalProperties: false`,
+// and it holds to it: an argument it is handed is refused by name, before any request.
+test('an argument a tool does not take is refused before the API is asked', async () => {
+    let calls = 0;
+    const defs = toolsFor(async () => {
+        calls += 1;
+        return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
+    });
+    const argless = defs.filter((d) => Object.keys(d.tool.inputSchema.properties ?? {}).length === 0);
+    assert.deepEqual(argless.map((d) => d.tool.name), ['my_entitlement', 'list_databases']);
+    for (const def of argless) {
+        assert.equal(def.tool.inputSchema.additionalProperties, false, def.tool.name);
+        const out = await def.handler({ dataset_id: 'nope' });
+        assert.equal(out.isError, true, def.tool.name);
+        const { error } = JSON.parse(out.content[0].text);
+        assert.equal(error.kind, 'invalid_argument', def.tool.name);
+        assert.equal(error.retryable, false, def.tool.name);
+        assert.match(error.message, /dataset_id/, def.tool.name);
+    }
+    assert.equal(calls, 0, 'a refused call must not reach the API');
+});
+
 // A tool name the model guessed, such as one a release renamed, is its mistake
 // too: a protocol error, since no tool exists to answer it, but never -32603.
 test('an unknown tool is invalid params, not an internal error', async () => {
