@@ -299,17 +299,18 @@ test('every id-taking tool names both spellings', () => {
 });
 
 // The unwrap DEPTH is the documented way these bindings break: the nodejs SDK
-// shipped 1.0.x reading a top-level `sha256` off a body that nests it.
+// shipped 1.0.x reading a top-level `sha256` off a body that nests it. Each body
+// is a whole answer, because the SDK retries one missing a member the spec
+// requires as a server_error (5.5.2).
 test('each database tool answers at the documented depth', async () => {
-    const catalog = { databases: [{ base: 'cdn_ip', versions: [{ id: 'cdn_ip_v1' }] }] };
     const sums = { md5: 'm', sha1: 's1', sha256: 's256', sha512: 's512' };
 
-    const listed = await toolsFor(serving(catalog))
+    const listed = await toolsFor(serving(NULL_CATALOG))
         .find((d) => d.tool.name === 'list_databases').handler({});
-    assert.deepEqual(listed.structuredContent, catalog,
+    assert.deepEqual(listed.structuredContent, NULL_CATALOG,
         'the listing is returned as served, under `databases`');
 
-    const meta = { id: 'cdn_ip_v1', entries: 5 };
+    const meta = { id: 'cdn_ip_v1', updated: '2026-09-12T10:00:00.000Z', entries: 5, schema: {} };
     const described = await toolsFor(serving(meta))
         .find((d) => d.tool.name === 'database_metadata').handler({ dataset_id: 'cdn_ip_v1' });
     assert.equal(described.structuredContent.id, 'cdn_ip_v1', 'metadata is NOT wrapped');
@@ -320,7 +321,12 @@ test('each database tool answers at the documented depth', async () => {
     assert.equal(digested.structuredContent.sha256, undefined, 'digests must stay nested');
     assert.deepEqual(digested.structuredContent.checksums, sums);
 
-    const history = { downloads: [{ dataset_id: 'cdn_ip_v1', outcome: 'denied', http_status: 403 }] };
+    const history = {
+        downloads: [{
+            dataset_id: 'cdn_ip_v1', format: 'csvgz', outcome: 'denied', sample: false, http_status: 403,
+            created: '2026-09-12T10:00:00.000Z',
+        }],
+    };
     const attempts = await toolsFor(serving(history))
         .find((d) => d.tool.name === 'list_downloads').handler({});
     assert.deepEqual(attempts.structuredContent, history,
