@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.0.3 - 2026-10-13
+
+### Fixes
+
+- Refuse an argument a tool does not take, on every tool ([`7e4ad93`](https://github.com/vpndetection-io/mcp/commit/7e4ad937f50a19a919ab9962874a78315ff2ca42))
+
 ## 6.0.2 - 2026-10-10
 
 ### Fixes
