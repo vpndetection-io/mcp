@@ -429,27 +429,43 @@ test('a rejected argument is the model\'s to fix, not an internal failure', asyn
     }
 });
 
-// A tool that takes no argument has always published `additionalProperties: false`,
-// and it holds to it: an argument it is handed is refused by name, before any request.
-test('an argument a tool does not take is refused before the API is asked', async () => {
-    let calls = 0;
-    const defs = toolsFor(async () => {
-        calls += 1;
-        return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
-    });
-    const argless = defs.filter((d) => Object.keys(d.tool.inputSchema.properties ?? {}).length === 0);
-    assert.deepEqual(argless.map((d) => d.tool.name), ['my_entitlement', 'list_databases']);
-    for (const def of argless) {
-        assert.equal(def.tool.inputSchema.additionalProperties, false, def.tool.name);
-        const out = await def.handler({ dataset_id: 'nope' });
-        assert.equal(out.isError, true, def.tool.name);
-        const { error } = JSON.parse(out.content[0].text);
-        assert.equal(error.kind, 'invalid_argument', def.tool.name);
-        assert.equal(error.retryable, false, def.tool.name);
-        assert.match(error.message, /dataset_id/, def.tool.name);
-    }
-    assert.equal(calls, 0, 'a refused call must not reach the API');
+// Every tool publishes `additionalProperties: false` and holds to it: an argument
+// it does not take is refused by name, before any request. A lenient tool dropped
+// a misspelled optional one and answered as if it had never been passed, so
+// `{max: 10}` came back as the default 50 rows. The lookups take a routable
+// address, which a lenient tool would have sent.
+const STRAY_ARGUMENTS = [
+    ['lookup_ip', { ip: '9.9.9.9', fields: 'vpn' }, 'fields'],
+    ['lookup_ips', { ips: ['9.9.9.9'], fields: 'vpn' }, 'fields'],
+    ['my_entitlement', { dataset_id: 'nope' }, 'dataset_id'],
+    ['list_databases', { dataset_id: 'nope' }, 'dataset_id'],
+    ['database_metadata', { dataset_id: 'cdn_ip_v1', format: 'csvgz' }, 'format'],
+    ['database_checksum', { dataset_id: 'cdn_ip_v1', format: 'csvgz', algorithm: 'sha256' }, 'algorithm'],
+    ['list_downloads', { max: 10 }, 'max'],
+];
+
+test('every tool is held to refusing an argument it does not take', () => {
+    assert.deepEqual(STRAY_ARGUMENTS.map(([name]) => name), toolsFor(serving({})).map((d) => d.tool.name));
 });
+
+for (const [name, args, extra] of STRAY_ARGUMENTS) {
+    test(`${name} refuses an argument it does not take, before the API is asked`, async () => {
+        let calls = 0;
+        const def = toolsFor(async () => {
+            calls += 1;
+            return new Response('{}', { status: 200, headers: { 'content-type': 'application/json' } });
+        }).find((d) => d.tool.name === name);
+        assert.equal(def.tool.inputSchema.additionalProperties, false, 'the published schema says so');
+
+        const out = await def.handler(args);
+        assert.equal(out.isError, true);
+        const { error } = JSON.parse(out.content[0].text);
+        assert.equal(error.kind, 'invalid_argument');
+        assert.equal(error.retryable, false);
+        assert.match(error.message, new RegExp(`Unrecognized key: "${extra}"`));
+        assert.equal(calls, 0, 'a refused call must not reach the API');
+    });
+}
 
 // A tool name the model guessed, such as one a release renamed, is its mistake
 // too: a protocol error, since no tool exists to answer it, but never -32603.

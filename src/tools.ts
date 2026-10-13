@@ -43,11 +43,12 @@ const FORMATS = z.enum([...DATABASE_FORMATS] as [DatabaseFormat, ...DatabaseForm
 // the handler parses with the same one, so the cap a client is shown is the cap
 // it meets. Two lookalike declarations - a schema for the manifest and another
 // in the handler - is how an advertised bound and an enforced bound drift.
-// `my_entitlement` and `list_databases` take none, so an argument either is
-// handed is refused by name.
+// Each is strict, so an argument a tool does not take is refused by name: a
+// misspelled optional one (`max` for `limit`) would otherwise be dropped, and
+// the call answered as if it had never been passed.
 const NO_INPUT = z.strictObject({});
 
-const LOOKUP_INPUT = z.object({
+const LOOKUP_INPUT = z.strictObject({
     ip: z.string().describe('The IPv4 or IPv6 address to classify.'),
 });
 
@@ -56,20 +57,20 @@ const LOOKUP_INPUT = z.object({
 // `maxItems: 1000` bounds a REQUEST, not this tool - never derive a cap from it.
 // One call is bounded by its transport instead: the hosted server took a request
 // body of at most 1 MB when this was decided, about 58,000 IPv4 addresses.
-const LOOKUP_BATCH_INPUT = z.object({
+const LOOKUP_BATCH_INPUT = z.strictObject({
     ips: z.array(z.string()).min(1).describe('The IPv4 or IPv6 addresses to classify.'),
 });
 
-const METADATA_INPUT = z.object({
+const METADATA_INPUT = z.strictObject({
     dataset_id: z.string().describe(VERSIONED_ID),
 });
 
-const CHECKSUM_INPUT = z.object({
+const CHECKSUM_INPUT = z.strictObject({
     dataset_id: z.string().describe(VERSIONED_ID),
     format: FORMATS.describe('Which published file to digest.'),
 });
 
-const DOWNLOADS_INPUT = z.object({
+const DOWNLOADS_INPUT = z.strictObject({
     limit: z.number().int().min(DOWNLOADS_LIMIT_MIN).max(DOWNLOADS_LIMIT).optional().describe(
         `How many attempts to return, newest first. At most ${DOWNLOADS_LIMIT}; `
         + `the API defaults to ${DOWNLOADS_LIMIT_DEFAULT}.`),
