@@ -471,7 +471,7 @@ function rejectionMessage(rejected: z.ZodError): string {
 }
 
 /**
- * Recognises a `VPNDetectionError` by SHAPE, not by `instanceof`.
+ * Recognizes a `VPNDetectionError` by SHAPE, not by `instanceof`.
  *
  * This package and whatever mounts it can each end up with their own copy of the
  * `vpndetection` module - the hosted service depends on both - and two copies of
@@ -498,7 +498,7 @@ interface ClientError {
 }
 
 /**
- * Recognises a `ZodError` by SHAPE, for the same reason `asClientError` does.
+ * Recognizes a `ZodError` by SHAPE, for the same reason `asClientError` does.
  *
  * zod resolves per package here, so `instanceof` would miss a copy thrown by a
  * different one and fall back to exactly the `internal` this exists to replace.
