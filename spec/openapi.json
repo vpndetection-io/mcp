@@ -9,7 +9,7 @@
       "url": "https://vpndetection.io"
     },
     "termsOfService": "https://vpndetection.io/terms",
-    "version": "2026.10.09"
+    "version": "2026.10.15"
   },
   "servers": [
     {
@@ -732,7 +732,7 @@
             "schema": {
               "$ref": "#/components/schemas/DatabaseFormat"
             },
-            "description": "Not every database is built in every format. The `_provider`\ncatalogues are keyed by provider id rather than by IP range, so no\nMMDB exists for them.\n"
+            "description": "Not every database is built in every format. The `_provider`\ncatalogs are keyed by provider id rather than by IP range, so no\nMMDB exists for them.\n"
           }
         ],
         "responses": {
@@ -1238,7 +1238,7 @@
           "Organization"
         ],
         "summary": "Members",
-        "description": "Read-only. Adding or removing a member is an invitation flow with email\nin the middle rather than a POST, and modelling it as one here would\npromise something this API does not do.\n",
+        "description": "Read-only. Adding or removing a member is an invitation flow with email\nin the middle rather than a POST, and modeling it as one here would\npromise something this API does not do.\n",
         "security": [
           {
             "bearerAuth": [
@@ -1962,7 +1962,7 @@
           },
           "method": {
             "type": "string",
-            "description": "The class of evidence the attribution rests on, one of four values.\nMax only.\n\n`scan` - we spoke the VPN protocol to the address ourselves and got a\nvalid server response. `scrape` - the operator published the address\nthrough its own API, client or configuration. `registry` - public\nregistration or naming records attribute it to the operator.\n`infer` - the address was extrapolated from confirmed neighbours in\nthe same block.\n",
+            "description": "The class of evidence the attribution rests on, one of four values.\nMax only.\n\n`scan` - we spoke the VPN protocol to the address ourselves and got a\nvalid server response. `scrape` - the operator published the address\nthrough its own API, client or configuration. `registry` - public\nregistration or naming records attribute it to the operator.\n`infer` - the address was extrapolated from confirmed neighbors in\nthe same block.\n",
             "example": "scan"
           }
         }
@@ -2079,7 +2079,7 @@
             "type": "integer",
             "format": "int64",
             "nullable": true,
-            "description": "Size of the published file, or null when it has not been published\nyet. int64 because it is not hypothetical: resproxy_ip_14d's MMDB is\n4.58 GB, so a 32-bit field cannot carry the catalogue and `list`\nthrows for every caller rather than for that one entry.\n"
+            "description": "Size of the published file, or null when it has not been published\nyet. int64 because it is not hypothetical: resproxy_ip_14d's MMDB is\n4.58 GB, so a 32-bit field cannot carry the catalog and `list`\nthrows for every caller rather than for that one entry.\n"
           }
         },
         "required": [
@@ -2637,7 +2637,7 @@
           },
           "key_prefix": {
             "type": "string",
-            "description": "The leading, non-secret part, so a key is recognisable without storing it."
+            "description": "The leading, non-secret part, so a key is recognizable without storing it."
           },
           "created": {
             "type": "string",
@@ -2688,7 +2688,7 @@
         "properties": {
           "name": {
             "type": "string",
-            "description": "A label you will recognise later. Shown wherever the key is listed."
+            "description": "A label you will recognize later. Shown wherever the key is listed."
           },
           "allowed_scopes": {
             "type": "array",
