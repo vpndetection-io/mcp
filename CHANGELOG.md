@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.0.4 - 2026-10-15
+
+### Fixes
+
+- Take spec 2026.10.15: catalog and neighbors in US spelling ([`f25712a`](https://github.com/vpndetection-io/mcp/commit/f25712a93c8a07e7a9aacf092c61114b83579f27))
+
 ## 6.0.3 - 2026-10-13
 
 ### Fixes
