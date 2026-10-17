@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.0.5 - 2026-10-17
+
+### Fixes
+
+- Take spec 2026.10.16: dynamic client registration ([`49a3005`](https://github.com/vpndetection-io/mcp/commit/49a3005dd34dc01df4cf335225374a9fdb159892))
+
 ## 6.0.4 - 2026-10-15
 
 ### Fixes
