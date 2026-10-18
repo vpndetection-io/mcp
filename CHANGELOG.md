@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.1.0 - 2026-10-18
+
+### Features
+
+- Take spec 2026.10.18: is_pubproxy and the pubproxy detail ([`541a290`](https://github.com/vpndetection-io/mcp/commit/541a290d6e7741e16fb3caae4cdc9c1683aa2ee5))
+
 ## 6.0.5 - 2026-10-17
 
 ### Fixes
