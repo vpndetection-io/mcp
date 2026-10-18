@@ -2,6 +2,13 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.1.1 - 2026-10-18
+
+### Fixes
+
+- Take spec 2026.10.18 again: pubproxy's num_ports and num_proxies ([`cf12856`](https://github.com/vpndetection-io/mcp/commit/cf12856f12b270644b146808164b1f099f0a91a0))
+- Name public proxies and web gateways in lookup_ip's description ([`4c91de9`](https://github.com/vpndetection-io/mcp/commit/4c91de9fe2e7de6425d2683431c81e7d70f91050))
+
 ## 6.1.0 - 2026-10-18
 
 ### Features
