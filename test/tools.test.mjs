@@ -613,6 +613,38 @@ test('the list_databases description names every standing the spec declares', ()
     }
 });
 
+// lookup_ip's description and the README's opening sentence name every family a
+// lookup flags, in prose no generator writes. Each flag the spec declares needs its
+// words here, so the re-pin that adds one reddens this until both texts name it.
+const FLAG_WORDS = {
+    is_vpn: 'a VPN',
+    is_resproxy: 'residential',
+    is_dcproxy: 'datacenter',
+    is_mobproxy: 'mobile',
+    is_pubproxy: 'public proxy',
+    is_tor: 'a Tor node',
+    is_relay: 'a privacy relay or web gateway',
+    is_hosting: 'a hosting provider',
+    is_cdn: 'a CDN',
+};
+
+test('lookup_ip and the README name every family the spec flags', () => {
+    const spec = JSON.parse(readFileSync(new URL('../spec/openapi.json', import.meta.url), 'utf8'));
+    const flags = Object.keys(spec.components.schemas.LookupResponse.properties)
+        .filter((m) => m.startsWith('is_'));
+    assert.deepEqual(Object.keys(FLAG_WORDS).sort(), flags.sort(),
+        'a flag with no words, or words with no flag');
+
+    const described = toolsFor(serving({})).find((d) => d.tool.name === 'lookup_ip').tool.description;
+    const intro = readFileSync(new URL('../README.md', import.meta.url), 'utf8')
+        .split('\n').find((l) => l.startsWith('It gives an AI agent'));
+    assert.ok(intro, 'the README has no opening sentence to check');
+    for (const [flag, words] of Object.entries(FLAG_WORDS)) {
+        assert.ok(described.includes(words), `lookup_ip's description never says "${words}" (${flag})`);
+        assert.ok(intro.includes(words), `the README's intro never says "${words}" (${flag})`);
+    }
+});
+
 // An absent member reads as a negative finding unless the model is told otherwise,
 // so every tool that answers with a coverage block says to read its note.
 test('every tool that answers with coverage says to read its note', () => {

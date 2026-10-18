@@ -128,8 +128,9 @@ export function createTools(ctx: ToolContext): ToolDef[] {
                 name: 'lookup_ip',
                 title: 'Look up an IP address',
                 description: 'Classify a single IPv4 or IPv6 address: whether it belongs to a VPN, '
-                    + 'a residential, datacenter or mobile proxy, a Tor node, a public relay, a '
-                    + 'hosting provider or a CDN, with the provider name where we have one. '
+                    + 'a residential, datacenter, mobile or public proxy, a Tor node, a privacy relay '
+                    + 'or web gateway, a hosting provider or a CDN, with the provider name where we '
+                    + 'have one. '
                     + 'Private and reserved addresses are answered locally and cost nothing. '
                     + 'Always read `coverage.note` before concluding anything from a field that is '
                     + 'not in the result.',

@@ -5,7 +5,7 @@
 
 The official [Model Context Protocol](https://modelcontextprotocol.io) server for the [VPNDetection](https://vpndetection.io) API.
 
-It gives an AI agent seven read-only tools for anonymity detection: whether an address belongs to a VPN, a residential, datacenter or mobile proxy, a Tor node, a public relay, a hosting provider or a CDN, plus the database catalog and where your organization's license for each one stands.
+It gives an AI agent seven read-only tools for anonymity detection: whether an address belongs to a VPN, a residential, datacenter, mobile or public proxy, a Tor node, a privacy relay or web gateway, a hosting provider or a CDN, plus the database catalog and where your organization's license for each one stands.
 
 ## Getting Started
 
