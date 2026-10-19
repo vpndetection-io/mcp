@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.1.2 - 2026-10-19
+
+### Fixes
+
+- List in the MCP registry as io.vpndetection/mcp ([`e974ae2`](https://github.com/vpndetection-io/mcp/commit/e974ae2020815b2d62ea7e128732017287f8c4a3))
+
 ## 6.1.1 - 2026-10-18
 
 ### Fixes
