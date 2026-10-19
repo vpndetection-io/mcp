@@ -9,7 +9,7 @@
       "url": "https://vpndetection.io"
     },
     "termsOfService": "https://vpndetection.io/terms",
-    "version": "2026.10.18"
+    "version": "2026.10.19"
   },
   "servers": [
     {
@@ -3112,7 +3112,8 @@
           },
           "client_id_issued_at": {
             "type": "integer",
-            "description": "Unix seconds."
+            "format": "int64",
+            "description": "Unix seconds. 64-bit, since 32 bits run out on 2038-01-19."
           },
           "client_name": {
             "type": "string",
