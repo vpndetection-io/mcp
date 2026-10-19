@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.1.4 - 2026-10-19
+
+### Fixes
+
+- Answer every address lookup_ips was given, `__proto__` included ([`45a6acf`](https://github.com/vpndetection-io/mcp/commit/45a6acf31f2e664a19d1d9f0d1a082ea9807f9f0))
+
 ## 6.1.3 - 2026-10-19
 
 ### Fixes
