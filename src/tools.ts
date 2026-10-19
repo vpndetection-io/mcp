@@ -242,19 +242,22 @@ async function lookupIps(ctx: ToolContext, args: Record<string, unknown>): Promi
     const { ips } = LOOKUP_BATCH_INPUT.parse(args);
 
     const answers = await ctx.client.lookupBatch(ips);
-    const results: Record<string, unknown> = {};
+    // Each address is the caller's own string, and assigning one to a plain object
+    // turns `__proto__` into the object's prototype rather than a key, so that entry
+    // vanished from the answer. fromEntries defines every address as a key of its own.
+    const results: [string, unknown][] = [];
     const served: Record<string, unknown>[] = [];
     for (const [addr, answer] of answers) {
         const failed = asClientError(answer);
         if (failed !== undefined) {
-            results[addr] = { error: { kind: failed.kind, message: failed.message } };
+            results.push([addr, { error: { kind: failed.kind, message: failed.message } }]);
             continue;
         }
         const body = wireBody(answer as Result);
-        results[addr] = body;
+        results.push([addr, body]);
         served.push(body);
     }
-    return ok({ results: results, coverage: batchCoverage(served) });
+    return ok({ results: Object.fromEntries(results), coverage: batchCoverage(served) });
 }
 
 /**

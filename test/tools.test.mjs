@@ -221,6 +221,25 @@ test('a batch with a failed address validates against the published outputSchema
     assert.ok(validate(out.structuredContent), ajv.errorsText(validate.errors));
 });
 
+// An address is the caller's own string, and `__proto__` assigned to a plain object
+// sets its prototype rather than a key, which dropped that entry from the answer.
+test('lookup_ips answers every address it was given, __proto__ included', async () => {
+    const batchServer = async () => new Response(
+        '{"results":{"9.9.9.9":{"ip":"9.9.9.9","is_vpn":false}},'
+            + '"errors":{"__proto__":{"status":400,"error":"not a valid IP address"}}}',
+        { status: 200, headers: { 'content-type': 'application/json' } });
+    const batch = toolsFor(batchServer).find((d) => d.tool.name === 'lookup_ips');
+
+    const out = await batch.handler({ ips: ['9.9.9.9', '__proto__'] });
+
+    const { results } = out.structuredContent;
+    assert.deepEqual(Object.keys(results), ['9.9.9.9', '__proto__']);
+    assert.equal(Object.getPrototypeOf(results), Object.prototype, 'no address becomes a prototype');
+    // Its kind is the client SDK's classification, so only its presence is this package's.
+    assert.equal(typeof JSON.parse(out.content[0].text).results['__proto__'].error.kind, 'string',
+        'the text block carries the entry too');
+});
+
 // Every nullable field null at once, so the schema has to admit each of them.
 const NULL_CATALOG = {
     databases: [{
