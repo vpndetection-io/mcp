@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.1.3 - 2026-10-19
+
+### Fixes
+
+- Take spec 2026.10.19 ([`afc1826`](https://github.com/vpndetection-io/mcp/commit/afc1826cbeda653a124d6f3d1104afb365acef70))
+
 ## 6.1.2 - 2026-10-19
 
 ### Fixes
