@@ -40,7 +40,7 @@ Point it at `https://mcp.vpndetection.io/mcp`. A client that supports MCP author
 
 ### On your own machine
 
-**No API key needed to start.** The free tier answers `ip` and `is_vpn`, and allows 1000 requests per day per source address.
+**No API key needed to start.** Without a key, a lookup answers `ip` and `is_vpn`, up to 1000 a day per source address. A free key adds Tor and relay detection, where the address is and the AS that announces it, and every paid plan answers every field.
 
 Add this to your MCP client's config:
 

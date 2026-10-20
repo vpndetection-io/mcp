@@ -245,7 +245,7 @@ const NULL_CATALOG = {
     databases: [{
         base: 'cdn_ip', name: 'CDN IP', summary: 'CDN ranges', license_type: null,
         starts: null, expires: null, renews_at: null, notice_due_at: null,
-        in_term: false, standing: 'unlicensed',
+        in_term: false, standing: 'unlicensed', open: false,
         versions: [{ id: 'cdn_ip_v1', version: 1, formats: [{ format: 'mmdb', bytes: null }] }],
     }],
 };
@@ -260,10 +260,10 @@ test('a catalog with every nullable field null validates', async () => {
     assert.ok(validate(out.structuredContent), ajv.errorsText(validate.errors));
 });
 
-// The same for a download attempt. `sample` is required as well, and not nullable.
+// The same for a download attempt. `sample` and `open` are required as well, and not nullable.
 const NULL_DOWNLOADS = {
     downloads: [{
-        dataset_id: 'cdn_ip_v1', format: 'csvgz', outcome: 'unknown', sample: false, bytes: null,
+        dataset_id: 'cdn_ip_v1', format: 'csvgz', outcome: 'unknown', sample: false, open: false, bytes: null,
         http_status: null, apikey_id: null, client_ip: null, user_agent: null,
         created: '2026-09-12T10:00:00.000Z',
     }],
@@ -342,7 +342,8 @@ test('each database tool answers at the documented depth', async () => {
 
     const history = {
         downloads: [{
-            dataset_id: 'cdn_ip_v1', format: 'csvgz', outcome: 'denied', sample: false, http_status: 403,
+            dataset_id: 'cdn_ip_v1', format: 'csvgz', outcome: 'denied', sample: false, open: false,
+            http_status: 403,
             created: '2026-09-12T10:00:00.000Z',
         }],
     };

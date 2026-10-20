@@ -43,7 +43,8 @@ const NOTE_UNKNOWN = 'No served answer was available to derive coverage from, so
  * those locally onto its own camelCase members and leaves `raw` empty. Rebuilding
  * it from the spec's own property types avoids a second copy of the wire names
  * here, and lands on the documented bogon shape by construction - every flag
- * present and false, every detail object present and empty.
+ * present and false, every detail object present and empty, and a location and AS
+ * of empty strings and AS 0.
  */
 export function wireBody(result: Result): Record<string, unknown> {
     if (!result.isBogon) {
@@ -58,8 +59,22 @@ export function wireBody(result: Result): Record<string, unknown> {
         if (type === 'boolean') {
             out[name] = false;
         } else if (type === 'object') {
-            out[name] = {};
+            out[name] = emptyObject(schema as ObjectSchema);
         }
+    }
+    return out;
+}
+
+/**
+ * A detail object is `{}` when its flag is false, while the location and the AS carry
+ * every member they require even where nothing is known: an empty string, or AS 0.
+ * The schema's own `required` list says which shape an object takes.
+ */
+function emptyObject(schema: ObjectSchema): Record<string, unknown> {
+    const out: Record<string, unknown> = {};
+    for (const member of schema.required ?? []) {
+        const type = (schema.properties?.[member] as { type?: string } | undefined)?.type;
+        out[member] = type === 'integer' || type === 'number' ? 0 : '';
     }
     return out;
 }

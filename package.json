@@ -52,7 +52,7 @@
     },
     "dependencies": {
         "@modelcontextprotocol/server": "^2.2.0",
-        "vpndetection": "^5.1.0",
+        "vpndetection": "^5.10.0",
         "zod": "^4.1.12"
     },
     "devDependencies": {

@@ -70,10 +70,14 @@ test('the free shape names every gated member as not covered', async () => {
     assert.match(out.structuredContent.coverage.note, /not a negative result/);
 });
 
+// A paid answer carries location and asn beside every class, which the corpus's max
+// cases predate, so they are added here from the case that carries them.
 test('a max answer that found nothing reports full coverage, not absence', async () => {
     const max = data.lookup.find((c) => c.name === 'max-nothing-found');
-    const stub = serving(max.body);
-    const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: max.body.ip });
+    const { location, asn } = data.lookup.find((c) => c.name === 'free-location-asn').body;
+    const body = { ...max.body, location: location, asn: asn };
+    const stub = serving(body);
+    const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: body.ip });
 
     assert.deepEqual(out.structuredContent.coverage.not_included, []);
     assert.match(out.structuredContent.coverage.note, /real negative result/);
@@ -111,8 +115,9 @@ test('a bogon is answered locally and says so', async () => {
     assert.equal(stub.state.calls, 0, 'a bogon must never reach the network');
 });
 
-// The corpus fixes the bogon shape as every flag present and false and every
-// detail object present and empty, so nothing about it can read as uncovered.
+// The corpus fixes the bogon shape as every flag present and false, every detail
+// object present and empty, and a location and AS of empty strings and AS 0, so
+// nothing about it can read as uncovered.
 test('a bogon is answered in the full documented shape', async () => {
     const stub = serving({});
     const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: '10.0.0.1' });
@@ -123,6 +128,9 @@ test('a bogon is answered in the full documented shape', async () => {
     }
     for (const obj of data.bogonResponse.emptyObjects) {
         assert.deepEqual(body[obj], {}, `${obj} must be present and empty`);
+    }
+    for (const obj of ['location', 'asn']) {
+        assert.deepEqual(body[obj], data.bogonResponse[obj], `${obj} must carry every member, empty`);
     }
     assert.deepEqual(out.structuredContent.coverage.not_included, [],
         'nothing is uncovered in a locally synthesized answer');
