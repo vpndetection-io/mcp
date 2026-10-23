@@ -334,7 +334,7 @@ test('each database tool answers at the documented depth', async () => {
         .find((d) => d.tool.name === 'database_metadata').handler({ dataset_id: 'cdn_ip_v1' });
     assert.equal(described.structuredContent.id, 'cdn_ip_v1', 'metadata is NOT wrapped');
 
-    const digested = await toolsFor(serving({ checksums: sums }))
+    const digested = await toolsFor(serving({ id: 'cdn_ip_v1', format: 'csvgz', checksums: sums }))
         .find((d) => d.tool.name === 'database_checksum')
         .handler({ dataset_id: 'cdn_ip_v1', format: 'csvgz' });
     assert.equal(digested.structuredContent.sha256, undefined, 'digests must stay nested');

@@ -171,7 +171,7 @@ importers:
         version: 2.3.1
       vpndetection:
         specifier: ^5.10.0
-        version: 5.10.0
+        version: 5.10.1
       zod:
         specifier: ^4.1.12
         version: 4.6.7
@@ -181,7 +181,7 @@ importers:
         version: 2.3.1
       '@mslmio/eslint-config':
         specifier: ^2.2.1
-        version: 2.2.1(eslint@10.10.0)(typescript@6.0.3)
+        version: 2.3.0(eslint@10.10.0)(typescript@6.0.3)
       '@types/node':
         specifier: ^22.19.0
         version: 22.20.1
@@ -277,8 +277,8 @@ packages:
     resolution: {integrity: sha512-e59MfWuSssj6DoQ96JCTqdW1AXT5/XtnTl0WWd6MU1Ka434fFUGGosCLJbGNySDhHGvxQWoRWK137FXYFkYNWw==}
     engines: {node: '>=20'}
 
-  '@mslmio/eslint-config@2.2.1':
-    resolution: {integrity: sha512-vaAb3HF7o9S276fiqnp2yj2R2Gsd3BAPlvNWVXFo2BPp+f8xsp9pAXD4dA+Ebg3KOSlJ7tAqFBzgmLtIOX5+sA==}
+  '@mslmio/eslint-config@2.3.0':
+    resolution: {integrity: sha512-Px5iTGI/BkdhA60/5i94bBB2df+xEGV8dDLD9VQgRFLyqyLhKpotweycvtG3ycq4pOUJWsMLCmHW+yVQ5+clsw==}
     peerDependencies:
       '@shadcn/lint': ^0.1.0
       eslint: ^9.30.0 || ^10.0.0
@@ -667,8 +667,8 @@ packages:
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
 
-  vpndetection@5.10.0:
-    resolution: {integrity: sha512-PrrbpfHF+KcuLs+x1w2+TwXP0dAjE+jd437uqU3CUFh4UpNMHX+mTKId0aDAHW0eWrQmi81ZyMKUrIPfJhLkFg==}
+  vpndetection@5.10.1:
+    resolution: {integrity: sha512-UG2g8ARktZDK0BCfzGEAXjlsh6pFkPqqSokCPgZHYMdnY0fjK44eo5yPF4zMEHuN+qgZHddIkFbWU4QoVygweg==}
     engines: {node: '>=22'}
 
   which@2.0.2:
@@ -778,7 +778,7 @@ snapshots:
       '@modelcontextprotocol/core': 2.3.1
       zod: 4.6.7
 
-  '@mslmio/eslint-config@2.2.1(eslint@10.10.0)(typescript@6.0.3)':
+  '@mslmio/eslint-config@2.3.0(eslint@10.10.0)(typescript@6.0.3)':
     dependencies:
       '@typescript-eslint/eslint-plugin': 8.70.1(@typescript-eslint/parser@8.70.1(eslint@10.10.0)(typescript@6.0.3))(eslint@10.10.0)(typescript@6.0.3)
       '@typescript-eslint/parser': 8.70.1(eslint@10.10.0)(typescript@6.0.3)
@@ -1170,7 +1170,7 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
-  vpndetection@5.10.0:
+  vpndetection@5.10.1:
     dependencies:
       lru-cache: 11.5.3
       p-limit: 6.2.0
