@@ -319,8 +319,8 @@ test('every id-taking tool names both spellings', () => {
 
 // The unwrap DEPTH is the documented way these bindings break: the nodejs SDK
 // shipped 1.0.x reading a top-level `sha256` off a body that nests it. Each body
-// is a whole answer, because the SDK retries one missing a member the spec
-// requires as a server_error (5.5.2).
+// is a whole answer in the spec's formats, because the SDK retries as a
+// server_error one missing a member (5.5.2) or with a date it cannot read (5.10.2).
 test('each database tool answers at the documented depth', async () => {
     const sums = { md5: 'm', sha1: 's1', sha256: 's256', sha512: 's512' };
 
@@ -329,7 +329,7 @@ test('each database tool answers at the documented depth', async () => {
     assert.deepEqual(listed.structuredContent, NULL_CATALOG,
         'the listing is returned as served, under `databases`');
 
-    const meta = { id: 'cdn_ip_v1', updated: '2026-09-12T10:00:00.000Z', entries: 5, schema: {} };
+    const meta = { id: 'cdn_ip_v1', updated: '2026-09-12', entries: 5, schema: {} };
     const described = await toolsFor(serving(meta))
         .find((d) => d.tool.name === 'database_metadata').handler({ dataset_id: 'cdn_ip_v1' });
     assert.equal(described.structuredContent.id, 'cdn_ip_v1', 'metadata is NOT wrapped');
