@@ -9,7 +9,7 @@
       "url": "https://vpndetection.io"
     },
     "termsOfService": "https://vpndetection.io/terms",
-    "version": "2026.10.20"
+    "version": "2026.10.25"
   },
   "servers": [
     {
@@ -415,7 +415,16 @@
             }
           },
           "429": {
-            "description": "Either the request rate was too high, or an allowance is spent.\nThe two are told apart by the message, not the status.\n",
+            "description": "Either a transient rate limit or a spent allowance. `Retry-After` is\npresent for the former and absent for the latter, and is the only\nway to tell them apart.\n",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying. Present ONLY when the rejection\nis a transient rate limit; its absence means an allowance is\nspent and retrying will not help.\n",
+                "required": false,
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -423,16 +432,19 @@
                 },
                 "examples": {
                   "rateLimited": {
+                    "summary": "Transient, sent with Retry-After",
                     "value": {
                       "error": "rate limit exceeded"
                     }
                   },
-                  "keylessDaily": {
+                  "keylessDailyLimit": {
+                    "summary": "Keyless daily cap spent, no Retry-After",
                     "value": {
                       "error": "daily limit for unauthenticated requests exceeded; use an API key"
                     }
                   },
                   "quotaExceeded": {
+                    "summary": "Plan allowance spent, no Retry-After",
                     "value": {
                       "error": "request allowance exceeded; raise or remove your overage limit"
                     }
