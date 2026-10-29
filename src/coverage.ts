@@ -30,7 +30,7 @@ const NOTE_FULL = 'This plan covers every dataset the API serves, so every field
 
 const NOTE_BOGON = 'This is a private, reserved or otherwise non-routable address. It was answered '
     + 'locally without calling the API, so every flag is false by definition rather than by lookup, '
-    + 'and it cost nothing against the key\'s allowance.';
+    + 'and it did not count against the key\'s allowance.';
 
 const NOTE_UNKNOWN = 'No served answer was available to derive coverage from, so this batch says '
     + 'nothing about which datasets the plan covers.';

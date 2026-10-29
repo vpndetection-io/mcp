@@ -64,6 +64,13 @@ test('every tool states whether it reads, destroys and reaches the open world', 
     }
 });
 
+// OpenAI's openWorldHint is a public or open-ended set of entities: any address is one, where the
+// account and our own catalog are bounded.
+test('only the lookups reach the open world', () => {
+    const open = toolsFor(serving({})).filter((d) => d.tool.annotations.openWorldHint);
+    assert.deepEqual(open.map((d) => d.tool.name), ['lookup_ip', 'lookup_ips']);
+});
+
 test('no tool downloads a database', () => {
     const names = toolsFor(serving({})).map((d) => d.tool.name);
     assert.deepEqual(names, [

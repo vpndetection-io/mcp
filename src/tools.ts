@@ -131,7 +131,7 @@ export function createTools(ctx: ToolContext): ToolDef[] {
                     + 'a residential, datacenter, mobile or public proxy, a Tor node, a privacy relay '
                     + 'or web gateway, a hosting provider or a CDN, with the provider name where we '
                     + 'have one. '
-                    + 'Private and reserved addresses are answered locally and cost nothing. '
+                    + 'Private and reserved addresses are answered locally, without calling the API. '
                     + 'Always read `coverage.note` before concluding anything from a field that is '
                     + 'not in the result.',
                 inputSchema: jsonSchema(LOOKUP_INPUT),
@@ -292,7 +292,7 @@ function accountTool(ctx: ToolContext): ToolDef {
                 // Not idempotent: the number it reports moves with every other
                 // call, which is the whole point of asking.
                 idempotentHint: false,
-                openWorldHint: true,
+                openWorldHint: false,
             },
         },
         handler: async (args) => {
@@ -324,7 +324,7 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
                     readOnlyHint: true,
                     destructiveHint: false,
                     idempotentHint: true,
-                    openWorldHint: true,
+                    openWorldHint: false,
                 },
             },
             handler: async (args) => {
@@ -347,7 +347,7 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
                     readOnlyHint: true,
                     destructiveHint: false,
                     idempotentHint: true,
-                    openWorldHint: true,
+                    openWorldHint: false,
                 },
             },
             handler: async (args) => {
@@ -370,7 +370,7 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
                     readOnlyHint: true,
                     destructiveHint: false,
                     idempotentHint: true,
-                    openWorldHint: true,
+                    openWorldHint: false,
                 },
             },
             handler: async (args) => {
@@ -399,7 +399,7 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
                     readOnlyHint: true,
                     destructiveHint: false,
                     idempotentHint: false,
-                    openWorldHint: true,
+                    openWorldHint: false,
                 },
             },
             handler: async (args) => {
