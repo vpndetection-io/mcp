@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.2.2 - 2026-10-29
+
+### Fixes
+
+- Hint open world on the lookups alone, and say bogons skip the API ([`15fe901`](https://github.com/vpndetection-io/mcp/commit/15fe901dd872a70ef3eda2e833e47a12152297f8))
+
 ## 6.2.1 - 2026-10-26
 
 ### Fixes
