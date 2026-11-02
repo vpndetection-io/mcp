@@ -9,7 +9,7 @@
       "url": "https://vpndetection.io"
     },
     "termsOfService": "https://vpndetection.io/terms",
-    "version": "2026.10.25"
+    "version": "2026.11.02"
   },
   "servers": [
     {
@@ -309,9 +309,15 @@
                     }
                   },
                   "quotaExceeded": {
-                    "summary": "Plan allowance spent, no Retry-After",
+                    "summary": "Free plan's monthly allowance spent, no Retry-After",
                     "value": {
-                      "error": "request allowance exceeded; raise or remove your overage limit"
+                      "error": "monthly request allowance spent; upgrade your plan for more lookups"
+                    }
+                  },
+                  "overageCapReached": {
+                    "summary": "Paid plan's overage cap reached, no Retry-After",
+                    "value": {
+                      "error": "overage cap reached; raise or remove it in Billing"
                     }
                   }
                 }
@@ -444,9 +450,15 @@
                     }
                   },
                   "quotaExceeded": {
-                    "summary": "Plan allowance spent, no Retry-After",
+                    "summary": "Free plan's monthly allowance spent, no Retry-After",
                     "value": {
-                      "error": "request allowance exceeded; raise or remove your overage limit"
+                      "error": "monthly request allowance spent; upgrade your plan for more lookups"
+                    }
+                  },
+                  "overageCapReached": {
+                    "summary": "Paid plan's overage cap reached, no Retry-After",
+                    "value": {
+                      "error": "overage cap reached; raise or remove it in Billing"
                     }
                   }
                 }
@@ -593,7 +605,19 @@
                       "errors": {
                         "8.8.8.8": {
                           "status": 429,
-                          "error": "request allowance exceeded; raise or remove your overage limit"
+                          "error": "monthly request allowance spent; upgrade your plan for more lookups"
+                        }
+                      }
+                    }
+                  },
+                  "overageCapReached": {
+                    "summary": "A key on a paid plan whose overage cap was already reached",
+                    "value": {
+                      "results": {},
+                      "errors": {
+                        "8.8.8.8": {
+                          "status": 429,
+                          "error": "overage cap reached; raise or remove it in Billing"
                         }
                       }
                     }
