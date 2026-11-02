@@ -23,8 +23,8 @@ export const BATCH_LIMIT = 100;
 
 export { DOWNLOADS_LIMIT };
 
-// Both spellings of a database id, stated wherever one is taken. `list_databases`
-// answers a `base` id (what a license names) and a `versions[].id`; everything
+// Both spellings of a database ID, stated wherever one is taken. `list_databases`
+// answers a `base` ID (what a license names) and a `versions[].id`; everything
 // else accepts only the versioned one. A model that has just read
 // `base: "cdn_ip"` will otherwise pass it and get a refusal that reads like a
 // bad database rather than a wrong spelling.
