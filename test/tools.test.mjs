@@ -315,12 +315,12 @@ test('no output schema is free-form unless the spec declares it', () => {
 // thing standing between a model that has just read `base` and a refusal that
 // looks like a missing database. Shared constant, so the two cannot drift apart -
 // they did, and `database_checksum` carried a truncated copy.
-test('every id-taking tool names both spellings', () => {
+test('every ID-taking tool names both spellings', () => {
     const byName = new Map(toolsFor(serving({})).map((d) => [d.tool.name, d]));
     for (const n of ['database_metadata', 'database_checksum']) {
         const described = byName.get(n).tool.inputSchema.properties.dataset_id.description;
-        assert.match(described, /versions\[\]\.id/, `${n}: does not name the versioned id`);
-        assert.match(described, /base id/, `${n}: does not warn about the base id`);
+        assert.match(described, /versions\[\]\.id/, `${n}: does not name the versioned ID`);
+        assert.match(described, /base ID/, `${n}: does not warn about the base ID`);
     }
 });
 

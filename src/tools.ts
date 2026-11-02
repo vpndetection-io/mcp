@@ -28,8 +28,8 @@ export { DOWNLOADS_LIMIT };
 // else accepts only the versioned one. A model that has just read
 // `base: "cdn_ip"` will otherwise pass it and get a refusal that reads like a
 // bad database rather than a wrong spelling.
-const VERSIONED_ID = 'A VERSIONED database id, from `versions[].id` in `list_databases` - '
-    + '`cdn_ip_v1`, not `cdn_ip`. The unversioned base id is a license reference and is '
+const VERSIONED_ID = 'A VERSIONED database ID, from `versions[].id` in `list_databases` - '
+    + '`cdn_ip_v1`, not `cdn_ip`. The unversioned base ID is a license reference and is '
     + 'not accepted here.';
 
 // The formats come from the SDK's own exported vocabulary rather than a literal
@@ -312,7 +312,7 @@ function databaseTools(ctx: ToolContext): ToolDef[] {
                     + 'one entry per database FAMILY, with `standing` saying where their license '
                     + 'stands: `licensed` if the family is theirs today, `expired` if the term has '
                     + 'ended, `unlicensed` if it is published but has never been bought. Each entry '
-                    + 'has a `base` id, which is what the license names, and a `versions` array '
+                    + 'has a `base` ID, which is what the license names, and a `versions` array '
                     + 'whose `id` is what the other database tools take - pass `versions[].id` '
                     + '(`cdn_ip_v1`), never the `base` (`cdn_ip`). Ask again rather than holding '
                     + 'on to this: it is answered per key and is not the same for everyone.',
