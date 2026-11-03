@@ -813,7 +813,7 @@
             "schema": {
               "type": "string"
             },
-            "description": "Dataset id, e.g. vpn_ip_extended_v1"
+            "description": "Dataset ID, e.g. vpn_ip_extended_v1"
           },
           {
             "in": "query",
@@ -822,7 +822,7 @@
             "schema": {
               "$ref": "#/components/schemas/DatabaseFormat"
             },
-            "description": "Not every database is built in every format. The `_provider`\ncatalogs are keyed by provider id rather than by IP range, so no\nMMDB exists for them.\n"
+            "description": "Not every database is built in every format. The `_provider`\ncatalogs are keyed by provider ID rather than by IP range, so no\nMMDB exists for them.\n"
           }
         ],
         "responses": {
@@ -1444,7 +1444,7 @@
           "API keys"
         ],
         "summary": "Rotate",
-        "description": "Replaces the secret behind a key, keeping its id, name and settings.\nThe previous secret stops working immediately. The new secret comes\nback in the answer, so this needs `apikeys.reveal` as well as\n`apikeys.manage`.\n",
+        "description": "Replaces the secret behind a key, keeping its ID, name and settings.\nThe previous secret stops working immediately. The new secret comes\nback in the answer, so this needs `apikeys.reveal` as well as\n`apikeys.manage`.\n",
         "security": [
           {
             "bearerAuth": [
@@ -2394,7 +2394,7 @@
       },
       "Database": {
         "type": "object",
-        "description": "One database FAMILY, with your organization's license beside it. A license covers\nthe family, while a download names a specific version, so the ids you\npass to the download and checksum endpoints come from `versions`.\n",
+        "description": "One database FAMILY, with your organization's license beside it. A license covers\nthe family, while a download names a specific version, so the IDs you\npass to the download and checksum endpoints come from `versions`.\n",
         "properties": {
           "base": {
             "type": "string",
@@ -2481,7 +2481,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "The versioned database id, e.g. `vpn_ip_v1`. Pass this to download.",
+            "description": "The versioned database ID, e.g. `vpn_ip_v1`. Pass this to download.",
             "example": "vpn_ip_v1"
           },
           "version": {
@@ -2717,7 +2717,7 @@
       },
       "EntitlementApikey": {
         "type": "object",
-        "description": "The credential itself. The key is never echoed - only its id, which is\nwhat the console shows and what you can act on.\n",
+        "description": "The credential itself. The key is never echoed - only its ID, which is\nwhat the console shows and what you can act on.\n",
         "required": [
           "id",
           "expires",
@@ -3480,7 +3480,7 @@
         "name": "id",
         "in": "path",
         "required": true,
-        "description": "The key's id, as returned by the list endpoint. Never the key itself.",
+        "description": "The key's ID, as returned by the list endpoint. Never the key itself.",
         "schema": {
           "type": "string",
           "format": "uuid"
