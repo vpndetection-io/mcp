@@ -324,6 +324,17 @@ test('every ID-taking tool names both spellings', () => {
     }
 });
 
+// Prose writes ID and IDs in every description a tool serves, its output schema's
+// included, which the generator copies from the spec. A code span is an identifier
+// and keeps its spelling (`versions[].id`).
+test('every description a tool serves writes ID, never id or ids', () => {
+    for (const { tool } of toolsFor(serving({}))) {
+        const bare = descriptions(tool)
+            .filter((text) => /\b(?:id|ids|Id|Ids)\b/.test(text.replace(/`[^`]*`/g, '')));
+        assert.deepEqual(bare, [], `${tool.name}: a bare id`);
+    }
+});
+
 // The unwrap DEPTH is the documented way these bindings break: the nodejs SDK
 // shipped 1.0.x reading a top-level `sha256` off a body that nests it. Each body
 // is a whole answer in the spec's formats, because the SDK retries as a
@@ -695,6 +706,20 @@ function keywordPaths(node, keyword, path = '') {
             return [`${path}/${k}`];
         }
         return keywordPaths(v, keyword, `${path}/${k}`);
+    });
+}
+
+// Every description string anywhere in `node`. A property NAMED `description`
+// holds a schema, never a string, so it is walked rather than collected.
+function descriptions(node) {
+    if (node === null || typeof node !== 'object') {
+        return [];
+    }
+    return Object.entries(node).flatMap(([k, v]) => {
+        if (k === 'description' && typeof v === 'string') {
+            return [v];
+        }
+        return descriptions(v);
     });
 }
 
