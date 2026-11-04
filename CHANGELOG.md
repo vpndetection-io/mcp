@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.2.5 - 2026-11-04
+
+### Fixes
+
+- Re-pin the spec to 2026.11.03: a proxy flag keeps its last values ([`43a9ffd`](https://github.com/vpndetection-io/mcp/commit/43a9ffdde8e742b3f973e7e0d7831c76dfc89ccb))
+
 ## 6.2.4 - 2026-11-03
 
 ### Fixes
