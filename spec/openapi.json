@@ -9,7 +9,7 @@
       "url": "https://vpndetection.io"
     },
     "termsOfService": "https://vpndetection.io/terms",
-    "version": "2026.11.03"
+    "version": "2026.11.05"
   },
   "servers": [
     {
@@ -267,14 +267,23 @@
             }
           },
           "403": {
-            "description": "The key restricts which source addresses may use it, and this\nrequest did not come from one of them.\n",
+            "description": "The key restricts which source addresses may use it and this\nrequest came from none of them, or the key was sent over plain\nHTTP, where anyone on the network path could read it. Rotate a key\nthat was.\n",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/LookupError"
                 },
-                "example": {
-                  "error": "source address not allowed for this API key"
+                "examples": {
+                  "sourceNotAllowed": {
+                    "value": {
+                      "error": "source address not allowed for this API key"
+                    }
+                  },
+                  "plainHttp": {
+                    "value": {
+                      "error": "API key sent over plain HTTP; use https://"
+                    }
+                  }
                 }
               }
             }
@@ -408,14 +417,23 @@
             }
           },
           "403": {
-            "description": "The key restricts which source addresses may use it, and this\nrequest did not come from one of them.\n",
+            "description": "The key restricts which source addresses may use it and this\nrequest came from none of them, or the key was sent over plain\nHTTP, where anyone on the network path could read it. Rotate a key\nthat was.\n",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/LookupError"
                 },
-                "example": {
-                  "error": "source address not allowed for this API key"
+                "examples": {
+                  "sourceNotAllowed": {
+                    "value": {
+                      "error": "source address not allowed for this API key"
+                    }
+                  },
+                  "plainHttp": {
+                    "value": {
+                      "error": "API key sent over plain HTTP; use https://"
+                    }
+                  }
                 }
               }
             }
@@ -688,14 +706,23 @@
             }
           },
           "403": {
-            "description": "The key restricts which source addresses may use it, and this\nrequest did not come from one of them.\n",
+            "description": "The key restricts which source addresses may use it and this\nrequest came from none of them, or the key was sent over plain\nHTTP, where anyone on the network path could read it. Rotate a key\nthat was.\n",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/LookupError"
                 },
-                "example": {
-                  "error": "source address not allowed for this API key"
+                "examples": {
+                  "sourceNotAllowed": {
+                    "value": {
+                      "error": "source address not allowed for this API key"
+                    }
+                  },
+                  "plainHttp": {
+                    "value": {
+                      "error": "API key sent over plain HTTP; use https://"
+                    }
+                  }
                 }
               }
             }
@@ -2152,23 +2179,23 @@
           "first_seen": {
             "type": "string",
             "format": "date",
-            "description": "The earliest date within the window this address was seen in the pool.",
+            "description": "The earliest date within the window this address was seen in the\npool, as of its last day in the window once it has left.\n",
             "example": "2026-06-14"
           },
           "last_seen": {
             "type": "string",
             "format": "date",
-            "description": "The most recent date within the window this address was seen in the pool.",
+            "description": "The most recent date this address was seen in the pool. An address\nthat leaves the window keeps its flag, so this date is what says how\nrecent the sighting is.\n",
             "example": "2026-09-02"
           },
           "hits": {
             "type": "integer",
-            "description": "How many times the address was observed in the pool during the window.",
+            "description": "How many times the address was observed in the pool during the\nwindow, as of its last day in it once it has left.\n",
             "example": 42
           },
           "hits_days_pct": {
             "type": "integer",
-            "description": "The share of days in the window on which the address was seen, as a\npercentage. A high value means a stable pool member rather than a\none-off sighting.\n",
+            "description": "The percentage of days in the window on which the address was seen,\nas of its last day in it once it has left. A high value means a\nstable pool member rather than a one-off sighting.\n",
             "example": 63
           },
           "providers_num": {
@@ -2216,12 +2243,12 @@
           "last_seen": {
             "type": "string",
             "format": "date",
-            "description": "The most recent date within the window a proxy on this address was seen.",
+            "description": "The most recent date a proxy on this address was seen. An address\nthat leaves the window keeps its flag, so this date is what says how\nrecent the sighting is.\n",
             "example": "2026-10-17"
           },
           "last_usable": {
             "type": "string",
-            "description": "The most recent date within the window a request through a proxy on\nthis address was answered, as YYYY-MM-DD, or an empty string when\nnone was.\n",
+            "description": "The most recent date within the window a request through a proxy on\nthis address was answered, as YYYY-MM-DD, or an empty string when\nnone was, as of its last day in the window once it has left.\n",
             "example": "2026-10-17"
           }
         }
