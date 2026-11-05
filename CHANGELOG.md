@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.2.6 - 2026-11-05
+
+### Fixes
+
+- Re-pin the spec to 2026.11.05: a proxy's dates outlive the window ([`26e7cab`](https://github.com/vpndetection-io/mcp/commit/26e7cabe080563bdd339b4aacacbdac3186c841e))
+
 ## 6.2.5 - 2026-11-04
 
 ### Fixes
