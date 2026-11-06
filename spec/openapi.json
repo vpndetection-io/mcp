@@ -850,6 +850,17 @@
               "$ref": "#/components/schemas/DatabaseFormat"
             },
             "description": "Not every database is built in every format. The `_provider`\ncatalogs are keyed by provider ID rather than by IP range, so no\nMMDB exists for them.\n"
+          },
+          {
+            "in": "query",
+            "name": "build",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9]{8}\\.[a-z0-9]{6}$",
+              "example": "20261105.0t53s5"
+            },
+            "description": "One build of the database, by the name a `database.updated` webhook\ngives it, so the file is the one whose `sha256` the webhook carries.\nWithout it, the build that is live.\n"
           }
         ],
         "responses": {
@@ -864,7 +875,7 @@
             }
           },
           "400": {
-            "description": "The database is not built in the requested format",
+            "description": "The database is not built in the requested format (`INVALID_FORMAT`), or `build` is not a build's name (`INVALID_BUILD`)",
             "content": {
               "application/json": {
                 "schema": {
@@ -888,6 +899,16 @@
           },
           "404": {
             "description": "No such database",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "410": {
+            "description": "The build named in `build` is no longer kept (`BUILD_GONE`); builds are kept 7 days. Download without `build` for the live one",
             "content": {
               "application/json": {
                 "schema": {
