@@ -9,7 +9,7 @@
       "url": "https://vpndetection.io"
     },
     "termsOfService": "https://vpndetection.io/terms",
-    "version": "2026.11.05"
+    "version": "2026.11.08"
   },
   "servers": [
     {
@@ -784,7 +784,7 @@
           "Database"
         ],
         "summary": "List",
-        "description": "Every database this organization may SEE, with where its license stands.\nNot just the ones you hold: a customer with one grant should be able to\ntell what else is published without asking. `standing` is the\ndifference - `licensed`, `expired`, or `unlicensed` for one never\nbought.\n",
+        "description": "Every database this organization can see, licensed or not. `standing`\nsays where its license stands: `licensed`, `expired`, or `unlicensed`\nfor one never bought.\n",
         "responses": {
           "200": {
             "description": "OK",
@@ -831,7 +831,7 @@
           "Database"
         ],
         "summary": "Download",
-        "description": "Answers `302` with a time-limited URL pointing straight at object storage. Follow the redirect; the link authorizes the START of a transfer, so one already running is not interrupted when it lapses.\n",
+        "description": "Redirects (`302`) to a time-limited link to the database file. The link only has to be valid when the download starts, so a long one isn't cut off when it expires.\n",
         "parameters": [
           {
             "in": "query",
@@ -1286,7 +1286,7 @@
           "Account"
         ],
         "summary": "Identity",
-        "description": "The identity behind this credential: what it is, the organization it is\nscoped to, and the scopes it currently holds.\n\n`user` is present for an OAuth token and ABSENT for an API key, which\nhas an organization but no person behind it. `credential.kind` says\nwhich you are holding, so a client can branch without guessing from a\nmissing field.\n\nNarrower than what the console shows its own user on purpose: an\nintegration needs a name to display and an organization to address, not\na profile. The `scopes` array is what the credential may do RIGHT NOW,\nso a client can render its own capabilities rather than discovering\nthem from a 403.\n",
+        "description": "The identity behind this credential: what it is, the organization it is\nscoped to, and the scopes it currently holds.\n\n`user` is present for an OAuth token and absent for an API key, which\nhas an organization but no person behind it. `credential.kind` says\nwhich you are holding, so a client can branch without guessing from a\nmissing field.\n\n`scopes` is what the credential may do now, so a client can check\nbefore it calls.\n",
         "security": [
           {
             "bearerAuth": [
@@ -1341,7 +1341,7 @@
           "Organization"
         ],
         "summary": "Organization",
-        "description": "The organization this credential is scoped to.\n\nThere is no way to name a different one. A credential describes exactly\none organization, so an identifier in the path could only ever be your\nown or a refusal.\n",
+        "description": "The organization this credential is scoped to.\n\nA credential belongs to one organization, so this takes no ID.\n",
         "security": [
           {
             "bearerAuth": [
@@ -1376,7 +1376,7 @@
           "Organization"
         ],
         "summary": "Members",
-        "description": "Read-only. Adding or removing a member is an invitation flow with email\nin the middle rather than a POST, and modeling it as one here would\npromise something this API does not do.\n",
+        "description": "The members of the organization this credential is scoped to.\n\nRead-only. Members are invited by email from the console.\n",
         "security": [
           {
             "bearerAuth": [
@@ -1411,7 +1411,7 @@
           "API keys"
         ],
         "summary": "List",
-        "description": "Metadata only. A key's secret is never in a list - not here and not in\nthe console - because a list is the response that ends up in logs,\ncaches and support tickets.\n\n`retrievable` says whether the secret could still be read back at all.\nA key issued before this product stored secrets recoverably was never\nkept, so `reveal` will refuse it permanently; rotating produces one\nthat can be read.\n",
+        "description": "Each key's metadata. A list never carries a secret, here or in the\nconsole: `reveal` reads one.\n\n`retrievable` says whether the secret could still be read back at all.\nA key issued before this product stored secrets recoverably was never\nkept, so `reveal` will refuse it permanently; rotating produces one\nthat can be read.\n",
         "security": [
           {
             "bearerAuth": [
@@ -1444,7 +1444,7 @@
           "API keys"
         ],
         "summary": "Create",
-        "description": "Creates a key and returns its secret.\n\nThis is the ONLY response that ever carries the secret, and only\nbecause this is the moment it comes into existence. Store it now.\n",
+        "description": "Creates a key and returns its secret.\n\nStore the secret now. Reading it back later takes `reveal` and the\n`apikeys.reveal` scope.\n",
         "security": [
           {
             "bearerAuth": [
@@ -1579,7 +1579,7 @@
           "API keys"
         ],
         "summary": "Reveal",
-        "description": "Returns an existing key's secret.\n\nIts own scope rather than part of `apikeys.manage`, because the two are\ndifferent acts: rotating replaces a secret you never see, while this\nhands one over.\n\nRefused with `NOT_RETRIEVABLE` for a key issued before this product\nstored secrets recoverably - that secret was never kept, so no retry\nwill ever produce it. Rotate the key instead.\n",
+        "description": "Returns an existing key's secret.\n\nIt needs the `apikeys.reveal` scope, which `apikeys.manage` doesn't\ninclude.\n\nRefused with `NOT_RETRIEVABLE` for a key issued before we kept secrets.\nRotate that key instead.\n",
         "security": [
           {
             "bearerAuth": [
@@ -1845,7 +1845,7 @@
           "Authorization"
         ],
         "summary": "Token",
-        "description": "Three grant types.\n\n`urn:ietf:params:oauth:grant-type:device_code` polls a device\nauthorization. Until the person approves it answers\n`authorization_pending`; poll faster than `interval` and it answers\n`slow_down`, which means widen your interval and keep it widened.\n\n`authorization_code` exchanges a code from `/oauth/authorize`, with the\n`code_verifier` matching the challenge you sent and the same\n`redirect_uri`. A code works once: presenting it again also revokes\nwhat the first exchange issued.\n\n`refresh_token` exchanges a refresh token. The presented token is\nconsumed whatever happens next, so store the new one before using it.\nPresenting a consumed refresh token again ends the whole authorization,\nsince it means the token was copied.\n",
+        "description": "Issues tokens for three grant types: a device code, an authorization\ncode and a refresh token.\n\n`urn:ietf:params:oauth:grant-type:device_code` polls a device\nauthorization. Until the person approves it answers\n`authorization_pending`; poll faster than `interval` and it answers\n`slow_down`, which means widen your interval and keep it widened.\n\n`authorization_code` exchanges a code from `/oauth/authorize`, with the\n`code_verifier` matching the challenge you sent and the same\n`redirect_uri`. A code works once: presenting it again also revokes\nwhat the first exchange issued.\n\n`refresh_token` exchanges a refresh token. The presented token is\nconsumed whatever happens next, so store the new one before using it.\nPresenting a consumed refresh token again ends the whole authorization,\nsince it means the token was copied.\n",
         "security": [],
         "requestBody": {
           "required": true,
@@ -1898,7 +1898,7 @@
           "Authorization"
         ],
         "summary": "Revoke",
-        "description": "RFC 7009. Always answers 200, including for a token that was never\nvalid - an endpoint that distinguished the two would be a way to test\nwhether a stolen string is a live credential.\n\nRevoking a REFRESH token ends the whole authorization and takes its\naccess tokens with it. Revoking an access token affects only that token.\n",
+        "description": "RFC 7009. Always answers 200, even for a token that was never valid, so\nit can't be used to test whether a token is live.\n\nRevoking a refresh token ends the whole authorization and takes its\naccess tokens with it. Revoking an access token affects only that token.\n",
         "security": [],
         "requestBody": {
           "required": true,
