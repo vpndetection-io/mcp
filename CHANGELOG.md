@@ -2,6 +2,13 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.4.1 - 2026-11-11
+
+### Fixes
+
+- Say the free plan's daily trial, never a trial key, and re-pin the spec ([`0cd2c83`](https://github.com/vpndetection-io/mcp/commit/0cd2c83098e92ad9408ec9e3262ab8f147bc2f2b))
+- Require vpndetection 5.13.1: the free plan's daily trial, never a trial key ([`9c64eb8`](https://github.com/vpndetection-io/mcp/commit/9c64eb89257229214f1fba782488f313b6fe292a))
+
 ## 6.4.0 - 2026-11-11
 
 ### Features
