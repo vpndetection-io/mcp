@@ -2,6 +2,13 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.4.0 - 2026-11-11
+
+### Features
+
+- Look a trial key's short batch up one address at a time, and re-pin the spec ([`25d0510`](https://github.com/vpndetection-io/mcp/commit/25d0510e777d22ab15c3c4123f5d0446e8b18b7b))
+- Require vpndetection 5.13.0: trial_expired on a trial key's answers ([`9f75a9f`](https://github.com/vpndetection-io/mcp/commit/9f75a9faa972402bdcb40d7c17ab9033d643d4f5))
+
 ## 6.3.2 - 2026-11-11
 
 ### Fixes
