@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.3.2 - 2026-11-11
+
+### Fixes
+
+- Name the Unlimited tier and its terms, and re-pin the spec ([`c7cd0aa`](https://github.com/vpndetection-io/mcp/commit/c7cd0aa49ce3d8edf23c1935741c8f5079268bda))
+
 ## 6.3.1 - 2026-11-11
 
 ### Fixes
