@@ -61,9 +61,9 @@ test('every lookup fixture reports exactly the members it did not cover', async 
 });
 
 test('an answer of the required members alone names every gated member as not covered', async () => {
-    const free = data.lookup.find((c) => c.name === 'required-only-not-vpn');
-    const stub = serving(free.body);
-    const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: free.body.ip });
+    const bare = data.lookup.find((c) => c.name === 'required-only-not-vpn');
+    const stub = serving(bare.body);
+    const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: bare.body.ip });
 
     assert.deepEqual(out.structuredContent.coverage.not_included, [...LOOKUP_GATED_MEMBERS]);
     assert.deepEqual(out.structuredContent.coverage.included, ['ip', 'is_vpn']);
@@ -74,7 +74,7 @@ test('an answer of the required members alone names every gated member as not co
 // cases predate, so they are added here from the case that carries them.
 test('a max answer that found nothing reports full coverage, not absence', async () => {
     const max = data.lookup.find((c) => c.name === 'max-nothing-found');
-    const { location, asn } = data.lookup.find((c) => c.name === 'keyless-location-asn').body;
+    const { location, asn } = data.lookup.find((c) => c.name === 'unlimited-location-asn').body;
     const body = { ...max.body, location: location, asn: asn };
     const stub = serving(body);
     const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: body.ip });
@@ -83,13 +83,13 @@ test('a max answer that found nothing reports full coverage, not absence', async
     assert.match(out.structuredContent.coverage.note, /real negative result/);
 });
 
-// The distinction the whole coverage note exists to carry: a free key serves
-// `is_hosting` but not the `hosting` object, so one is a real answer and the
-// other was never looked at.
-test('a free key separates a served flag from an unbought detail object', async () => {
-    const free = data.lookup.find((c) => c.name === 'free-flags-without-detail');
-    const stub = serving(free.body);
-    const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: free.body.ip });
+// The distinction the whole coverage note exists to carry: an answer serving
+// `is_hosting` but not the `hosting` object holds one real answer and one thing
+// that was never looked at.
+test('a served flag stays apart from a detail object that was not served', async () => {
+    const flags = data.lookup.find((c) => c.name === 'flags-without-detail');
+    const stub = serving(flags.body);
+    const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: flags.body.ip });
     const cov = out.structuredContent.coverage;
 
     assert.ok(cov.included.includes('is_hosting'));
@@ -98,12 +98,13 @@ test('a free key separates a served flag from an unbought detail object', async 
     assert.ok(cov.not_included.includes('vpn'));
 });
 
-// Without a key the answer carries the Tor and relay members, location and asn,
-// and coverage must name the flags a key adds as not covered, never as false.
-test('an answer without a key names the flags a key adds as not covered', async () => {
-    const keyless = data.lookup.find((c) => c.name === 'keyless-location-asn');
-    const stub = serving(keyless.body);
-    const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: keyless.body.ip });
+// The Unlimited tier's answer carries the Tor and relay members, location and
+// asn, and coverage must name the flags a paid plan adds as not covered, never
+// as false.
+test('an Unlimited answer names the flags a paid plan adds as not covered', async () => {
+    const unlimited = data.lookup.find((c) => c.name === 'unlimited-location-asn');
+    const stub = serving(unlimited.body);
+    const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: unlimited.body.ip });
     const cov = out.structuredContent.coverage;
 
     assert.ok(cov.included.includes('is_tor'));
@@ -112,10 +113,38 @@ test('an answer without a key names the flags a key adds as not covered', async 
     assert.ok(cov.not_included.includes('vpn'));
 });
 
+// trial_expired says which answer a trial key got, so it is neither a dataset
+// covered nor one left out, and the result carries it verbatim.
+test("a trial key's full answer reports full coverage and keeps trial_expired", async () => {
+    const trial = data.lookup.find((c) => c.name === 'trial-full-answer');
+    const stub = serving(trial.body);
+    const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: trial.body.ip });
+    const { result, coverage } = out.structuredContent;
+
+    assert.equal(result.trial_expired, false);
+    assert.ok(!coverage.included.includes('trial_expired'));
+    assert.deepEqual(coverage.not_included, []);
+    assert.match(coverage.note, /real negative result/);
+});
+
+test("a trial key's spent day says so beside what was not covered", async () => {
+    const spent = data.lookup.find((c) => c.name === 'trial-expired-answer');
+    const stub = serving(spent.body);
+    const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: spent.body.ip });
+    const { result, coverage } = out.structuredContent;
+
+    assert.equal(result.trial_expired, true);
+    assert.ok(!coverage.included.includes('trial_expired'));
+    assert.ok(!coverage.not_included.includes('trial_expired'));
+    assert.ok(coverage.not_included.includes('is_hosting'));
+    assert.match(coverage.note, /trial/);
+    assert.match(coverage.note, /not a negative result/);
+});
+
 test('the note reaches a client that only renders content', async () => {
-    const free = data.lookup.find((c) => c.name === 'required-only-not-vpn');
-    const stub = serving(free.body);
-    const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: free.body.ip });
+    const bare = data.lookup.find((c) => c.name === 'required-only-not-vpn');
+    const stub = serving(bare.body);
+    const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: bare.body.ip });
 
     assert.equal(out.content[0].type, 'text');
     assert.ok(out.content[0].text.includes(out.structuredContent.coverage.note));
@@ -149,13 +178,14 @@ test('a bogon is answered in the full documented shape', async () => {
     }
     assert.deepEqual(out.structuredContent.coverage.not_included, [],
         'nothing is uncovered in a locally synthesized answer');
+    assert.ok(!('trial_expired' in body), 'a bogon was never served, so it carries no trial marker');
 });
 
 // A server listening on :: logs every IPv4 visitor as ::ffff:a.b.c.d, and a model triaging that
 // log passes the form on: it must find each answer under the address it passed.
 test('an IPv4-mapped address is the IPv4 address it carries, keyed as passed', async () => {
-    const free = data.lookup.find((c) => c.name === 'required-only-not-vpn');
-    const stub = serving({ ...free.body, ip: '8.8.8.8' });
+    const bare = data.lookup.find((c) => c.name === 'required-only-not-vpn');
+    const stub = serving({ ...bare.body, ip: '8.8.8.8' });
     const paths = [];
     const tools = toolsFor((input, init) => {
         paths.push(new URL(typeof input === 'string' ? input : input.url).pathname);
@@ -178,10 +208,10 @@ test('an IPv4-mapped address is the IPv4 address it carries, keyed as passed', a
 });
 
 test('batch coverage comes from a served answer, never from a bogon', async () => {
-    const free = data.lookup.find((c) => c.name === 'required-only-not-vpn');
-    const stub = serving(free.body);
+    const bare = data.lookup.find((c) => c.name === 'required-only-not-vpn');
+    const stub = serving(bare.body);
     const out = await toolsFor(stub.fetch).get('lookup_ips')
-        .handler({ ips: ['10.0.0.1', free.body.ip] });
+        .handler({ ips: ['10.0.0.1', bare.body.ip] });
 
     assert.deepEqual(out.structuredContent.coverage.not_included, [...LOOKUP_GATED_MEMBERS],
         'the bogon full shape must not be read as full plan coverage');

@@ -61,6 +61,13 @@ const LOOKUP_BATCH_INPUT = z.strictObject({
     ips: z.array(z.string()).min(1).describe('The IPv4 or IPv6 addresses to classify.'),
 });
 
+// A batch needs a paid plan, and a trial key's batch of two or more is refused
+// with a 402. Up to this many refused addresses are then looked up one at a time
+// instead, which a trial key may do; past it every address keeps the refusal,
+// since a caller with that long a list wants a paid plan rather than as many
+// single lookups.
+const TRIAL_SINGLE_LOOKUPS = 10;
+
 const METADATA_INPUT = z.strictObject({
     dataset_id: z.string().describe(VERSIONED_ID),
 });
@@ -156,8 +163,11 @@ export function createTools(ctx: ToolContext): ToolDef[] {
                     + 'address so duplicates collapse and the order you passed them stops mattering. '
                     + 'Pass the whole list rather than splitting it yourself: a long one is batched '
                     + 'for you. Prefer this over repeated `lookup_ip` calls when you already have '
-                    + 'the list, for example when triaging a log file. An address that fails '
-                    + 'carries its error in place of a result rather than failing the batch. '
+                    + 'the list, for example when triaging a log file. A batch needs a key on a '
+                    + `paid plan: with a trial key, a list of up to ${TRIAL_SINGLE_LOOKUPS} addresses `
+                    + 'is looked up one address at a time instead, and a longer one comes back '
+                    + 'refused. An address that fails carries its error in place of a result rather '
+                    + 'than failing the batch. '
                     + 'Always read `coverage.note` before concluding anything from a field that is '
                     + 'not in the result.',
                 inputSchema: jsonSchema(LOOKUP_BATCH_INPUT),
@@ -241,7 +251,14 @@ async function lookupIp(ctx: ToolContext, args: Record<string, unknown>): Promis
 async function lookupIps(ctx: ToolContext, args: Record<string, unknown>): Promise<CallToolResult> {
     const { ips } = LOOKUP_BATCH_INPUT.parse(args);
 
-    const answers = await ctx.client.lookupBatch(ips);
+    const answers: Map<string, unknown> = await ctx.client.lookupBatch(ips);
+    const refused = [...answers.keys()].filter((addr) => asClientError(answers.get(addr))?.status === 402);
+    const single = refused.length <= TRIAL_SINGLE_LOOKUPS;
+    if (single) {
+        for (const addr of refused) {
+            answers.set(addr, await lookupOne(ctx, addr));
+        }
+    }
     // Each address is the caller's own string, and assigning one to a plain object
     // turns `__proto__` into the object's prototype rather than a key, so that entry
     // vanished from the answer. fromEntries defines every address as a key of its own.
@@ -250,7 +267,12 @@ async function lookupIps(ctx: ToolContext, args: Record<string, unknown>): Promi
     for (const [addr, answer] of answers) {
         const failed = asClientError(answer);
         if (failed !== undefined) {
-            results.push([addr, { error: { kind: failed.kind, message: failed.message } }]);
+            let message = failed.message;
+            if (!single && failed.status === 402) {
+                message += `. With this key, pass at most ${TRIAL_SINGLE_LOOKUPS} addresses at a time, `
+                    + 'which are looked up one at a time.';
+            }
+            results.push([addr, { error: { kind: failed.kind, message: message } }]);
             continue;
         }
         const body = wireBody(answer as Result);
@@ -258,6 +280,18 @@ async function lookupIps(ctx: ToolContext, args: Record<string, unknown>): Promi
         served.push(body);
     }
     return ok({ results: Object.fromEntries(results), coverage: batchCoverage(served) });
+}
+
+/** One address looked up on its own, its failure kept as that address's answer. */
+async function lookupOne(ctx: ToolContext, addr: string): Promise<unknown> {
+    try {
+        return await ctx.client.lookup(addr);
+    } catch (err) {
+        if (asClientError(err) === undefined) {
+            throw err;
+        }
+        return err;
+    }
 }
 
 /**
@@ -278,10 +312,11 @@ function accountTool(ctx: ToolContext): ToolDef {
             description: 'What this API key is entitled to and how much of it has been used: the '
                 + 'plan, the field tier that decides how much of a lookup answer comes back, the '
                 + 'requests counted so far, the allowance, and when it resets. Use it to explain '
-                + 'why a field is missing from a lookup, or before a large batch. Usage counts '
-                + 'against the anniversary of the subscription rather than the calendar month, '
-                + 'and can lag a few seconds behind. A null `hard_limit` means we never stop '
-                + 'serving - it is NOT a limit of zero.',
+                + 'why a field is missing from a lookup, or before a large batch. A paid plan\'s '
+                + 'usage counts against the anniversary of the subscription rather than the '
+                + 'calendar month, and a trial key\'s against the UTC day; either can lag a few '
+                + 'seconds behind. A null `hard_limit` means we never stop serving - it is NOT a '
+                + 'limit of zero.',
             inputSchema: jsonSchema(NO_INPUT),
             outputSchema: objectSchema({
                 entitlement: ENTITLEMENT_SCHEMA,
@@ -498,6 +533,7 @@ function asClientError(err: unknown): ClientError | undefined {
 interface ClientError {
     kind: string;
     message: string;
+    status?: number;
     retryable?: boolean;
 }
 

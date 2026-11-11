@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "VPNDetection API",
-    "description": "The VPNDetection API: classify any IP address, and download the databases\nbehind the answers.\n\nLookups need no API key: the Unlimited tier answers any address with no\ndaily or monthly cap, for non-commercial use, and a service built on it\nmust credit VPNDetection (https://vpndetection.io/terms#no-key). Commercial\nuse needs a key, a free one included, which also adds every remaining flag.\n\nSee https://docs.vpndetection.io for guides and https://github.com/vpndetection-io\nfor the official client libraries.\n",
+    "description": "The VPNDetection API: classify any IP address, and download the databases\nbehind the answers.\n\nLookups need no API key: the Unlimited tier answers any address with no\ndaily or monthly cap, with a key or without one. Every paid plan answers\nevery field, and an organization on no paid plan can try them, 100 lookups\na day. Unlimited's answers may be used commercially, but not redistributed\nor used in a competing service (https://vpndetection.io/terms#no-key).\n\nSee https://docs.vpndetection.io for guides and https://github.com/vpndetection-io\nfor the official client libraries.\n",
     "contact": {
       "name": "VPNDetection Support",
       "email": "support@vpndetection.io",
@@ -121,8 +121,8 @@
                       }
                     }
                   },
-                  "free": {
-                    "summary": "A key on the free plan",
+                  "trial": {
+                    "summary": "A trial key within its day's 100 full answers",
                     "value": {
                       "ip": "146.70.116.130",
                       "is_vpn": true,
@@ -134,6 +134,52 @@
                       "is_dcproxy": false,
                       "is_mobproxy": false,
                       "is_pubproxy": false,
+                      "vpn": {
+                        "provider": "mullvad",
+                        "last_seen": "2026-09-02",
+                        "confidence": "high"
+                      },
+                      "hosting": {
+                        "provider": "m247",
+                        "confidence": "high",
+                        "last_seen": "2026-09-02"
+                      },
+                      "relay": {},
+                      "tor": {},
+                      "cdn": {},
+                      "resproxy": {},
+                      "dcproxy": {},
+                      "mobproxy": {},
+                      "pubproxy": {},
+                      "location": {
+                        "continent": "EU",
+                        "continent_name": "Europe",
+                        "country": "AT",
+                        "country_name": "Austria",
+                        "timezone": "Europe/Vienna",
+                        "currency_code": "EUR",
+                        "currency_name": "Euro",
+                        "currency_symbol": "€",
+                        "flag_emoji": "🇦🇹",
+                        "flag_unicode": "U+1F1E6 U+1F1F9"
+                      },
+                      "asn": {
+                        "asn": 9009,
+                        "name": "M247 Europe SRL",
+                        "domain": "m247global.com",
+                        "type": "hosting",
+                        "prefix": "146.70.116.0/24"
+                      },
+                      "trial_expired": false
+                    }
+                  },
+                  "trialExpired": {
+                    "summary": "A trial key past its day's 100, answered as Unlimited",
+                    "value": {
+                      "ip": "146.70.116.130",
+                      "is_vpn": true,
+                      "is_relay": false,
+                      "is_tor": false,
                       "relay": {},
                       "tor": {},
                       "location": {
@@ -154,7 +200,8 @@
                         "domain": "m247global.com",
                         "type": "hosting",
                         "prefix": "146.70.116.0/24"
-                      }
+                      },
+                      "trial_expired": true
                     }
                   },
                   "paid": {
@@ -318,10 +365,10 @@
             }
           },
           "429": {
-            "description": "Either a rate limit or a spent allowance. `Retry-After` is present\nfor the former and absent for the latter, and is the only way to\ntell them apart.\n",
+            "description": "Either a rate limit or a paid plan's overage cap. `Retry-After` is\npresent for the former and absent for the latter, and is the only\nway to tell them apart.\n",
             "headers": {
               "Retry-After": {
-                "description": "Seconds to wait before retrying. Present ONLY when the rejection\nis a rate limit; its absence means an allowance is spent and\nretrying will not help.\n",
+                "description": "Seconds to wait before retrying. Present ONLY when the rejection\nis a rate limit; its absence means the overage cap is reached and\nretrying will not help.\n",
                 "required": false,
                 "schema": {
                   "type": "integer"
@@ -341,15 +388,9 @@
                     }
                   },
                   "unlimitedRateLimited": {
-                    "summary": "Unlimited (no API key), a burst, sent with Retry-After",
+                    "summary": "Unlimited, a burst, sent with Retry-After",
                     "value": {
-                      "error": "per-minute limit for requests without an API key exceeded; retry shortly or use an API key"
-                    }
-                  },
-                  "quotaExceeded": {
-                    "summary": "Free plan's monthly allowance spent, no Retry-After",
-                    "value": {
-                      "error": "monthly request allowance spent; upgrade your plan for more lookups"
+                      "error": "per-minute limit for Unlimited lookups exceeded; retry shortly, or use a paid plan"
                     }
                   },
                   "overageCapReached": {
@@ -397,7 +438,7 @@
           "Lookup"
         ],
         "summary": "My IP",
-        "description": "Answers what is known about the address this request came from, which is\nthe same answer `GET /{ip}` gives for that address: the presented key\ndecides which fields come back, and the request counts against the same\nlimit or allowance.\n\nThe address is the one our edge observed, so a request through a proxy\nor a VPN reports the exit it left through rather than the machine that\nmade it. That is usually the point of asking.\n",
+        "description": "Answers what is known about the address this request came from, which is\nthe same answer `GET /{ip}` gives for that address: the presented key\ndecides which fields come back, and the request counts against the same\nlimits.\n\nThe address is the one our edge observed, so a request through a proxy\nor a VPN reports the exit it left through rather than the machine that\nmade it. That is usually the point of asking.\n",
         "responses": {
           "200": {
             "description": "The classification of your own address. Present fields are those\nyour plan includes; see the tier table in the API description.\n",
@@ -491,10 +532,10 @@
             }
           },
           "429": {
-            "description": "Either a rate limit or a spent allowance. `Retry-After` is present\nfor the former and absent for the latter, and is the only way to\ntell them apart.\n",
+            "description": "Either a rate limit or a paid plan's overage cap. `Retry-After` is\npresent for the former and absent for the latter, and is the only\nway to tell them apart.\n",
             "headers": {
               "Retry-After": {
-                "description": "Seconds to wait before retrying. Present ONLY when the rejection\nis a rate limit; its absence means an allowance is spent and\nretrying will not help.\n",
+                "description": "Seconds to wait before retrying. Present ONLY when the rejection\nis a rate limit; its absence means the overage cap is reached and\nretrying will not help.\n",
                 "required": false,
                 "schema": {
                   "type": "integer"
@@ -514,15 +555,9 @@
                     }
                   },
                   "unlimitedRateLimited": {
-                    "summary": "Unlimited (no API key), a burst, sent with Retry-After",
+                    "summary": "Unlimited, a burst, sent with Retry-After",
                     "value": {
-                      "error": "per-minute limit for requests without an API key exceeded; retry shortly or use an API key"
-                    }
-                  },
-                  "quotaExceeded": {
-                    "summary": "Free plan's monthly allowance spent, no Retry-After",
-                    "value": {
-                      "error": "monthly request allowance spent; upgrade your plan for more lookups"
+                      "error": "per-minute limit for Unlimited lookups exceeded; retry shortly, or use a paid plan"
                     }
                   },
                   "overageCapReached": {
@@ -570,7 +605,7 @@
           "Lookup"
         ],
         "summary": "Batch",
-        "description": "Answers up to 1000 addresses in one call. Each distinct string in `ips`\nis one lookup: it costs exactly what `GET /{ip}` costs for that address\nand comes back with exactly the fields that call would carry for your\nplan. Exact duplicates collapse to one entry and one lookup.\n\nBoth maps in the answer are keyed by the string you sent, so nothing has\nto be lined up by position; the `ip` inside each result is the\nnormalized form. An address that could not be answered sits in `errors`\nwith the status and message the single lookup would have given, and\nnever disturbs the others: a string that is not an address is a `400`\nthere, and an allowance that runs out part way through leaves the\nremaining entries as `429`s.\n\nThe call itself fails only for the reasons below, and a `429` on the\ncall always carries `Retry-After`: the batch is admitted or refused\nwhole by the rate limit, so a per-entry `429` is always a spent\nallowance and never a throttle.\n\nA batch needs an API key, a free one included: without one the call is\nrefused with `401`. The Unlimited tier looks up one address at a time.\n",
+        "description": "Answers up to 1000 addresses in one call. Each distinct string in `ips`\nis one lookup: it costs exactly what `GET /{ip}` costs for that address\nand comes back with exactly the fields that call would carry for your\nplan. Exact duplicates collapse to one entry and one lookup.\n\nBoth maps in the answer are keyed by the string you sent, so nothing has\nto be lined up by position; the `ip` inside each result is the\nnormalized form. An address that could not be answered sits in `errors`\nwith the status and message the single lookup would have given, and\nnever disturbs the others: a string that is not an address is a `400`\nthere, and an overage cap reached part way through leaves the remaining\nentries as `429`s.\n\nThe call itself fails only for the reasons below, and a `429` on the\ncall always carries `Retry-After`: the batch is admitted or refused\nwhole by the rate limit, so a per-entry `429` is always the overage cap\nand never a throttle.\n\nA batch needs a paid plan: without a key the call is refused with `401`,\nand with a trial key with `402`, unless it names one address, which is\nanswered as `GET /{ip}` would answer it. Unlimited and a trial look up\none address at a time.\n",
         "security": [
           {
             "apiKeyQuery": []
@@ -609,8 +644,8 @@
                   "$ref": "#/components/schemas/BatchLookupResponse"
                 },
                 "examples": {
-                  "free": {
-                    "summary": "A key on the free plan, with a private address and a string that is not one",
+                  "privateAndInvalid": {
+                    "summary": "A key on a paid plan, with a private address and a string that is not one",
                     "value": {
                       "results": {
                         "192.168.1.1": {
@@ -624,8 +659,15 @@
                           "is_dcproxy": false,
                           "is_mobproxy": false,
                           "is_pubproxy": false,
+                          "vpn": {},
+                          "hosting": {},
                           "relay": {},
                           "tor": {},
+                          "cdn": {},
+                          "resproxy": {},
+                          "dcproxy": {},
+                          "mobproxy": {},
+                          "pubproxy": {},
                           "location": {
                             "continent": "",
                             "continent_name": "",
@@ -651,52 +693,6 @@
                         "not-an-ip": {
                           "status": 400,
                           "error": "not a valid IP address"
-                        }
-                      }
-                    }
-                  },
-                  "quotaExceeded": {
-                    "summary": "A key on the free plan whose allowance ran out after the first entry",
-                    "value": {
-                      "results": {
-                        "146.70.116.130": {
-                          "ip": "146.70.116.130",
-                          "is_vpn": true,
-                          "is_hosting": true,
-                          "is_relay": false,
-                          "is_tor": false,
-                          "is_cdn": false,
-                          "is_resproxy": false,
-                          "is_dcproxy": false,
-                          "is_mobproxy": false,
-                          "is_pubproxy": false,
-                          "relay": {},
-                          "tor": {},
-                          "location": {
-                            "continent": "EU",
-                            "continent_name": "Europe",
-                            "country": "AT",
-                            "country_name": "Austria",
-                            "timezone": "Europe/Vienna",
-                            "currency_code": "EUR",
-                            "currency_name": "Euro",
-                            "currency_symbol": "€",
-                            "flag_emoji": "🇦🇹",
-                            "flag_unicode": "U+1F1E6 U+1F1F9"
-                          },
-                          "asn": {
-                            "asn": 9009,
-                            "name": "M247 Europe SRL",
-                            "domain": "m247global.com",
-                            "type": "hosting",
-                            "prefix": "146.70.116.0/24"
-                          }
-                        }
-                      },
-                      "errors": {
-                        "8.8.8.8": {
-                          "status": 429,
-                          "error": "monthly request allowance spent; upgrade your plan for more lookups"
                         }
                       }
                     }
@@ -761,7 +757,7 @@
                 "examples": {
                   "noKey": {
                     "value": {
-                      "error": "an API key is required for POST /batch"
+                      "error": "POST /batch needs an API key on a paid plan"
                     }
                   },
                   "invalid": {
@@ -779,6 +775,19 @@
                       "error": "API key expired"
                     }
                   }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "The key is a trial's, an organization on no paid plan, and the batch\nnames more than one address: a batch needs a paid plan.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LookupError"
+                },
+                "example": {
+                  "error": "POST /batch needs a paid plan"
                 }
               }
             }
@@ -819,7 +828,7 @@
             }
           },
           "429": {
-            "description": "The rate limit refused the whole call. Always transient and always\nwith `Retry-After`; a spent allowance is reported per entry in a\n`200` instead.\n",
+            "description": "The rate limit refused the whole call. Always transient and always\nwith `Retry-After`; a reached overage cap is reported per entry in a\n`200` instead.\n",
             "headers": {
               "Retry-After": {
                 "description": "Seconds to wait before retrying the call.",
@@ -1247,8 +1256,8 @@
                       }
                     }
                   },
-                  "free": {
-                    "summary": "A key on the free plan. There is no subscription, so the window is the calendar month, and the allowance is a hard stop rather than a billable overage.",
+                  "trial": {
+                    "summary": "A key of an organization on no paid plan, on its trial: the day's full answers against the 100 a day it has. Nothing stops it past them, its lookups answering as Unlimited, so there is no hard limit, and the window is the UTC day.",
                     "value": {
                       "org_id": "f32191d0-ef02-450e-a505-eb5814c35cab",
                       "apikey": {
@@ -1257,15 +1266,15 @@
                         "allowed_cidrs": []
                       },
                       "plan": {
-                        "key": "free",
+                        "key": "trial",
                         "tier": "free"
                       },
                       "usage": {
-                        "requests": 545,
-                        "quota": 50000,
-                        "hard_limit": 50000,
-                        "window_start": "2026-09-01T00:00:00Z",
-                        "window_end": "2026-10-01T00:00:00Z"
+                        "requests": 37,
+                        "quota": 100,
+                        "hard_limit": null,
+                        "window_start": "2026-11-11T00:00:00Z",
+                        "window_end": "2026-11-12T00:00:00Z"
                       }
                     }
                   }
@@ -2014,7 +2023,7 @@
     "schemas": {
       "LookupResponse": {
         "type": "object",
-        "description": "The union of every plan's answer. Every answer carries `ip`, `is_vpn`,\nthe Tor and relay members, `location` and `asn`, with or without a key;\neach remaining field is present when your key includes it, and absent\notherwise. A client that must work across plans should treat an absent\nflag as unknown rather than as `false`.\n",
+        "description": "The union of every tier's answer. Every answer carries `ip`, `is_vpn`,\nthe Tor and relay members, `location` and `asn`, with or without a key;\neach remaining field is present when your tier includes it, and absent\notherwise. A client that must work across plans should treat an absent\nflag as unknown rather than as `false`.\n",
         "required": [
           "ip",
           "is_vpn"
@@ -2031,7 +2040,7 @@
           },
           "is_hosting": {
             "type": "boolean",
-            "description": "Whether the address belongs to a hosting or cloud provider. Free and paid plans."
+            "description": "Whether the address belongs to a hosting or cloud provider. Paid plans."
           },
           "is_relay": {
             "type": "boolean",
@@ -2043,23 +2052,23 @@
           },
           "is_cdn": {
             "type": "boolean",
-            "description": "Whether the address belongs to a CDN. Free and paid plans."
+            "description": "Whether the address belongs to a CDN. Paid plans."
           },
           "is_resproxy": {
             "type": "boolean",
-            "description": "Whether the address was seen in a residential proxy pool. Free and paid plans."
+            "description": "Whether the address was seen in a residential proxy pool. Paid plans."
           },
           "is_dcproxy": {
             "type": "boolean",
-            "description": "Whether the address is one a datacenter proxy service sells or runs on, a proxy company's own ranges included. Free and paid plans."
+            "description": "Whether the address is one a datacenter proxy service sells or runs on, a proxy company's own ranges included. Paid plans."
           },
           "is_mobproxy": {
             "type": "boolean",
-            "description": "Whether the address was seen in a mobile proxy pool. Free and paid plans."
+            "description": "Whether the address was seen in a mobile proxy pool. Paid plans."
           },
           "is_pubproxy": {
             "type": "boolean",
-            "description": "Whether a public proxy, one anyone can connect through, listens on the address or sends its traffic out from it. Free and paid plans."
+            "description": "Whether a public proxy, one anyone can connect through, listens on the address or sends its traffic out from it. Paid plans."
           },
           "vpn": {
             "allOf": [
@@ -2138,6 +2147,10 @@
           },
           "asn": {
             "$ref": "#/components/schemas/Asn"
+          },
+          "trial_expired": {
+            "type": "boolean",
+            "description": "On every answer to a trial key, an organization on no paid plan, and\non no other: `false` while the organization's 100 full answers for\nthe UTC day last, `true` once the answer is Unlimited's.\n"
           }
         }
       },
@@ -2195,7 +2208,7 @@
         "properties": {
           "status": {
             "type": "integer",
-            "description": "The HTTP status `GET /{ip}` would have answered for this entry: `400`\nfor a string that is not an address, `429` for a spent allowance,\n`500` when the VPN dataset could not be consulted. A `429` here is\nnever a throttle; the whole call is refused instead.\n",
+            "description": "The HTTP status `GET /{ip}` would have answered for this entry: `400`\nfor a string that is not an address, `429` for a reached overage cap,\n`500` when the VPN dataset could not be consulted. A `429` here is\nnever a throttle; the whole call is refused instead.\n",
             "example": 400
           },
           "error": {
@@ -2866,7 +2879,7 @@
         "properties": {
           "key": {
             "type": "string",
-            "description": "The plan the organization is on.",
+            "description": "The plan the organization is on, or `trial` on none: a trial\nanswers every field for the organization's first 100 lookups each\nUTC day, and Unlimited's answer after them.\n",
             "example": "max"
           },
           "tier": {
@@ -2877,7 +2890,7 @@
               "scale",
               "max"
             ],
-            "description": "The field tier, which decides how much of a lookup answer comes\nback. What each tier includes is documented on the lookup endpoint\nrather than repeated here, so there is one place it can be wrong.\n"
+            "description": "The field tier, which decides how much of a lookup answer comes\nback; `free` is a trial's. What each tier includes is documented\non the lookup endpoint rather than repeated here, so there is one\nplace it can be wrong.\n"
           }
         }
       },

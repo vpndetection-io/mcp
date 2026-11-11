@@ -202,6 +202,58 @@ test('every member a bogon answer carries is declared, in both lookup tools', as
     assert.deepEqual(undeclared(entry, entrySchema), []);
 });
 
+// What staging answers a trial key: a batch of two or more refused with a 402,
+// and a single lookup answered.
+function trialServer(calls) {
+    return async (input) => {
+        const path = new URL(input.url).pathname;
+        calls.push(`${input.method} ${path}`);
+        if (path === '/batch') {
+            return new Response('{"error":"POST /batch needs a paid plan"}', {
+                status: 402, headers: { 'content-type': 'application/json' },
+            });
+        }
+        const ip = path.slice(1);
+        return new Response(JSON.stringify({ ip: ip, is_vpn: false, trial_expired: true }), {
+            status: 200, headers: { 'content-type': 'application/json' },
+        });
+    };
+}
+
+test("a trial key's short list is looked up one address at a time", async () => {
+    const calls = [];
+    const batch = toolsFor(trialServer(calls)).find((d) => d.tool.name === 'lookup_ips');
+    const ips = ['9.9.9.1', '9.9.9.2', '10.0.0.1'];
+
+    const out = await batch.handler({ ips: ips });
+
+    assert.equal(out.isError, undefined);
+    const { results } = out.structuredContent;
+    assert.deepEqual(Object.keys(results), ips);
+    for (const ip of ['9.9.9.1', '9.9.9.2']) {
+        assert.equal(results[ip].ip, ip);
+        assert.equal(results[ip].trial_expired, true, `${ip} is the single lookup's answer`);
+    }
+    assert.equal(results['10.0.0.1'].is_bogon, true);
+    assert.deepEqual(calls, ['POST /batch', 'GET /9.9.9.1', 'GET /9.9.9.2']);
+});
+
+test("a trial key's long list keeps the refusal, and says what to pass instead", async () => {
+    const calls = [];
+    const batch = toolsFor(trialServer(calls)).find((d) => d.tool.name === 'lookup_ips');
+    const ips = Array.from({ length: 11 }, (_, i) => `9.9.9.${i + 1}`);
+
+    const out = await batch.handler({ ips: ips });
+
+    const { results } = out.structuredContent;
+    for (const ip of ips) {
+        assert.equal(results[ip].error.kind, 'bad_request', ip);
+        assert.match(results[ip].error.message, /POST \/batch needs a paid plan/, ip);
+        assert.match(results[ip].error.message, /at most 10 addresses/, ip);
+    }
+    assert.deepEqual(calls, ['POST /batch'], 'no address is looked up on its own');
+});
+
 // A batch answer holds results AND the package's own entry errors side by side,
 // so the map's value schema has to admit both shapes.
 test('a batch with a failed address validates against the published outputSchema', async () => {

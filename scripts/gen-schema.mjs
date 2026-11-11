@@ -16,7 +16,19 @@ const spec = JSON.parse(readFileSync(resolve(root, 'spec/openapi.json'), 'utf8')
 const schema = (name) => toJsonSchema(spec, spec.components.schemas[name]);
 
 const lookup = schema('LookupResponse');
-const members = Object.keys(lookup.properties);
+
+// Members that mark an answer rather than report on a dataset. `trial_expired` is
+// on a trial key's answers only, so it is neither something a plan covers nor
+// something whose absence means anything: it stays out of every coverage list,
+// and out of a bogon's synthesized body. Checked against the spec, so a rename
+// there fails this script rather than quietly turning the marker into a dataset.
+const markers = ['trial_expired'];
+for (const m of markers) {
+    if (!(m in lookup.properties)) {
+        throw new Error(`${m} is no longer a LookupResponse member: update the markers list`);
+    }
+}
+const members = Object.keys(lookup.properties).filter((m) => !markers.includes(m));
 
 // `ip` and `is_vpn` are the spec's required members, so they are served at every
 // tier and can never be part of an absence note.
@@ -32,6 +44,10 @@ ${members.map((m) => `    '${m}',`).join('\n')}
 
 export const LOOKUP_GATED_MEMBERS: readonly string[] = [
 ${gated.map((m) => `    '${m}',`).join('\n')}
+];
+
+export const LOOKUP_MARKERS: readonly string[] = [
+${markers.map((m) => `    '${m}',`).join('\n')}
 ];
 
 export const SPEC_VERSION = '${spec.info.version}';

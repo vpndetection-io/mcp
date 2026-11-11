@@ -1,7 +1,7 @@
 import type { Result } from 'vpndetection';
 
 import {
-    LOOKUP_GATED_MEMBERS, LOOKUP_MEMBERS, LOOKUP_RESULT_SCHEMA, type ObjectSchema,
+    LOOKUP_GATED_MEMBERS, LOOKUP_MARKERS, LOOKUP_MEMBERS, LOOKUP_RESULT_SCHEMA, type ObjectSchema,
 } from './schema.gen.js';
 
 /**
@@ -24,6 +24,12 @@ const NOTE_PARTIAL = 'The fields in not_included were not returned, because this
     + 'not include them. Their absence is not a negative result: the address was never checked '
     + 'against those datasets. Do not state or imply that the address is not hosting, a relay, Tor, '
     + 'a CDN or a proxy on the basis of a field missing from this result.';
+
+const NOTE_TRIAL_SPENT = 'This key is on a trial, and its organization\'s full answers for the UTC '
+    + 'day are spent, so this answer is the Unlimited tier\'s and the fields in not_included were not '
+    + 'returned. Their absence is not a negative result: the address was never checked against those '
+    + 'datasets. Do not state or imply that the address is not hosting, a CDN or a proxy on the basis '
+    + 'of a field missing from this result.';
 
 const NOTE_FULL = 'This plan covers every dataset the API serves, so every field was checked. A '
     + 'false flag here is a real negative result.';
@@ -52,7 +58,9 @@ export function wireBody(result: Result): Record<string, unknown> {
     }
     const out: Record<string, unknown> = { ip: result.ip, is_bogon: true };
     for (const [name, schema] of Object.entries(LOOKUP_RESULT_SCHEMA.properties ?? {})) {
-        if (name === 'ip') {
+        // A marker is the API's word about the answer it served, and a bogon was
+        // never served.
+        if (name === 'ip' || LOOKUP_MARKERS.includes(name)) {
             continue;
         }
         const type = (schema as { type?: string }).type;
@@ -110,6 +118,9 @@ export function coverageOf(body: Record<string, unknown>): Coverage {
     const included = LOOKUP_MEMBERS.filter((m) => m in body);
     const notIncluded = LOOKUP_GATED_MEMBERS.filter((m) => !(m in body));
     let note = notIncluded.length === 0 ? NOTE_FULL : NOTE_PARTIAL;
+    if (notIncluded.length > 0 && body['trial_expired'] === true) {
+        note = NOTE_TRIAL_SPENT;
+    }
     if (body['is_bogon'] === true) {
         note = NOTE_BOGON;
     }
