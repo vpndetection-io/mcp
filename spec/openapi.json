@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "VPNDetection API",
-    "description": "The VPNDetection API: classify any IP address, and download the databases\nbehind the answers.\n\nSee https://docs.vpndetection.io for guides and https://github.com/vpndetection-io\nfor the official client libraries.\n",
+    "description": "The VPNDetection API: classify any IP address, and download the databases\nbehind the answers.\n\nLookups need no API key: the Unlimited tier answers any address with no\ndaily or monthly cap, for non-commercial use, and a service built on it\nmust credit VPNDetection (https://vpndetection.io/terms#no-key). Commercial\nuse needs a key, a free one included, which also adds every remaining flag.\n\nSee https://docs.vpndetection.io for guides and https://github.com/vpndetection-io\nfor the official client libraries.\n",
     "contact": {
       "name": "VPNDetection Support",
       "email": "support@vpndetection.io",
@@ -62,7 +62,7 @@
           "Lookup"
         ],
         "summary": "Lookup",
-        "description": "Answers what is known about a single IPv4 or IPv6 address. Which fields\ncome back is decided by the presented key; with no key the answer is\n`ip`, `is_vpn`, the Tor and relay members, `location` and `asn`.\n",
+        "description": "Answers what is known about a single IPv4 or IPv6 address. Which fields\ncome back is decided by the presented key; with no key, the Unlimited\ntier, the answer is `ip`, `is_vpn`, the Tor and relay members,\n`location` and `asn`.\n",
         "parameters": [
           {
             "in": "path",
@@ -91,8 +91,8 @@
                   "$ref": "#/components/schemas/LookupResponse"
                 },
                 "examples": {
-                  "keyless": {
-                    "summary": "No API key",
+                  "unlimited": {
+                    "summary": "Unlimited, no API key",
                     "value": {
                       "ip": "146.70.116.130",
                       "is_vpn": true,
@@ -340,8 +340,8 @@
                       "error": "rate limit exceeded"
                     }
                   },
-                  "keylessRateLimited": {
-                    "summary": "No API key, a burst, sent with Retry-After",
+                  "unlimitedRateLimited": {
+                    "summary": "Unlimited (no API key), a burst, sent with Retry-After",
                     "value": {
                       "error": "per-minute limit for requests without an API key exceeded; retry shortly or use an API key"
                     }
@@ -407,8 +407,8 @@
                   "$ref": "#/components/schemas/LookupResponse"
                 },
                 "examples": {
-                  "keyless": {
-                    "summary": "No API key",
+                  "unlimited": {
+                    "summary": "Unlimited, no API key",
                     "value": {
                       "ip": "146.70.116.130",
                       "is_vpn": true,
@@ -513,8 +513,8 @@
                       "error": "rate limit exceeded"
                     }
                   },
-                  "keylessRateLimited": {
-                    "summary": "No API key, a burst, sent with Retry-After",
+                  "unlimitedRateLimited": {
+                    "summary": "Unlimited (no API key), a burst, sent with Retry-After",
                     "value": {
                       "error": "per-minute limit for requests without an API key exceeded; retry shortly or use an API key"
                     }
@@ -570,7 +570,7 @@
           "Lookup"
         ],
         "summary": "Batch",
-        "description": "Answers up to 1000 addresses in one call. Each distinct string in `ips`\nis one lookup: it costs exactly what `GET /{ip}` costs for that address\nand comes back with exactly the fields that call would carry for your\nplan. Exact duplicates collapse to one entry and one lookup.\n\nBoth maps in the answer are keyed by the string you sent, so nothing has\nto be lined up by position; the `ip` inside each result is the\nnormalized form. An address that could not be answered sits in `errors`\nwith the status and message the single lookup would have given, and\nnever disturbs the others: a string that is not an address is a `400`\nthere, and an allowance that runs out part way through leaves the\nremaining entries as `429`s.\n\nThe call itself fails only for the reasons below, and a `429` on the\ncall always carries `Retry-After`: the batch is admitted or refused\nwhole by the rate limit, so a per-entry `429` is always a spent\nallowance and never a throttle.\n\nA batch needs an API key, a free one included: without one the call is\nrefused with `401`. Keyless lookups are one address at a time.\n",
+        "description": "Answers up to 1000 addresses in one call. Each distinct string in `ips`\nis one lookup: it costs exactly what `GET /{ip}` costs for that address\nand comes back with exactly the fields that call would carry for your\nplan. Exact duplicates collapse to one entry and one lookup.\n\nBoth maps in the answer are keyed by the string you sent, so nothing has\nto be lined up by position; the `ip` inside each result is the\nnormalized form. An address that could not be answered sits in `errors`\nwith the status and message the single lookup would have given, and\nnever disturbs the others: a string that is not an address is a `400`\nthere, and an allowance that runs out part way through leaves the\nremaining entries as `429`s.\n\nThe call itself fails only for the reasons below, and a `429` on the\ncall always carries `Retry-After`: the batch is admitted or refused\nwhole by the rate limit, so a per-entry `429` is always a spent\nallowance and never a throttle.\n\nA batch needs an API key, a free one included: without one the call is\nrefused with `401`. The Unlimited tier looks up one address at a time.\n",
         "security": [
           {
             "apiKeyQuery": []
