@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.2.9 - 2026-11-11
+
+### Features
+
+- Install as a Gemini CLI extension ([`ad1a0e3`](https://github.com/vpndetection-io/mcp/commit/ad1a0e3ba1a2b22763c293b4fe526d38e1e89d42))
+
 ## 6.2.8 - 2026-11-11
 
 ### Fixes
