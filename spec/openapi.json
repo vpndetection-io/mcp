@@ -9,7 +9,7 @@
       "url": "https://vpndetection.io"
     },
     "termsOfService": "https://vpndetection.io/terms",
-    "version": "2026.11.10"
+    "version": "2026.11.11"
   },
   "servers": [
     {
@@ -62,7 +62,7 @@
           "Lookup"
         ],
         "summary": "Lookup",
-        "description": "Answers what is known about a single IPv4 or IPv6 address. Which fields\ncome back is decided by the presented key; with no key the answer is\n`ip` and `is_vpn`.\n",
+        "description": "Answers what is known about a single IPv4 or IPv6 address. Which fields\ncome back is decided by the presented key; with no key the answer is\n`ip`, `is_vpn`, the Tor and relay members, `location` and `asn`.\n",
         "parameters": [
           {
             "in": "path",
@@ -95,7 +95,30 @@
                     "summary": "No API key",
                     "value": {
                       "ip": "146.70.116.130",
-                      "is_vpn": true
+                      "is_vpn": true,
+                      "is_relay": false,
+                      "is_tor": false,
+                      "relay": {},
+                      "tor": {},
+                      "location": {
+                        "continent": "EU",
+                        "continent_name": "Europe",
+                        "country": "AT",
+                        "country_name": "Austria",
+                        "timezone": "Europe/Vienna",
+                        "currency_code": "EUR",
+                        "currency_name": "Euro",
+                        "currency_symbol": "€",
+                        "flag_emoji": "🇦🇹",
+                        "flag_unicode": "U+1F1E6 U+1F1F9"
+                      },
+                      "asn": {
+                        "asn": 9009,
+                        "name": "M247 Europe SRL",
+                        "domain": "m247global.com",
+                        "type": "hosting",
+                        "prefix": "146.70.116.0/24"
+                      }
                     }
                   },
                   "free": {
@@ -103,8 +126,14 @@
                     "value": {
                       "ip": "146.70.116.130",
                       "is_vpn": true,
+                      "is_hosting": true,
                       "is_relay": false,
                       "is_tor": false,
+                      "is_cdn": false,
+                      "is_resproxy": false,
+                      "is_dcproxy": false,
+                      "is_mobproxy": false,
+                      "is_pubproxy": false,
                       "relay": {},
                       "tor": {},
                       "location": {
@@ -289,10 +318,10 @@
             }
           },
           "429": {
-            "description": "Either a transient rate limit or a spent allowance. `Retry-After` is\npresent for the former and absent for the latter, and is the only\nway to tell them apart.\n",
+            "description": "Either a rate limit or a spent allowance. `Retry-After` is present\nfor the former and absent for the latter, and is the only way to\ntell them apart.\n",
             "headers": {
               "Retry-After": {
-                "description": "Seconds to wait before retrying. Present ONLY when the rejection\nis a transient rate limit; its absence means an allowance is\nspent and retrying will not help.\n",
+                "description": "Seconds to wait before retrying. Present ONLY when the rejection\nis a rate limit; its absence means an allowance is spent and\nretrying will not help.\n",
                 "required": false,
                 "schema": {
                   "type": "integer"
@@ -311,10 +340,10 @@
                       "error": "rate limit exceeded"
                     }
                   },
-                  "keylessDailyLimit": {
-                    "summary": "Keyless daily cap spent, no Retry-After",
+                  "keylessRateLimited": {
+                    "summary": "No API key, past 60 requests a minute, sent with Retry-After",
                     "value": {
-                      "error": "daily limit for unauthenticated requests exceeded; use an API key"
+                      "error": "per-minute limit for requests without an API key exceeded; retry shortly or use an API key"
                     }
                   },
                   "quotaExceeded": {
@@ -368,7 +397,7 @@
           "Lookup"
         ],
         "summary": "My IP",
-        "description": "Answers what is known about the address this request came from, which is\nthe same answer `GET /{ip}` gives for that address: the presented key\ndecides which fields come back, and the request counts against the same\nallowance.\n\nThe address is the one our edge observed, so a request through a proxy\nor a VPN reports the exit it left through rather than the machine that\nmade it. That is usually the point of asking.\n",
+        "description": "Answers what is known about the address this request came from, which is\nthe same answer `GET /{ip}` gives for that address: the presented key\ndecides which fields come back, and the request counts against the same\nlimit or allowance.\n\nThe address is the one our edge observed, so a request through a proxy\nor a VPN reports the exit it left through rather than the machine that\nmade it. That is usually the point of asking.\n",
         "responses": {
           "200": {
             "description": "The classification of your own address. Present fields are those\nyour plan includes; see the tier table in the API description.\n",
@@ -381,8 +410,31 @@
                   "keyless": {
                     "summary": "No API key",
                     "value": {
-                      "ip": "45.83.91.1",
-                      "is_vpn": true
+                      "ip": "146.70.116.130",
+                      "is_vpn": true,
+                      "is_relay": false,
+                      "is_tor": false,
+                      "relay": {},
+                      "tor": {},
+                      "location": {
+                        "continent": "EU",
+                        "continent_name": "Europe",
+                        "country": "AT",
+                        "country_name": "Austria",
+                        "timezone": "Europe/Vienna",
+                        "currency_code": "EUR",
+                        "currency_name": "Euro",
+                        "currency_symbol": "€",
+                        "flag_emoji": "🇦🇹",
+                        "flag_unicode": "U+1F1E6 U+1F1F9"
+                      },
+                      "asn": {
+                        "asn": 9009,
+                        "name": "M247 Europe SRL",
+                        "domain": "m247global.com",
+                        "type": "hosting",
+                        "prefix": "146.70.116.0/24"
+                      }
                     }
                   }
                 }
@@ -439,10 +491,10 @@
             }
           },
           "429": {
-            "description": "Either a transient rate limit or a spent allowance. `Retry-After` is\npresent for the former and absent for the latter, and is the only\nway to tell them apart.\n",
+            "description": "Either a rate limit or a spent allowance. `Retry-After` is present\nfor the former and absent for the latter, and is the only way to\ntell them apart.\n",
             "headers": {
               "Retry-After": {
-                "description": "Seconds to wait before retrying. Present ONLY when the rejection\nis a transient rate limit; its absence means an allowance is\nspent and retrying will not help.\n",
+                "description": "Seconds to wait before retrying. Present ONLY when the rejection\nis a rate limit; its absence means an allowance is spent and\nretrying will not help.\n",
                 "required": false,
                 "schema": {
                   "type": "integer"
@@ -461,10 +513,10 @@
                       "error": "rate limit exceeded"
                     }
                   },
-                  "keylessDailyLimit": {
-                    "summary": "Keyless daily cap spent, no Retry-After",
+                  "keylessRateLimited": {
+                    "summary": "No API key, past 60 requests a minute, sent with Retry-After",
                     "value": {
-                      "error": "daily limit for unauthenticated requests exceeded; use an API key"
+                      "error": "per-minute limit for requests without an API key exceeded; retry shortly or use an API key"
                     }
                   },
                   "quotaExceeded": {
@@ -518,7 +570,18 @@
           "Lookup"
         ],
         "summary": "Batch",
-        "description": "Answers up to 1000 addresses in one call. Each distinct string in `ips`\nis one lookup: it costs exactly what `GET /{ip}` costs for that address\nand comes back with exactly the fields that call would carry for your\nplan. Exact duplicates collapse to one entry and one lookup.\n\nBoth maps in the answer are keyed by the string you sent, so nothing has\nto be lined up by position; the `ip` inside each result is the\nnormalized form. An address that could not be answered sits in `errors`\nwith the status and message the single lookup would have given, and\nnever disturbs the others: a string that is not an address is a `400`\nthere, and an allowance that runs out part way through leaves the\nremaining entries as `429`s.\n\nThe call itself fails only for the reasons below, and a `429` on the\ncall always carries `Retry-After`: the batch is admitted or refused\nwhole by the rate limit, so a per-entry `429` is always a spent\nallowance and never a throttle.\n",
+        "description": "Answers up to 1000 addresses in one call. Each distinct string in `ips`\nis one lookup: it costs exactly what `GET /{ip}` costs for that address\nand comes back with exactly the fields that call would carry for your\nplan. Exact duplicates collapse to one entry and one lookup.\n\nBoth maps in the answer are keyed by the string you sent, so nothing has\nto be lined up by position; the `ip` inside each result is the\nnormalized form. An address that could not be answered sits in `errors`\nwith the status and message the single lookup would have given, and\nnever disturbs the others: a string that is not an address is a `400`\nthere, and an allowance that runs out part way through leaves the\nremaining entries as `429`s.\n\nThe call itself fails only for the reasons below, and a `429` on the\ncall always carries `Retry-After`: the batch is admitted or refused\nwhole by the rate limit, so a per-entry `429` is always a spent\nallowance and never a throttle.\n\nA batch needs an API key, a free one included: without one the call is\nrefused with `401`. Keyless lookups are one address at a time.\n",
+        "security": [
+          {
+            "apiKeyQuery": []
+          },
+          {
+            "apiKeyHeader": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -546,44 +609,48 @@
                   "$ref": "#/components/schemas/BatchLookupResponse"
                 },
                 "examples": {
-                  "keyless": {
-                    "summary": "No API key",
+                  "free": {
+                    "summary": "A key on the free plan, with a private address and a string that is not one",
                     "value": {
                       "results": {
-                        "1.1.1.1": {
-                          "ip": "1.1.1.1",
-                          "is_vpn": false
-                        },
-                        "2606:4700:4700:0:0:0:0:1111": {
-                          "ip": "2606:4700:4700::1111",
-                          "is_vpn": false
-                        },
                         "192.168.1.1": {
                           "ip": "192.168.1.1",
-                          "is_vpn": false
+                          "is_vpn": false,
+                          "is_hosting": false,
+                          "is_relay": false,
+                          "is_tor": false,
+                          "is_cdn": false,
+                          "is_resproxy": false,
+                          "is_dcproxy": false,
+                          "is_mobproxy": false,
+                          "is_pubproxy": false,
+                          "relay": {},
+                          "tor": {},
+                          "location": {
+                            "continent": "",
+                            "continent_name": "",
+                            "country": "",
+                            "country_name": "",
+                            "timezone": "",
+                            "currency_code": "",
+                            "currency_name": "",
+                            "currency_symbol": "",
+                            "flag_emoji": "",
+                            "flag_unicode": ""
+                          },
+                          "asn": {
+                            "asn": 0,
+                            "name": "",
+                            "domain": "",
+                            "type": "",
+                            "prefix": ""
+                          }
                         }
                       },
                       "errors": {
                         "not-an-ip": {
                           "status": 400,
                           "error": "not a valid IP address"
-                        }
-                      }
-                    }
-                  },
-                  "keylessDailyLimit": {
-                    "summary": "No API key, and the daily allowance ran out after the first entry",
-                    "value": {
-                      "results": {
-                        "1.1.1.1": {
-                          "ip": "1.1.1.1",
-                          "is_vpn": false
-                        }
-                      },
-                      "errors": {
-                        "8.8.8.8": {
-                          "status": 429,
-                          "error": "daily limit for unauthenticated requests exceeded; use an API key"
                         }
                       }
                     }
@@ -595,8 +662,14 @@
                         "146.70.116.130": {
                           "ip": "146.70.116.130",
                           "is_vpn": true,
+                          "is_hosting": true,
                           "is_relay": false,
                           "is_tor": false,
+                          "is_cdn": false,
+                          "is_resproxy": false,
+                          "is_dcproxy": false,
+                          "is_mobproxy": false,
+                          "is_pubproxy": false,
                           "relay": {},
                           "tor": {},
                           "location": {
@@ -679,13 +752,18 @@
             }
           },
           "401": {
-            "description": "The presented API key is unknown, revoked, or expired.",
+            "description": "No API key was presented, or the one presented is unknown, revoked, or expired.",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/LookupError"
                 },
                 "examples": {
+                  "noKey": {
+                    "value": {
+                      "error": "an API key is required for POST /batch"
+                    }
+                  },
                   "invalid": {
                     "value": {
                       "error": "invalid API key"
@@ -762,19 +840,7 @@
               }
             }
           }
-        },
-        "security": [
-          {},
-          {
-            "apiKeyQuery": []
-          },
-          {
-            "apiKeyHeader": []
-          },
-          {
-            "bearerAuth": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/database/list": {
@@ -1948,7 +2014,7 @@
     "schemas": {
       "LookupResponse": {
         "type": "object",
-        "description": "The union of every plan's answer. Only `ip` and `is_vpn` are guaranteed;\neach remaining field is present when your plan includes it, and absent\notherwise. A client that must work across plans should treat an absent\nflag as unknown rather than as `false`.\n",
+        "description": "The union of every plan's answer. Every answer carries `ip`, `is_vpn`,\nthe Tor and relay members, `location` and `asn`, with or without a key;\neach remaining field is present when your key includes it, and absent\notherwise. A client that must work across plans should treat an absent\nflag as unknown rather than as `false`.\n",
         "required": [
           "ip",
           "is_vpn"
@@ -1965,35 +2031,35 @@
           },
           "is_hosting": {
             "type": "boolean",
-            "description": "Whether the address belongs to a hosting or cloud provider. Paid plans."
+            "description": "Whether the address belongs to a hosting or cloud provider. Free and paid plans."
           },
           "is_relay": {
             "type": "boolean",
-            "description": "Whether the address is privacy relay or enterprise web gateway egress, such as iCloud Private Relay or Zscaler. Free and paid plans."
+            "description": "Whether the address is privacy relay or enterprise web gateway egress, such as iCloud Private Relay or Zscaler. Every answer, with or without a key."
           },
           "is_tor": {
             "type": "boolean",
-            "description": "Whether the address is a Tor node. Free and paid plans."
+            "description": "Whether the address is a Tor node. Every answer, with or without a key."
           },
           "is_cdn": {
             "type": "boolean",
-            "description": "Whether the address belongs to a CDN. Paid plans."
+            "description": "Whether the address belongs to a CDN. Free and paid plans."
           },
           "is_resproxy": {
             "type": "boolean",
-            "description": "Whether the address was seen in a residential proxy pool. Paid plans."
+            "description": "Whether the address was seen in a residential proxy pool. Free and paid plans."
           },
           "is_dcproxy": {
             "type": "boolean",
-            "description": "Whether the address is one a datacenter proxy service sells or runs on, a proxy company's own ranges included. Paid plans."
+            "description": "Whether the address is one a datacenter proxy service sells or runs on, a proxy company's own ranges included. Free and paid plans."
           },
           "is_mobproxy": {
             "type": "boolean",
-            "description": "Whether the address was seen in a mobile proxy pool. Paid plans."
+            "description": "Whether the address was seen in a mobile proxy pool. Free and paid plans."
           },
           "is_pubproxy": {
             "type": "boolean",
-            "description": "Whether a public proxy, one anyone can connect through, listens on the address or sends its traffic out from it. Paid plans."
+            "description": "Whether a public proxy, one anyone can connect through, listens on the address or sends its traffic out from it. Free and paid plans."
           },
           "vpn": {
             "allOf": [
@@ -2017,7 +2083,7 @@
                 "$ref": "#/components/schemas/ClassDetail"
               }
             ],
-            "description": "Detail for `is_relay`. Empty when false. Free and paid plans."
+            "description": "Detail for `is_relay`. Empty when false. Every answer, with or without a key."
           },
           "tor": {
             "allOf": [
@@ -2025,7 +2091,7 @@
                 "$ref": "#/components/schemas/ClassDetail"
               }
             ],
-            "description": "Detail for `is_tor`. Empty when false. Free and paid plans. The tor\ndataset carries no provider, so `provider` is always an empty string.\n"
+            "description": "Detail for `is_tor`. Empty when false. Every answer, with or without a\nkey. The tor dataset carries no provider, so `provider` is always an\nempty string.\n"
           },
           "cdn": {
             "allOf": [
@@ -2276,7 +2342,7 @@
       },
       "Location": {
         "type": "object",
-        "description": "Where the address is, to the country: the fields of our IP Country\ndatabase. Free and paid plans. Each field is present whenever the\nobject is, so an address in no country, or a private one, answers\nempty strings.\n",
+        "description": "Where the address is, to the country: the fields of our IP Country\ndatabase. Every answer, with or without a key. Each field is present\nwhenever the object is, so an address in no country, or a private one,\nanswers empty strings.\n",
         "required": [
           "continent",
           "continent_name",
@@ -2344,7 +2410,7 @@
       },
       "Asn": {
         "type": "object",
-        "description": "The autonomous system that announces the address. Free and paid plans.\nEach field is present whenever the object is: `asn` is 0 and the rest\nempty where no announcement covers the address.\n",
+        "description": "The autonomous system that announces the address. Every answer, with or\nwithout a key.\nEach field is present whenever the object is: `asn` is 0 and the rest\nempty where no announcement covers the address.\n",
         "required": [
           "asn",
           "name",

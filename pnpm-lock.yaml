@@ -170,8 +170,8 @@ importers:
         specifier: ^2.2.0
         version: 2.4.0
       vpndetection:
-        specifier: ^5.10.0
-        version: 5.11.0
+        specifier: ^5.12.0
+        version: 5.12.0
       zod:
         specifier: ^4.1.12
         version: 4.6.7
@@ -667,8 +667,8 @@ packages:
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
 
-  vpndetection@5.11.0:
-    resolution: {integrity: sha512-DO9JB6hRsQ/U+lV+1cj2fPMg3vrioGBdmjex2bdH3qjlgFf1dx6x3gzYin/B8aH5CE49jh9hg5TtriKxS2o20Q==}
+  vpndetection@5.12.0:
+    resolution: {integrity: sha512-YgJQ7/3Lz1R5fImy9ToxXHUlMEQXl42QxY1XOFN8PuqWAS7+tw/hQXUAl7AvvBkOPt7Xa7w8ay/sVhGecMFGvg==}
     engines: {node: '>=22'}
 
   which@2.0.2:
@@ -1170,7 +1170,7 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
-  vpndetection@5.11.0:
+  vpndetection@5.12.0:
     dependencies:
       lru-cache: 11.5.3
       p-limit: 6.2.0

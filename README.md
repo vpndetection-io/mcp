@@ -50,7 +50,7 @@ Point it at `https://mcp.vpndetection.io/mcp`. A client that supports MCP author
 
 ### On your own machine
 
-**No API key needed to start.** Without a key, a lookup answers `ip` and `is_vpn`, up to 1000 a day per source address. A free key adds Tor and relay detection, where the address is and the AS that announces it, and every paid plan answers every field.
+**No API key needed to start.** Without a key a lookup answers `ip`, `is_vpn`, Tor and relay detection, `location` and `asn`, with no daily or monthly cap: up to 60 lookups a minute from each address. A free key adds every other flag, `is_hosting`, `is_cdn` and the four proxy flags, at 50,000 lookups a month, and every paid plan answers every field, the provider, confidence and last-seen detail behind each flag included. `lookup_ips` needs a key, a free one included.
 
 Add this to your MCP client's config:
 
@@ -88,7 +88,7 @@ A key unlocks the provider name, the classification databases and the proxy fami
 | Tool | What it answers |
 |---|---|
 | `lookup_ip` | Classify one address. |
-| `lookup_ips` | Classify a whole list of addresses in one call, keyed by address. A long list is batched for you. |
+| `lookup_ips` | Classify a whole list of addresses in one call, keyed by address. A long list is batched for you. Needs an API key. |
 | `my_entitlement` | What this key is entitled to and what it has spent: plan, field tier, requests so far, allowance, and when it resets. |
 | `list_databases` | Every database we publish, with its `standing` for your organization: `licensed`, `expired` or `unlicensed`. |
 | `database_metadata` | A database's columns, sample rows, row count, build date and file sizes. |
@@ -109,10 +109,10 @@ Each lookup comes back with a `coverage` block beside it:
 
 ```json
 {
-  "result": { "ip": "45.83.91.1", "is_vpn": true },
+  "result": { "ip": "45.83.91.1", "is_vpn": true, "is_relay": false, "is_tor": false, "...": "..." },
   "coverage": {
-    "included": ["ip", "is_vpn"],
-    "not_included": ["is_hosting", "is_tor", "hosting", "tor", "..."],
+    "included": ["ip", "is_vpn", "is_relay", "is_tor", "relay", "tor", "location", "asn"],
+    "not_included": ["is_hosting", "is_cdn", "vpn", "hosting", "..."],
     "note": "The fields in not_included were not returned, because this API key's plan does not include them. ..."
   }
 }
