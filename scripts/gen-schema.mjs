@@ -18,7 +18,7 @@ const schema = (name) => toJsonSchema(spec, spec.components.schemas[name]);
 const lookup = schema('LookupResponse');
 
 // Members that mark an answer rather than report on a dataset. `trial_expired` is
-// on a trial key's answers only, so it is neither something a plan covers nor
+// on a free-plan key's answers only, so it is neither something a plan covers nor
 // something whose absence means anything: it stays out of every coverage list,
 // and out of a bogon's synthesized body. Checked against the spec, so a rename
 // there fails this script rather than quietly turning the marker into a dataset.

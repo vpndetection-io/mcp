@@ -113,9 +113,9 @@ test('an Unlimited answer names the flags a paid plan adds as not covered', asyn
     assert.ok(cov.not_included.includes('vpn'));
 });
 
-// trial_expired says which answer a trial key got, so it is neither a dataset
+// trial_expired says which answer a free-plan key got, so it is neither a dataset
 // covered nor one left out, and the result carries it verbatim.
-test("a trial key's full answer reports full coverage and keeps trial_expired", async () => {
+test("a free-plan key's full answer reports full coverage and keeps trial_expired", async () => {
     const trial = data.lookup.find((c) => c.name === 'trial-full-answer');
     const stub = serving(trial.body);
     const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: trial.body.ip });
@@ -127,7 +127,7 @@ test("a trial key's full answer reports full coverage and keeps trial_expired", 
     assert.match(coverage.note, /real negative result/);
 });
 
-test("a trial key's spent day says so beside what was not covered", async () => {
+test("a free-plan key's spent trial says so beside what was not covered", async () => {
     const spent = data.lookup.find((c) => c.name === 'trial-expired-answer');
     const stub = serving(spent.body);
     const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: spent.body.ip });

@@ -50,7 +50,7 @@ Point it at `https://mcp.vpndetection.io/mcp`. A client that supports MCP author
 
 ### On your own machine
 
-**No API key needed to start.** The Unlimited tier answers `ip`, `is_vpn`, Tor and relay detection, `location` and `asn`, with no daily or monthly cap, with a key or without one. Every paid plan answers every field: `is_hosting`, `is_cdn` and the four proxy flags as well, and the provider, confidence and last-seen detail behind each flag. A new account can try every field, 100 lookups a day.
+**No API key needed to start.** Unlimited, the free plan, answers `ip`, `is_vpn`, Tor and relay detection, `location` and `asn`, with no daily or monthly cap, with a key or without one. Every paid plan answers every field: `is_hosting`, `is_cdn` and the four proxy flags as well, and the provider, confidence and last-seen detail behind each flag. A free account tries every field, 100 lookups a day.
 
 Add this to your MCP client's config:
 
@@ -88,7 +88,7 @@ A key on a paid plan unlocks the provider name, the classification databases and
 | Tool | What it answers |
 |---|---|
 | `lookup_ip` | Classify one address. |
-| `lookup_ips` | Classify a whole list of addresses in one call, keyed by address. A long list is batched for you. Needs a key on a paid plan; with a trial key, a list of up to 10 addresses is looked up one address at a time instead. |
+| `lookup_ips` | Classify a whole list of addresses in one call, keyed by address. A long list is batched for you. Needs a key on a paid plan; with a key on the free plan, a list of up to 10 addresses is looked up one address at a time instead. |
 | `my_entitlement` | What this key is entitled to and what it has spent: plan, field tier, requests so far, allowance, and when it resets. |
 | `list_databases` | Every database we publish, with its `standing` for your organization: `licensed`, `expired` or `unlicensed`. |
 | `database_metadata` | A database's columns, sample rows, row count, build date and file sizes. |
@@ -101,7 +101,7 @@ Every tool is read-only. There is deliberately no download tool: the databases r
 
 **There is deliberately no `my_ip` tool, although every client library has one.** Over a hosted transport the address our edge observes belongs to whatever proxied the call - Claude's infrastructure, not the person asking - so the tool would answer confidently and wrongly for the only reading anyone would put on it. `my_entitlement` has no such problem and is the same answer from any transport, because it describes the credential rather than the connection. A test pins the tool's absence so it cannot be added back by accident.
 
-A paid plan's usage counts against the anniversary of the subscription, not the calendar month and not the billing period, and a trial key's against the UTC day. A null `hard_limit` means we never stop serving; it is not a limit of zero.
+A paid plan's usage counts against the anniversary of the subscription, not the calendar month and not the billing period, and the free plan's against the UTC day. A null `hard_limit` means we never stop serving; it is not a limit of zero.
 
 ## Reading a result
 
@@ -120,7 +120,7 @@ Each lookup comes back with a `coverage` block beside it:
 
 This matters more here than in a normal client library. A field missing from a result means your plan doesn't include it, never "we checked and found nothing" - and a model reading the result on its own will otherwise treat the absence as a negative answer. `coverage` states the difference explicitly so it can't.
 
-A trial key's answer also carries `trial_expired`: false while its organization's full answers for the UTC day last, and true once the answer is the Unlimited tier's, which `coverage.note` then says.
+An answer to a key on the free plan also carries `trial_expired`: false while its organization's daily trial of every field lasts, and true once the answer is Unlimited's, which `coverage.note` then says.
 
 ## Other Libraries
 

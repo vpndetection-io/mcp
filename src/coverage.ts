@@ -25,9 +25,9 @@ const NOTE_PARTIAL = 'The fields in not_included were not returned, because this
     + 'against those datasets. Do not state or imply that the address is not hosting, a relay, Tor, '
     + 'a CDN or a proxy on the basis of a field missing from this result.';
 
-const NOTE_TRIAL_SPENT = 'This key is on a trial, and its organization\'s full answers for the UTC '
-    + 'day are spent, so this answer is the Unlimited tier\'s and the fields in not_included were not '
-    + 'returned. Their absence is not a negative result: the address was never checked against those '
+const NOTE_TRIAL_SPENT = 'This key is on the free plan, and its organization\'s daily trial of every '
+    + 'field is spent for the UTC day, so this answer is Unlimited\'s and the fields in not_included were '
+    + 'not returned. Their absence is not a negative result: the address was never checked against those '
     + 'datasets. Do not state or imply that the address is not hosting, a CDN or a proxy on the basis '
     + 'of a field missing from this result.';
 

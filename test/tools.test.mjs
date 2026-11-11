@@ -202,7 +202,7 @@ test('every member a bogon answer carries is declared, in both lookup tools', as
     assert.deepEqual(undeclared(entry, entrySchema), []);
 });
 
-// What staging answers a trial key: a batch of two or more refused with a 402,
+// What staging answers a free-plan key: a batch of two or more refused with a 402,
 // and a single lookup answered.
 function trialServer(calls) {
     return async (input) => {
@@ -220,7 +220,7 @@ function trialServer(calls) {
     };
 }
 
-test("a trial key's short list is looked up one address at a time", async () => {
+test("a free-plan key's short list is looked up one address at a time", async () => {
     const calls = [];
     const batch = toolsFor(trialServer(calls)).find((d) => d.tool.name === 'lookup_ips');
     const ips = ['9.9.9.1', '9.9.9.2', '10.0.0.1'];
@@ -238,7 +238,7 @@ test("a trial key's short list is looked up one address at a time", async () => 
     assert.deepEqual(calls, ['POST /batch', 'GET /9.9.9.1', 'GET /9.9.9.2']);
 });
 
-test("a trial key's long list keeps the refusal, and says what to pass instead", async () => {
+test("a free-plan key's long list keeps the refusal, and says what to pass instead", async () => {
     const calls = [];
     const batch = toolsFor(trialServer(calls)).find((d) => d.tool.name === 'lookup_ips');
     const ips = Array.from({ length: 11 }, (_, i) => `9.9.9.${i + 1}`);

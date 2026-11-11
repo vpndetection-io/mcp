@@ -103,7 +103,7 @@ test('a higher tier never covers less than the tier below it', async () => {
                     `${rung.tier} dropped ${m}, which ${previous.tier} covered`);
             }
         }
-        // A trial key's answer is a paid one or Unlimited's depending on the day,
+        // A free-plan key's answer is a paid one or Unlimited's depending on the day,
         // so it promises nothing to the rung above it.
         if (rung.tier !== 'trial') {
             previous = { tier: rung.tier, included: coverage.included };

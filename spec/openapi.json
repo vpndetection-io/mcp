@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "VPNDetection API",
-    "description": "The VPNDetection API: classify any IP address, and download the databases\nbehind the answers.\n\nLookups need no API key: the Unlimited tier answers any address with no\ndaily or monthly cap, with a key or without one. Every paid plan answers\nevery field, and an organization on no paid plan can try them, 100 lookups\na day. Unlimited's answers may be used commercially, but not redistributed\nor used in a competing service (https://vpndetection.io/terms#no-key).\n\nSee https://docs.vpndetection.io for guides and https://github.com/vpndetection-io\nfor the official client libraries.\n",
+    "description": "The VPNDetection API: classify any IP address, and download the databases\nbehind the answers.\n\nLookups need no API key: Unlimited, the free plan, answers any address with\nno daily or monthly cap, with a key or without one. Every paid plan answers\nevery field, and a free account tries them, 100 lookups a day. Unlimited's\nanswers may be used commercially, but not redistributed or used in a\ncompeting service (https://vpndetection.io/terms#no-key).\n\nSee https://docs.vpndetection.io for guides and https://github.com/vpndetection-io\nfor the official client libraries.\n",
     "contact": {
       "name": "VPNDetection Support",
       "email": "support@vpndetection.io",
@@ -122,7 +122,7 @@
                     }
                   },
                   "trial": {
-                    "summary": "A trial key within its day's 100 full answers",
+                    "summary": "A free-plan key within its day's trial of every field",
                     "value": {
                       "ip": "146.70.116.130",
                       "is_vpn": true,
@@ -174,7 +174,7 @@
                     }
                   },
                   "trialExpired": {
-                    "summary": "A trial key past its day's 100, answered as Unlimited",
+                    "summary": "A free-plan key past its day's trial, with Unlimited's fields",
                     "value": {
                       "ip": "146.70.116.130",
                       "is_vpn": true,
@@ -605,7 +605,7 @@
           "Lookup"
         ],
         "summary": "Batch",
-        "description": "Answers up to 1000 addresses in one call. Each distinct string in `ips`\nis one lookup: it costs exactly what `GET /{ip}` costs for that address\nand comes back with exactly the fields that call would carry for your\nplan. Exact duplicates collapse to one entry and one lookup.\n\nBoth maps in the answer are keyed by the string you sent, so nothing has\nto be lined up by position; the `ip` inside each result is the\nnormalized form. An address that could not be answered sits in `errors`\nwith the status and message the single lookup would have given, and\nnever disturbs the others: a string that is not an address is a `400`\nthere, and an overage cap reached part way through leaves the remaining\nentries as `429`s.\n\nThe call itself fails only for the reasons below, and a `429` on the\ncall always carries `Retry-After`: the batch is admitted or refused\nwhole by the rate limit, so a per-entry `429` is always the overage cap\nand never a throttle.\n\nA batch needs a paid plan: without a key the call is refused with `401`,\nand with a trial key with `402`, unless it names one address, which is\nanswered as `GET /{ip}` would answer it. Unlimited and a trial look up\none address at a time.\n",
+        "description": "Answers up to 1000 addresses in one call. Each distinct string in `ips`\nis one lookup: it costs exactly what `GET /{ip}` costs for that address\nand comes back with exactly the fields that call would carry for your\nplan. Exact duplicates collapse to one entry and one lookup.\n\nBoth maps in the answer are keyed by the string you sent, so nothing has\nto be lined up by position; the `ip` inside each result is the\nnormalized form. An address that could not be answered sits in `errors`\nwith the status and message the single lookup would have given, and\nnever disturbs the others: a string that is not an address is a `400`\nthere, and an overage cap reached part way through leaves the remaining\nentries as `429`s.\n\nThe call itself fails only for the reasons below, and a `429` on the\ncall always carries `Retry-After`: the batch is admitted or refused\nwhole by the rate limit, so a per-entry `429` is always the overage cap\nand never a throttle.\n\nA batch needs a paid plan: without a key the call is refused with `401`,\nand with a key on the free plan with `402`, unless it names one address,\nwhich is answered as `GET /{ip}` would answer it. Unlimited looks up one\naddress at a time.\n",
         "security": [
           {
             "apiKeyQuery": []
@@ -780,7 +780,7 @@
             }
           },
           "402": {
-            "description": "The key is a trial's, an organization on no paid plan, and the batch\nnames more than one address: a batch needs a paid plan.\n",
+            "description": "The key is on the free plan and the batch names more than one\naddress: a batch needs a paid plan.\n",
             "content": {
               "application/json": {
                 "schema": {
@@ -1256,8 +1256,8 @@
                       }
                     }
                   },
-                  "trial": {
-                    "summary": "A key of an organization on no paid plan, on its trial: the day's full answers against the 100 a day it has. Nothing stops it past them, its lookups answering as Unlimited, so there is no hard limit, and the window is the UTC day.",
+                  "free": {
+                    "summary": "A key of an organization on the free plan, Unlimited: its usage is the day's lookups answered with every field, out of the 100 a day its trial has. Nothing stops it past them, its lookups answering with Unlimited's fields, so there is no hard limit, and the window is the UTC day.",
                     "value": {
                       "org_id": "f32191d0-ef02-450e-a505-eb5814c35cab",
                       "apikey": {
@@ -1266,7 +1266,7 @@
                         "allowed_cidrs": []
                       },
                       "plan": {
-                        "key": "trial",
+                        "key": "free",
                         "tier": "free"
                       },
                       "usage": {
@@ -2150,7 +2150,7 @@
           },
           "trial_expired": {
             "type": "boolean",
-            "description": "On every answer to a trial key, an organization on no paid plan, and\non no other: `false` while the organization's 100 full answers for\nthe UTC day last, `true` once the answer is Unlimited's.\n"
+            "description": "On every answer to a key on the free plan, and on no other: `false`\nwhile its organization's daily trial lasts (every field for the first\n100 lookups each UTC day), `true` once the answer has Unlimited's.\n"
           }
         }
       },
@@ -2879,7 +2879,7 @@
         "properties": {
           "key": {
             "type": "string",
-            "description": "The plan the organization is on, or `trial` on none: a trial\nanswers every field for the organization's first 100 lookups each\nUTC day, and Unlimited's answer after them.\n",
+            "description": "The plan the organization is on: `free` for the free plan,\nUnlimited, or a paid plan's key. On `free`, usage counts the\nday's lookups answered with every field, its daily trial.\n",
             "example": "max"
           },
           "tier": {
@@ -2890,7 +2890,7 @@
               "scale",
               "max"
             ],
-            "description": "The field tier, which decides how much of a lookup answer comes\nback; `free` is a trial's. What each tier includes is documented\non the lookup endpoint rather than repeated here, so there is one\nplace it can be wrong.\n"
+            "description": "The field tier, which decides how much of a lookup answer comes\nback; `free` is the free plan's. What each tier includes is documented\non the lookup endpoint rather than repeated here, so there is one\nplace it can be wrong.\n"
           }
         }
       },

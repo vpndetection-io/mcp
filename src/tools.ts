@@ -61,9 +61,9 @@ const LOOKUP_BATCH_INPUT = z.strictObject({
     ips: z.array(z.string()).min(1).describe('The IPv4 or IPv6 addresses to classify.'),
 });
 
-// A batch needs a paid plan, and a trial key's batch of two or more is refused
+// A batch needs a paid plan, and a free-plan key's batch of two or more is refused
 // with a 402. Up to this many refused addresses are then looked up one at a time
-// instead, which a trial key may do; past it every address keeps the refusal,
+// instead, which a free-plan key may do; past it every address keeps the refusal,
 // since a caller with that long a list wants a paid plan rather than as many
 // single lookups.
 const TRIAL_SINGLE_LOOKUPS = 10;
@@ -164,10 +164,10 @@ export function createTools(ctx: ToolContext): ToolDef[] {
                     + 'Pass the whole list rather than splitting it yourself: a long one is batched '
                     + 'for you. Prefer this over repeated `lookup_ip` calls when you already have '
                     + 'the list, for example when triaging a log file. A batch needs a key on a '
-                    + `paid plan: with a trial key, a list of up to ${TRIAL_SINGLE_LOOKUPS} addresses `
-                    + 'is looked up one address at a time instead, and a longer one comes back '
-                    + 'refused. An address that fails carries its error in place of a result rather '
-                    + 'than failing the batch. '
+                    + 'paid plan: with a key on the free plan, a list of up to '
+                    + `${TRIAL_SINGLE_LOOKUPS} addresses is looked up one address at a time instead, `
+                    + 'and a longer one comes back refused. An address that fails carries its error '
+                    + 'in place of a result rather than failing the batch. '
                     + 'Always read `coverage.note` before concluding anything from a field that is '
                     + 'not in the result.',
                 inputSchema: jsonSchema(LOOKUP_BATCH_INPUT),
@@ -314,9 +314,9 @@ function accountTool(ctx: ToolContext): ToolDef {
                 + 'requests counted so far, the allowance, and when it resets. Use it to explain '
                 + 'why a field is missing from a lookup, or before a large batch. A paid plan\'s '
                 + 'usage counts against the anniversary of the subscription rather than the '
-                + 'calendar month, and a trial key\'s against the UTC day; either can lag a few '
-                + 'seconds behind. A null `hard_limit` means we never stop serving - it is NOT a '
-                + 'limit of zero.',
+                + 'calendar month; the free plan\'s counts the lookups its daily trial answered with '
+                + 'every field, against the UTC day. Either can lag a few seconds behind. A null '
+                + '`hard_limit` means we never stop serving - it is NOT a limit of zero.',
             inputSchema: jsonSchema(NO_INPUT),
             outputSchema: objectSchema({
                 entitlement: ENTITLEMENT_SCHEMA,
