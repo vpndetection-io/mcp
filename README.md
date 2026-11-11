@@ -50,7 +50,7 @@ Point it at `https://mcp.vpndetection.io/mcp`. A client that supports MCP author
 
 ### On your own machine
 
-**No API key needed to start.** Without a key a lookup answers `ip`, `is_vpn`, Tor and relay detection, `location` and `asn`, with no daily or monthly cap: up to 60 lookups a minute from each address. A free key adds every other flag, `is_hosting`, `is_cdn` and the four proxy flags, at 50,000 lookups a month, and every paid plan answers every field, the provider, confidence and last-seen detail behind each flag included. `lookup_ips` needs a key, a free one included.
+**No API key needed to start.** Without a key a lookup answers `ip`, `is_vpn`, Tor and relay detection, `location` and `asn`, unlimited, with no daily or monthly cap. A free key adds every other flag, `is_hosting`, `is_cdn` and the four proxy flags, at 50,000 lookups a month, and every paid plan answers every field, the provider, confidence and last-seen detail behind each flag included. `lookup_ips` needs a key, a free one included.
 
 Add this to your MCP client's config:
 
