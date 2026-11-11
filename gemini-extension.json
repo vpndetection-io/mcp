@@ -1,0 +1,19 @@
+{
+  "name": "vpndetection",
+  "version": "6.2.8",
+  "description": "VPN, proxy, Tor, hosting and CDN detection for any IP address, from the VPNDetection API.",
+  "mcpServers": {
+    "vpndetection": {
+      "command": "npx",
+      "args": ["-y", "vpndetection-mcp"]
+    }
+  },
+  "settings": [
+    {
+      "name": "API key",
+      "description": "Your VPNDetection API key; lookups answer without one, with fewer fields",
+      "envVar": "VPNDETECTION_API_KEY",
+      "sensitive": true
+    }
+  ]
+}

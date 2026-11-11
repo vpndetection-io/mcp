@@ -34,6 +34,16 @@ codex mcp login vpndetection
 
 Either way you sign in with your VPNDetection account, and neither sees your API key. The steps: [docs.vpndetection.io/integrations/chatgpt](https://docs.vpndetection.io/integrations/chatgpt) and [docs.vpndetection.io/integrations/codex](https://docs.vpndetection.io/integrations/codex). On the OpenAI API, the Responses API's `mcp` tool takes the server as its `server_url` and your key as its `authorization`.
 
+### In Gemini CLI
+
+Install our extension, which runs the npm package below on your machine:
+
+```console
+gemini extensions install https://github.com/vpndetection-io/mcp
+```
+
+It asks for your API key and keeps it in your system keychain. Leave it blank to start without one.
+
 ### In any other MCP client
 
 Point it at `https://mcp.vpndetection.io/mcp`. A client that supports MCP authorization signs in the same way. One that doesn't can send a key instead, as `Authorization: Bearer your-key`.
