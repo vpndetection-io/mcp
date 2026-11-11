@@ -62,7 +62,7 @@
           "Lookup"
         ],
         "summary": "Lookup",
-        "description": "Answers what is known about a single IPv4 or IPv6 address. Which fields\ncome back is decided by the presented key; with no key, the Unlimited\ntier, the answer is `ip`, `is_vpn`, the Tor and relay members,\n`location` and `asn`.\n",
+        "description": "Answers what is known about a single IPv4 or IPv6 address. Which fields\ncome back is decided by the presented key; with no key, on Unlimited,\nthe free plan, the answer is `ip`, `is_vpn`, the Tor and relay members,\n`location` and `asn`.\n",
         "parameters": [
           {
             "in": "path",
