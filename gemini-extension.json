@@ -1,6 +1,6 @@
 {
   "name": "vpndetection",
-  "version": "6.2.9",
+  "version": "6.3.0",
   "description": "VPN, proxy, Tor, hosting and CDN detection for any IP address, from the VPNDetection API.",
   "mcpServers": {
     "vpndetection": {

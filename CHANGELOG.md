@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.3.0 - 2026-11-11
+
+### Features
+
+- Re-pin the spec to 2026.11.11: a lookup without a key answers more ([`954487e`](https://github.com/vpndetection-io/mcp/commit/954487edf87ebf5221ea733fb72ecc8b54d5d819))
+
 ## 6.2.9 - 2026-11-11
 
 ### Features
