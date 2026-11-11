@@ -24,7 +24,7 @@ Either way you sign in with your VPNDetection account, and Claude never sees you
 
 ### In ChatGPT and Codex
 
-In ChatGPT on the web, add `https://mcp.vpndetection.io/mcp` as a custom MCP server under Plugins and choose OAuth. In Codex, install our plugin, which adds the server with skills:
+VPNDetection is in the plugin directory ChatGPT and Codex share: [add it from its listing](https://chatgpt.com/plugins/plugin_asdk_app_6accd4f290588191a74086b26d749253). Codex also installs our plugin from the command line, which adds the server with skills:
 
 ```console
 codex plugin marketplace add vpndetection-io/openai-plugin
