@@ -9,7 +9,7 @@
       "url": "https://vpndetection.io"
     },
     "termsOfService": "https://vpndetection.io/terms",
-    "version": "2026.11.11"
+    "version": "2026.11.12"
   },
   "servers": [
     {
@@ -605,7 +605,7 @@
           "Lookup"
         ],
         "summary": "Batch",
-        "description": "Answers up to 1000 addresses in one call. Each distinct string in `ips`\nis one lookup: it costs exactly what `GET /{ip}` costs for that address\nand comes back with exactly the fields that call would carry for your\nplan. Exact duplicates collapse to one entry and one lookup.\n\nBoth maps in the answer are keyed by the string you sent, so nothing has\nto be lined up by position; the `ip` inside each result is the\nnormalized form. An address that could not be answered sits in `errors`\nwith the status and message the single lookup would have given, and\nnever disturbs the others: a string that is not an address is a `400`\nthere, and an overage cap reached part way through leaves the remaining\nentries as `429`s.\n\nThe call itself fails only for the reasons below, and a `429` on the\ncall always carries `Retry-After`: the batch is admitted or refused\nwhole by the rate limit, so a per-entry `429` is always the overage cap\nand never a throttle.\n\nA batch needs a paid plan: without a key the call is refused with `401`,\nand with a key on the free plan with `402`, unless it names one address,\nwhich is answered as `GET /{ip}` would answer it. Unlimited looks up one\naddress at a time.\n",
+        "description": "Answers up to 1000 addresses in one call. Each distinct string in `ips`\nis one lookup: it costs exactly what `GET /{ip}` costs for that address\nand comes back with exactly the fields that call would carry for your\nplan. Exact duplicates collapse to one entry and one lookup.\n\nBoth maps in the answer are keyed by the string you sent, so nothing has\nto be lined up by position; the `ip` inside each result is the\nnormalized form. An address that could not be answered sits in `errors`\nwith the status and message the single lookup would have given, and\nnever disturbs the others: a string that is not an address is a `400`\nthere, and an overage cap reached part way through leaves the remaining\nentries as `429`s.\n\nThe call itself fails only for the reasons below, and a `429` on the\ncall always carries `Retry-After`: the batch is admitted or refused\nwhole by the rate limit, so a per-entry `429` is always the overage cap\nand never a throttle.\n\nA batch needs a paid plan: without a key the call is refused with `401`,\nand with a key on the free plan with `402`, unless it names one address,\nwhich is answered as `GET /{ip}` would answer it, under the same rate\nlimit. Unlimited looks up one address at a time.\n",
         "security": [
           {
             "apiKeyQuery": []
@@ -748,7 +748,7 @@
             }
           },
           "401": {
-            "description": "No API key was presented, or the one presented is unknown, revoked, or expired.",
+            "description": "No API key was presented for more than one address, or the one\npresented is unknown, revoked, or expired.\n",
             "content": {
               "application/json": {
                 "schema": {
@@ -843,8 +843,19 @@
                 "schema": {
                   "$ref": "#/components/schemas/LookupError"
                 },
-                "example": {
-                  "error": "rate limit exceeded"
+                "examples": {
+                  "rateLimited": {
+                    "summary": "Transient, sent with Retry-After",
+                    "value": {
+                      "error": "rate limit exceeded"
+                    }
+                  },
+                  "unlimitedRateLimited": {
+                    "summary": "Unlimited's one address, a burst, sent with Retry-After",
+                    "value": {
+                      "error": "per-minute limit for Unlimited lookups exceeded; retry shortly, or use a paid plan"
+                    }
+                  }
                 }
               }
             }
