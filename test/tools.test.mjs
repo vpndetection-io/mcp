@@ -200,7 +200,8 @@ test('a served answer marked is_bogon is the answer the API served', async () =>
 });
 
 // Validating proves nothing about a member the schema never names, because a result
-// schema admits extra keys. `is_bogon` is this package's own, so it must be declared.
+// schema admits extra keys. A bogon's body is this package's own, so every key it
+// writes must be one the schema declares.
 test('every member a bogon answer carries is declared, in both lookup tools', async () => {
     const defs = toolsFor(serving({}));
     const one = defs.find((d) => d.tool.name === 'lookup_ip');
@@ -730,11 +731,17 @@ const FLAG_WORDS = {
     is_cdn: 'a CDN',
 };
 
+// A flag read off the address alone, from no dataset, so no family: lookup_ip's
+// description says how it is answered, and the README's intro lists families only.
+const ADDRESS_FLAG_WORDS = {
+    is_bogon: 'Private and reserved addresses',
+};
+
 test('lookup_ip and the README name every family the spec flags', () => {
     const spec = JSON.parse(readFileSync(new URL('../spec/openapi.json', import.meta.url), 'utf8'));
     const flags = Object.keys(spec.components.schemas.LookupResponse.properties)
         .filter((m) => m.startsWith('is_'));
-    assert.deepEqual(Object.keys(FLAG_WORDS).sort(), flags.sort(),
+    assert.deepEqual([...Object.keys(FLAG_WORDS), ...Object.keys(ADDRESS_FLAG_WORDS)].sort(), flags.sort(),
         'a flag with no words, or words with no flag');
 
     const described = toolsFor(serving({})).find((d) => d.tool.name === 'lookup_ip').tool.description;
@@ -744,6 +751,9 @@ test('lookup_ip and the README name every family the spec flags', () => {
     for (const [flag, words] of Object.entries(FLAG_WORDS)) {
         assert.ok(described.includes(words), `lookup_ip's description never says "${words}" (${flag})`);
         assert.ok(intro.includes(words), `the README's intro never says "${words}" (${flag})`);
+    }
+    for (const [flag, words] of Object.entries(ADDRESS_FLAG_WORDS)) {
+        assert.ok(described.includes(words), `lookup_ip's description never says "${words}" (${flag})`);
     }
 });
 

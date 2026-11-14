@@ -9,7 +9,7 @@
       "url": "https://vpndetection.io"
     },
     "termsOfService": "https://vpndetection.io/terms",
-    "version": "2026.11.12"
+    "version": "2026.11.14"
   },
   "servers": [
     {
@@ -95,6 +95,7 @@
                     "summary": "Unlimited, no API key",
                     "value": {
                       "ip": "146.70.116.130",
+                      "is_bogon": false,
                       "is_vpn": true,
                       "is_relay": false,
                       "is_tor": false,
@@ -125,6 +126,7 @@
                     "summary": "A free-plan key within its day's trial of every field",
                     "value": {
                       "ip": "146.70.116.130",
+                      "is_bogon": false,
                       "is_vpn": true,
                       "is_hosting": true,
                       "is_relay": false,
@@ -136,11 +138,13 @@
                       "is_pubproxy": false,
                       "vpn": {
                         "provider": "mullvad",
+                        "provider_name": "Mullvad",
                         "last_seen": "2026-09-02",
                         "confidence": "high"
                       },
                       "hosting": {
                         "provider": "m247",
+                        "provider_name": "M247",
                         "confidence": "high",
                         "last_seen": "2026-09-02"
                       },
@@ -177,6 +181,7 @@
                     "summary": "A free-plan key past its day's trial, with Unlimited's fields",
                     "value": {
                       "ip": "146.70.116.130",
+                      "is_bogon": false,
                       "is_vpn": true,
                       "is_relay": false,
                       "is_tor": false,
@@ -208,6 +213,7 @@
                     "summary": "A key on any paid plan, address found in the VPN dataset",
                     "value": {
                       "ip": "146.70.116.130",
+                      "is_bogon": false,
                       "is_vpn": true,
                       "is_hosting": true,
                       "is_relay": false,
@@ -219,11 +225,13 @@
                       "is_pubproxy": false,
                       "vpn": {
                         "provider": "mullvad",
+                        "provider_name": "Mullvad",
                         "last_seen": "2026-09-02",
                         "confidence": "high"
                       },
                       "hosting": {
                         "provider": "m247",
+                        "provider_name": "M247",
                         "confidence": "high",
                         "last_seen": "2026-09-02"
                       },
@@ -259,6 +267,7 @@
                     "summary": "A private address on a paid plan, answered without a lookup",
                     "value": {
                       "ip": "192.168.1.1",
+                      "is_bogon": true,
                       "is_vpn": false,
                       "is_hosting": false,
                       "is_relay": false,
@@ -452,6 +461,7 @@
                     "summary": "Unlimited, no API key",
                     "value": {
                       "ip": "146.70.116.130",
+                      "is_bogon": false,
                       "is_vpn": true,
                       "is_relay": false,
                       "is_tor": false,
@@ -650,6 +660,7 @@
                       "results": {
                         "192.168.1.1": {
                           "ip": "192.168.1.1",
+                          "is_bogon": true,
                           "is_vpn": false,
                           "is_hosting": false,
                           "is_relay": false,
@@ -2034,7 +2045,7 @@
     "schemas": {
       "LookupResponse": {
         "type": "object",
-        "description": "The union of every tier's answer. Every answer carries `ip`, `is_vpn`,\nthe Tor and relay members, `location` and `asn`, with or without a key;\neach remaining field is present when your tier includes it, and absent\notherwise. A client that must work across plans should treat an absent\nflag as unknown rather than as `false`.\n",
+        "description": "The union of every tier's answer. Every answer carries `ip`, `is_bogon`,\n`is_vpn`, the Tor and relay members, `location` and `asn`, with or without a key;\neach remaining field is present when your tier includes it, and absent\notherwise. A client that must work across plans should treat an absent\nflag as unknown rather than as `false`.\n",
         "required": [
           "ip",
           "is_vpn"
@@ -2044,6 +2055,10 @@
             "type": "string",
             "description": "The address that was looked up, normalized.",
             "example": "1.1.1.1"
+          },
+          "is_bogon": {
+            "type": "boolean",
+            "description": "Whether the address is reserved space (RFC 1918, loopback, link-local,\ndocumentation ranges and their IPv6 equivalents), answered from the\naddress alone. Every answer, with or without a key.\n"
           },
           "is_vpn": {
             "type": "boolean",
@@ -2111,7 +2126,7 @@
                 "$ref": "#/components/schemas/ClassDetail"
               }
             ],
-            "description": "Detail for `is_tor`. Empty when false. Every answer, with or without a\nkey. The tor dataset carries no provider, so `provider` is always an\nempty string.\n"
+            "description": "Detail for `is_tor`. Empty when false. Every answer, with or without a\nkey. The tor dataset carries no provider, so `provider` and\n`provider_name` are always empty strings.\n"
           },
           "cdn": {
             "allOf": [
@@ -2235,8 +2250,13 @@
         "properties": {
           "provider": {
             "type": "string",
-            "description": "The VPN provider, or an empty string for an unattributed range.",
+            "description": "The VPN provider's ID, or an empty string for an unattributed range.",
             "example": "mullvad"
+          },
+          "provider_name": {
+            "type": "string",
+            "description": "The name the provider catalog gives the provider, beside the ID to key on;\nan empty string where the catalog names none or the range is unattributed.\n",
+            "example": "Mullvad"
           },
           "last_seen": {
             "type": "string",
@@ -2262,8 +2282,13 @@
         "properties": {
           "provider": {
             "type": "string",
-            "description": "The provider, or an empty string where the dataset has none.",
+            "description": "The provider's ID, or an empty string where the dataset has none.",
             "example": "m247"
+          },
+          "provider_name": {
+            "type": "string",
+            "description": "The name the provider catalog gives the provider; an empty string where the\ncatalog names none or the dataset has no provider.\n",
+            "example": "M247"
           },
           "confidence": {
             "type": "string",
@@ -2284,8 +2309,13 @@
         "properties": {
           "provider": {
             "type": "string",
-            "description": "The proxy network, or an empty string where unattributed.",
+            "description": "The proxy network's ID, or an empty string where unattributed.",
             "example": "brightdata"
+          },
+          "provider_name": {
+            "type": "string",
+            "description": "The name the provider catalog gives the proxy network; an empty string where\nthe catalog names none or the address is unattributed.\n",
+            "example": "Bright Data"
           },
           "first_seen": {
             "type": "string",

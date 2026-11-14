@@ -50,9 +50,9 @@ const NOTE_UNKNOWN = 'No served answer was available to derive coverage from, so
  * members and leaves `raw` empty. So `isBogon` alone does not say which, since the
  * SDK also sets it from a served `is_bogon`. Rebuilding the local one from the
  * spec's own property types avoids a second copy of the wire names here, and lands
- * on the documented bogon shape by construction - every flag present and false,
- * every detail object present and empty, and a location and AS of empty strings
- * and AS 0.
+ * on the documented bogon shape by construction - every flag present and false
+ * but `is_bogon`, every detail object present and empty, and a location and AS of
+ * empty strings and AS 0.
  */
 export function wireBody(result: Result): Record<string, unknown> {
     const raw = result.raw as unknown as Record<string, unknown>;
@@ -63,7 +63,7 @@ export function wireBody(result: Result): Record<string, unknown> {
     for (const [name, schema] of Object.entries(LOOKUP_RESULT_SCHEMA.properties ?? {})) {
         // A marker is the API's word about the answer it served, and a bogon was
         // never served.
-        if (name === 'ip' || LOOKUP_MARKERS.includes(name)) {
+        if (name in out || LOOKUP_MARKERS.includes(name)) {
             continue;
         }
         const type = (schema as { type?: string }).type;
@@ -89,24 +89,6 @@ function emptyObject(schema: ObjectSchema): Record<string, unknown> {
     }
     return out;
 }
-
-/**
- * A lookup answer as this package serves it: the spec's members, plus the SDK-only
- * `is_bogon` marker `wireBody` adds. The API never serves that marker, so the spec
- * cannot generate it and it is declared here instead.
- */
-export const LOOKUP_ANSWER_SCHEMA: ObjectSchema = {
-    ...LOOKUP_RESULT_SCHEMA,
-    properties: {
-        ...LOOKUP_RESULT_SCHEMA.properties,
-        is_bogon: {
-            type: 'boolean',
-            description: 'Present, and true, only for a private, reserved or otherwise non-routable '
-                + 'address. Such an answer is given locally without calling the API, so every other flag '
-                + 'in it is false by definition rather than by lookup. Absent from every served answer.',
-        },
-    },
-};
 
 /**
  * Derives coverage from the result body alone.

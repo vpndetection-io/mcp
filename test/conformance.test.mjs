@@ -70,12 +70,15 @@ test('an answer of the required members alone names every gated member as not co
     assert.match(out.structuredContent.coverage.note, /not a negative result/);
 });
 
-// A paid answer carries location and asn beside every class, which the corpus's max
-// cases predate, so they are added here from the case that carries them.
+// Every answer carries is_bogon, and a paid one location and asn beside every class,
+// which the corpus's other max cases predate, so they are added here from the cases
+// that carry them.
+const { is_bogon: SERVED_IS_BOGON } = data.lookup.find((c) => c.name === 'max-full-shape').body;
+
 test('a max answer that found nothing reports full coverage, not absence', async () => {
     const max = data.lookup.find((c) => c.name === 'max-nothing-found');
     const { location, asn } = data.lookup.find((c) => c.name === 'unlimited-location-asn').body;
-    const body = { ...max.body, location: location, asn: asn };
+    const body = { ...max.body, is_bogon: SERVED_IS_BOGON, location: location, asn: asn };
     const stub = serving(body);
     const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: body.ip });
 
@@ -117,8 +120,9 @@ test('an Unlimited answer names the flags a paid plan adds as not covered', asyn
 // covered nor one left out, and the result carries it verbatim.
 test("a free-plan key's full answer reports full coverage and keeps trial_expired", async () => {
     const trial = data.lookup.find((c) => c.name === 'trial-full-answer');
-    const stub = serving(trial.body);
-    const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: trial.body.ip });
+    const body = { ...trial.body, is_bogon: SERVED_IS_BOGON };
+    const stub = serving(body);
+    const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: body.ip });
     const { result, coverage } = out.structuredContent;
 
     assert.equal(result.trial_expired, false);
