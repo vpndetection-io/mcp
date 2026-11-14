@@ -45,16 +45,19 @@ const NOTE_UNKNOWN = 'No served answer was available to derive coverage from, so
  * The answer in the names the API publishes, which is what a model has read the
  * docs in and what this server's `outputSchema` declares.
  *
- * A served answer already carries it as `raw`. A bogon does not: the SDK answers
- * those locally onto its own camelCase members and leaves `raw` empty. Rebuilding
- * it from the spec's own property types avoids a second copy of the wire names
- * here, and lands on the documented bogon shape by construction - every flag
- * present and false, every detail object present and empty, and a location and AS
- * of empty strings and AS 0.
+ * A served answer already carries it as `raw`, the API's `is_bogon` included. A
+ * bogon the SDK answered locally does not: it lands on the SDK's own camelCase
+ * members and leaves `raw` empty. So `isBogon` alone does not say which, since the
+ * SDK also sets it from a served `is_bogon`. Rebuilding the local one from the
+ * spec's own property types avoids a second copy of the wire names here, and lands
+ * on the documented bogon shape by construction - every flag present and false,
+ * every detail object present and empty, and a location and AS of empty strings
+ * and AS 0.
  */
 export function wireBody(result: Result): Record<string, unknown> {
-    if (!result.isBogon) {
-        return result.raw as unknown as Record<string, unknown>;
+    const raw = result.raw as unknown as Record<string, unknown>;
+    if (!result.isBogon || Object.keys(raw).length > 0) {
+        return raw;
     }
     const out: Record<string, unknown> = { ip: result.ip, is_bogon: true };
     for (const [name, schema] of Object.entries(LOOKUP_RESULT_SCHEMA.properties ?? {})) {

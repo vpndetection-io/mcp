@@ -187,6 +187,18 @@ test('a bogon answer also validates', async () => {
     assert.ok(validate(out.structuredContent), ajv.errorsText(validate.errors));
 });
 
+// The SDK sets `isBogon` from a served `is_bogon` too, so the flag alone does not mean
+// "answered locally": an answer the API served is passed on as served, in its plan's
+// shape, never rebuilt in the widest one.
+test('a served answer marked is_bogon is the answer the API served', async () => {
+    const served = { ip: '9.9.9.9', is_bogon: true, is_vpn: false };
+    const lookup = toolsFor(serving(served)).find((d) => d.tool.name === 'lookup_ip');
+
+    const out = await lookup.handler({ ip: served.ip });
+
+    assert.deepEqual(out.structuredContent.result, served);
+});
+
 // Validating proves nothing about a member the schema never names, because a result
 // schema admits extra keys. `is_bogon` is this package's own, so it must be declared.
 test('every member a bogon answer carries is declared, in both lookup tools', async () => {
