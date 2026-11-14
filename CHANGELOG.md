@@ -2,6 +2,16 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.5.0 - 2026-11-14
+
+### Features
+
+- Re-pin the spec to 2026.11.14: is_bogon on every answer, and provider names ([`9a54043`](https://github.com/vpndetection-io/mcp/commit/9a540436021fdd9e930766748fe85f4323b96922))
+
+### Fixes
+
+- Pass a served answer marked is_bogon on as served ([`4bc4932`](https://github.com/vpndetection-io/mcp/commit/4bc493285dc65a1efb9f2bd18ebc096f9f22e3d6))
+
 ## 6.4.3 - 2026-11-12
 
 ### Fixes
