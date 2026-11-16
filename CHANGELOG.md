@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.5.2 - 2026-11-16
+
+### Fixes
+
+- Admit a value the API adds to a list in an answer ([`d669a9a`](https://github.com/vpndetection-io/mcp/commit/d669a9a80aede0bcc536663c2e69b9347aaf0c9b))
+
 ## 6.5.1 - 2026-11-16
 
 ### Fixes
