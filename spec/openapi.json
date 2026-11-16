@@ -9,7 +9,7 @@
       "url": "https://vpndetection.io"
     },
     "termsOfService": "https://vpndetection.io/terms",
-    "version": "2026.11.14"
+    "version": "2026.11.15"
   },
   "servers": [
     {
@@ -1267,6 +1267,7 @@
                       },
                       "plan": {
                         "key": "max",
+                        "name": "Max",
                         "tier": "max"
                       },
                       "usage": {
@@ -1289,6 +1290,7 @@
                       },
                       "plan": {
                         "key": "free",
+                        "name": "Unlimited",
                         "tier": "free"
                       },
                       "usage": {
@@ -2475,6 +2477,7 @@
         "properties": {
           "asn": {
             "type": "integer",
+            "format": "int64",
             "description": "The AS number, 0 when no announcement covers the address.",
             "example": 9009
           },
@@ -2915,13 +2918,19 @@
         "type": "object",
         "required": [
           "key",
+          "name",
           "tier"
         ],
         "properties": {
           "key": {
             "type": "string",
-            "description": "The plan the organization is on: `free` for the free plan,\nUnlimited, or a paid plan's key. On `free`, usage counts the\nday's lookups answered with every field, its daily trial.\n",
+            "description": "The plan the organization is on, as an identifier that is never\nrenamed or reused: `free` for the free plan, or a paid plan's key.\nCompare against it and show `name`. On `free`, usage counts the\nday's lookups answered with every field, its daily trial.\n",
             "example": "max"
+          },
+          "name": {
+            "type": "string",
+            "description": "The plan's name, as the site and console show it: `Unlimited` for\nthe free plan. Show this rather than a name built from `key`: a\nplan's name can change, and its key never does.\n",
+            "example": "Max"
           },
           "tier": {
             "type": "string",
@@ -2931,7 +2940,7 @@
               "scale",
               "max"
             ],
-            "description": "The field tier, which decides how much of a lookup answer comes\nback; `free` is the free plan's. What each tier includes is documented\non the lookup endpoint rather than repeated here, so there is one\nplace it can be wrong.\n"
+            "description": "The field tier, which decides how much of a lookup answer comes\nback; `free` is the free plan's. This list never gains a value: a\nnew plan reports one of these. What each tier includes is documented\non the lookup endpoint rather than repeated here, so there is one\nplace it can be wrong.\n"
           }
         }
       },
