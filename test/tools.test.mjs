@@ -15,6 +15,10 @@ import { VPNDetection } from 'vpndetection';
 
 import { createTools, DOWNLOADS_LIMIT, registerTools } from '../dist/index.js';
 import { clientOptions } from '../dist/env.js';
+import {
+    DATABASE_METADATA_SCHEMA, DATABASE_SCHEMA, DB_CHECKSUMS_SCHEMA, DOWNLOAD_SCHEMA, ENTITLEMENT_SCHEMA,
+    LOOKUP_RESULT_SCHEMA,
+} from '../dist/schema.gen.js';
 
 const data = JSON.parse(readFileSync(new URL('../testdata/testdata.json', import.meta.url), 'utf8'));
 
@@ -373,6 +377,38 @@ test('no output schema is free-form unless the spec declares it', () => {
     for (const { tool } of toolsFor(serving({}))) {
         assert.deepEqual(freeFormPaths(tool.outputSchema), SPEC_FREE_FORM[tool.name] ?? [],
             `${tool.name}: outputSchema`);
+    }
+});
+
+// The API may add a value to a list in an answer, and every SDK hands one back as
+// served, so a tool's schema keeps an `enum` only where the spec says the list never
+// gains a value. Every other list must still reach a model, as prose naming each value.
+const GENERATED_FROM = {
+    LookupResponse: LOOKUP_RESULT_SCHEMA,
+    Database: DATABASE_SCHEMA,
+    DatabaseMetadata: DATABASE_METADATA_SCHEMA,
+    DbChecksums: DB_CHECKSUMS_SCHEMA,
+    Download: DOWNLOAD_SCHEMA,
+    Entitlement: ENTITLEMENT_SCHEMA,
+};
+
+test("an answer's list stays closed only where the spec says it never grows", () => {
+    const spec = JSON.parse(readFileSync(new URL('../spec/openapi.json', import.meta.url), 'utf8'));
+    const lists = Object.entries(GENERATED_FROM)
+        .flatMap(([name, generated]) => specEnums(spec, spec.components.schemas[name], generated, name));
+    assert.ok(lists.some((l) => !/never gains a value/.test(l.spec.description ?? '')),
+        'the spec declares no list the API may add to, so this test checks nothing');
+
+    for (const { path, spec: declared, generated } of lists) {
+        if (/never gains a value/.test(declared.description ?? '')) {
+            assert.deepEqual(generated.enum, declared.enum, `${path}: the spec closes this list`);
+            continue;
+        }
+        assert.equal(generated.enum, undefined, `${path}: the API may add a value`);
+        assert.match(generated.description, /the API may add more\.$/, path);
+        for (const value of declared.enum.filter((v) => v !== null)) {
+            assert.ok(generated.description.includes(`\`${value}\``), `${path}: never names \`${value}\``);
+        }
     }
 });
 
@@ -769,6 +805,32 @@ test('every tool that answers with coverage says to read its note', () => {
             `${tool.name}: the description never says to read \`coverage.note\``);
     }
 });
+
+// Every list the spec declares under `node`, its properties' and items' included, beside
+// the schema generated at the same place. A $ref and a single-member allOf are folded in
+// as gen-schema.mjs folds them, the member's own keywords winning.
+function specEnums(spec, node, generated, path) {
+    const declared = specNode(spec, node);
+    return [
+        ...(Array.isArray(declared.enum) ? [{ path: path, spec: declared, generated: generated }] : []),
+        ...Object.entries(declared.properties ?? {})
+            .flatMap(([k, v]) => specEnums(spec, v, generated.properties[k], `${path}.${k}`)),
+        ...(declared.items === undefined
+            ? []
+            : specEnums(spec, declared.items, generated.items, `${path}[]`)),
+    ];
+}
+
+function specNode(spec, node) {
+    if (typeof node.$ref === 'string') {
+        return specNode(spec, node.$ref.replace(/^#\//, '').split('/').reduce((n, p) => n[p], spec));
+    }
+    if (Array.isArray(node.allOf) && node.allOf.length === 1) {
+        const { allOf, ...own } = node;
+        return { ...specNode(spec, allOf[0]), ...own };
+    }
+    return node;
+}
 
 // Where a keyword appears in a schema. A keyword's value is never an object, so
 // a PROPERTY that happens to share the name is not mistaken for one.
