@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.5.1 - 2026-11-16
+
+### Fixes
+
+- Re-pin the spec to 2026.11.15: my_entitlement's plan declares its name ([`fb4df2e`](https://github.com/vpndetection-io/mcp/commit/fb4df2ef2c112ea0002a9c641ebb56b5d211d2fb))
+
 ## 6.5.0 - 2026-11-14
 
 ### Features
