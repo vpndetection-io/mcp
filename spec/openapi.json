@@ -9,7 +9,7 @@
       "url": "https://vpndetection.io"
     },
     "termsOfService": "https://vpndetection.io/terms",
-    "version": "2026.11.15"
+    "version": "2026.11.16"
   },
   "servers": [
     {
@@ -352,7 +352,7 @@
             }
           },
           "403": {
-            "description": "The key restricts which source addresses may use it and this\nrequest came from none of them, or the key was sent over plain\nHTTP, where anyone on the network path could read it. Rotate a key\nthat was.\n",
+            "description": "The key restricts which source addresses may use it and this\nrequest came from none of them, or the key lacks the `ip.lookup`\nscope (IP lookup, in the console's key settings), or the key was\nsent over plain HTTP, where anyone on the network path could read\nit. Rotate a key that was.\n",
             "content": {
               "application/json": {
                 "schema": {
@@ -362,6 +362,11 @@
                   "sourceNotAllowed": {
                     "value": {
                       "error": "source address not allowed for this API key"
+                    }
+                  },
+                  "scopeMissing": {
+                    "value": {
+                      "error": "API key lacks the ip.lookup scope; add IP lookup to it in the console"
                     }
                   },
                   "plainHttp": {
@@ -520,7 +525,7 @@
             }
           },
           "403": {
-            "description": "The key restricts which source addresses may use it and this\nrequest came from none of them, or the key was sent over plain\nHTTP, where anyone on the network path could read it. Rotate a key\nthat was.\n",
+            "description": "The key restricts which source addresses may use it and this\nrequest came from none of them, or the key lacks the `ip.lookup`\nscope (IP lookup, in the console's key settings), or the key was\nsent over plain HTTP, where anyone on the network path could read\nit. Rotate a key that was.\n",
             "content": {
               "application/json": {
                 "schema": {
@@ -530,6 +535,11 @@
                   "sourceNotAllowed": {
                     "value": {
                       "error": "source address not allowed for this API key"
+                    }
+                  },
+                  "scopeMissing": {
+                    "value": {
+                      "error": "API key lacks the ip.lookup scope; add IP lookup to it in the console"
                     }
                   },
                   "plainHttp": {
@@ -804,7 +814,7 @@
             }
           },
           "403": {
-            "description": "The key restricts which source addresses may use it and this\nrequest came from none of them, or the key was sent over plain\nHTTP, where anyone on the network path could read it. Rotate a key\nthat was.\n",
+            "description": "The key restricts which source addresses may use it and this\nrequest came from none of them, or the key lacks the `ip.lookup`\nscope (IP lookup, in the console's key settings), or the key was\nsent over plain HTTP, where anyone on the network path could read\nit. Rotate a key that was.\n",
             "content": {
               "application/json": {
                 "schema": {
@@ -814,6 +824,11 @@
                   "sourceNotAllowed": {
                     "value": {
                       "error": "source address not allowed for this API key"
+                    }
+                  },
+                  "scopeMissing": {
+                    "value": {
+                      "error": "API key lacks the ip.lookup scope; add IP lookup to it in the console"
                     }
                   },
                   "plainHttp": {
