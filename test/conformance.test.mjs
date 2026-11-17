@@ -147,6 +147,39 @@ test("a free-plan key's spent trial says so beside what was not covered", async 
     assert.match(coverage.note, /not a negative result/);
 });
 
+// A free-plan key's batch is refused with a 402 and its addresses looked up one at
+// a time, so its daily trial can run out between them: the first answer then has
+// every field and the next only Unlimited's.
+test('a batch the trial runs out part way through reports its narrowest answer', async () => {
+    const answers = {
+        '1.1.1.1': { ...data.lookup.find((c) => c.name === 'trial-full-answer').body, ip: '1.1.1.1' },
+        '8.8.8.8': { ...data.lookup.find((c) => c.name === 'trial-expired-answer').body, ip: '8.8.8.8' },
+    };
+    for (const body of Object.values(answers)) {
+        body.is_bogon = SERVED_IS_BOGON;
+    }
+    const fetchImpl = async (input) => {
+        const path = new URL(input.url).pathname;
+        if (path === '/batch') {
+            return new Response('{"error":"POST /batch needs a paid plan"}', {
+                status: 402, headers: { 'content-type': 'application/json' },
+            });
+        }
+        return new Response(JSON.stringify(answers[path.slice(1)]), {
+            status: 200, headers: { 'content-type': 'application/json' },
+        });
+    };
+    const out = await toolsFor(fetchImpl).get('lookup_ips').handler({ ips: Object.keys(answers) });
+    const { results, coverage } = out.structuredContent;
+
+    assert.deepEqual(results, answers);
+    const spent = answers['8.8.8.8'];
+    assert.deepEqual(coverage.not_included, LOOKUP_GATED_MEMBERS.filter((m) => !(m in spent)));
+    assert.match(coverage.note, /do not all carry the same fields/);
+    assert.match(coverage.note, /trial/);
+    assert.doesNotMatch(coverage.note, /real negative result/);
+});
+
 test('the note reaches a client that only renders content', async () => {
     const bare = data.lookup.find((c) => c.name === 'required-only-not-vpn');
     const stub = serving(bare.body);

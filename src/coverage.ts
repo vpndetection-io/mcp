@@ -41,6 +41,10 @@ const NOTE_BOGON = 'This is a private, reserved or otherwise non-routable addres
 const NOTE_UNKNOWN = 'No served answer was available to derive coverage from, so this batch says '
     + 'nothing about which datasets the plan covers.';
 
+const NOTE_MIXED = 'The answers in this batch do not all carry the same fields, and these lists are the '
+    + 'narrowest answer\'s: one marked `trial_expired: true` has only Unlimited\'s fields, while the others '
+    + 'have every field.';
+
 /**
  * The answer in the names the API publishes, which is what a model has read the
  * docs in and what this server's `outputSchema` declares.
@@ -113,19 +117,26 @@ export function coverageOf(body: Record<string, unknown>): Coverage {
 }
 
 /**
- * One coverage for a whole batch, taken from the first served answer.
+ * One coverage for a whole batch, taken from its narrowest served answer.
  *
  * A bogon is synthesized locally in the full shape, so reading coverage off one
  * would report every dataset as covered whatever the plan actually buys. Errors
  * carry no shape at all. With neither available there is nothing honest to say,
- * which is what `NOTE_UNKNOWN` says.
+ * which is what `NOTE_UNKNOWN` says. Served answers can differ: a free-plan key's
+ * daily trial can run out between its single lookups, which answers the rest with
+ * Unlimited's fields. Reading the widest one would call every field checked, so the
+ * narrowest one speaks for the batch and `NOTE_MIXED` says the answers differ.
  */
 export function batchCoverage(bodies: Record<string, unknown>[]): Coverage {
-    const served = bodies.find((b) => b['is_bogon'] !== true);
-    if (served === undefined) {
+    const answered = bodies.filter((b) => b['is_bogon'] !== true).map((b) => coverageOf(b));
+    if (answered.length === 0) {
         return { included: [], not_included: [], note: NOTE_UNKNOWN };
     }
-    return coverageOf(served);
+    const narrowest = answered.reduce((a, b) => (b.not_included.length > a.not_included.length ? b : a));
+    if (answered.every((c) => c.not_included.length === narrowest.not_included.length)) {
+        return narrowest;
+    }
+    return { ...narrowest, note: `${NOTE_MIXED} ${narrowest.note}` };
 }
 
 export const COVERAGE_SCHEMA = {
