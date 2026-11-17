@@ -2,6 +2,13 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.5.3 - 2026-11-17
+
+### Fixes
+
+- Re-pin the spec to 2026.11.16: a key without the ip.lookup scope ([`1773697`](https://github.com/vpndetection-io/mcp/commit/17736977befdf7441eed648dd702479466e672f6))
+- Read a batch's coverage off its narrowest answer ([`4dd0789`](https://github.com/vpndetection-io/mcp/commit/4dd078914f6bebca39e65ea2f8335457b6a1809d))
+
 ## 6.5.2 - 2026-11-16
 
 ### Fixes
