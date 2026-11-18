@@ -2,6 +2,16 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.6.0 - 2026-11-18
+
+### Features
+
+- Re-pin the spec to 2026.11.17: cap_reached past the overage cap ([`b05d387`](https://github.com/vpndetection-io/mcp/commit/b05d387d1e16ea98d547bbee1815268332f71f0b))
+
+### Fixes
+
+- Name the server in every request's User-Agent ([`d9cd766`](https://github.com/vpndetection-io/mcp/commit/d9cd76699b82209056783a18f6c6f49074770b29))
+
 ## 6.5.3 - 2026-11-17
 
 ### Fixes
