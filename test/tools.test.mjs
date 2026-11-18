@@ -658,10 +658,16 @@ test('a blank variable counts as unset, and every value is trimmed', () => {
 
 // What reaches the API from the installed entry point, given a padded base URL
 // and a padded or blank key: a blank one sends no Authorization header at all.
-test('the stdio server trims its environment before the API sees it', async () => {
+// Every request names this server ahead of the client SDK, as the SDK leaves a
+// program that wraps it to do, so the API can count which releases are in use. The
+// client SDK names nothing itself yet, so the header is this server's name alone.
+test('the stdio server trims its environment and names itself before the API sees it', async () => {
+    const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
     const seen = [];
+    const agents = [];
     const api = createServer((req, res) => {
         seen.push(req.headers.authorization);
+        agents.push(req.headers['user-agent']);
         res.writeHead(200, { 'content-type': 'application/json' });
         res.end(JSON.stringify(NULL_CATALOG));
     });
@@ -684,6 +690,7 @@ test('the stdio server trims its environment before the API sees it', async () =
                 const out = await client.callTool({ name: 'list_databases', arguments: {} });
                 assert.notEqual(out.isError, true, out.content?.[0]?.text);
                 assert.deepEqual(seen.splice(0), [authorization], JSON.stringify(key));
+                assert.deepEqual(agents.splice(0), [`vpndetection-mcp/${pkg.version}`]);
             } finally {
                 await client.close();
             }
