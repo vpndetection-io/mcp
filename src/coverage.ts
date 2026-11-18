@@ -31,6 +31,12 @@ const NOTE_TRIAL_SPENT = 'This key is on the free plan, and its organization\'s 
     + 'datasets. Do not state or imply that the address is not hosting, a CDN or a proxy on the basis '
     + 'of a field missing from this result.';
 
+const NOTE_CAP_REACHED = 'This key\'s organization has reached the overage cap it set on its paid plan, so '
+    + 'this answer is Unlimited\'s, unbilled, and the fields in not_included were not returned. Raising or '
+    + 'removing the cap in Billing brings them back. Their absence is not a negative result: the address was '
+    + 'never checked against those datasets. Do not state or imply that the address is not hosting, a CDN or '
+    + 'a proxy on the basis of a field missing from this result.';
+
 const NOTE_FULL = 'This plan covers every dataset the API serves, so every field was checked. A '
     + 'false flag here is a real negative result.';
 
@@ -42,8 +48,8 @@ const NOTE_UNKNOWN = 'No served answer was available to derive coverage from, so
     + 'nothing about which datasets the plan covers.';
 
 const NOTE_MIXED = 'The answers in this batch do not all carry the same fields, and these lists are the '
-    + 'narrowest answer\'s: one marked `trial_expired: true` has only Unlimited\'s fields, while the others '
-    + 'have every field.';
+    + 'narrowest answer\'s: one marked `cap_reached: true` or `trial_expired: true` has only Unlimited\'s '
+    + 'fields, while the others have every field.';
 
 /**
  * The answer in the names the API publishes, which is what a model has read the
@@ -109,6 +115,8 @@ export function coverageOf(body: Record<string, unknown>): Coverage {
     let note = notIncluded.length === 0 ? NOTE_FULL : NOTE_PARTIAL;
     if (notIncluded.length > 0 && body['trial_expired'] === true) {
         note = NOTE_TRIAL_SPENT;
+    } else if (notIncluded.length > 0 && body['cap_reached'] === true) {
+        note = NOTE_CAP_REACHED;
     }
     if (body['is_bogon'] === true) {
         note = NOTE_BOGON;
@@ -123,7 +131,8 @@ export function coverageOf(body: Record<string, unknown>): Coverage {
  * would report every dataset as covered whatever the plan actually buys. Errors
  * carry no shape at all. With neither available there is nothing honest to say,
  * which is what `NOTE_UNKNOWN` says. Served answers can differ: a free-plan key's
- * daily trial can run out between its single lookups, which answers the rest with
+ * daily trial can run out between its single lookups, and a paid key's overage cap
+ * can be reached part way through a batch, either of which answers the rest with
  * Unlimited's fields. Reading the widest one would call every field checked, so the
  * narrowest one speaks for the batch and `NOTE_MIXED` says the answers differ.
  */

@@ -147,6 +147,57 @@ test("a free-plan key's spent trial says so beside what was not covered", async 
     assert.match(coverage.note, /not a negative result/);
 });
 
+// cap_reached says a paid key's organization is past the overage cap it set, so the
+// answer is Unlimited's: the cap left the fields out, never the plan, which has them.
+test("a paid key past its overage cap says the cap left the fields out, not the plan", async () => {
+    const capped = data.lookup.find((c) => c.name === 'cap-reached-answer');
+    const stub = serving(capped.body);
+    const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: capped.body.ip });
+    const { result, coverage } = out.structuredContent;
+
+    assert.equal(result.cap_reached, true);
+    assert.ok(!coverage.included.includes('cap_reached'));
+    assert.ok(!coverage.not_included.includes('cap_reached'));
+    assert.ok(coverage.not_included.includes('is_hosting'));
+    assert.match(coverage.note, /overage cap/);
+    assert.doesNotMatch(coverage.note, /plan does not include/);
+    assert.match(coverage.note, /not a negative result/);
+});
+
+test("a paid key's full answer reports full coverage and keeps cap_reached", async () => {
+    const max = data.lookup.find((c) => c.name === 'max-full-shape');
+    const { location, asn } = data.lookup.find((c) => c.name === 'cap-reached-answer').body;
+    const body = { ...max.body, location: location, asn: asn };
+    const stub = serving(body);
+    const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: body.ip });
+    const { result, coverage } = out.structuredContent;
+
+    assert.equal(result.cap_reached, false);
+    assert.ok(!coverage.included.includes('cap_reached'));
+    assert.deepEqual(coverage.not_included, []);
+    assert.match(coverage.note, /real negative result/);
+});
+
+// A cap reached part way through a batch answers the rest of it with Unlimited's
+// fields, in its results beside the full answers before it.
+test('a batch the overage cap stops part way through reports its narrowest answer', async () => {
+    const full = data.lookup.find((c) => c.name === 'max-full-shape').body;
+    const capped = data.lookup.find((c) => c.name === 'cap-reached-answer').body;
+    const answers = { '1.1.1.1': { ...full, ip: '1.1.1.1' }, '8.8.8.8': { ...capped, ip: '8.8.8.8' } };
+    const fetchImpl = async () => new Response(JSON.stringify({ results: answers, errors: {} }), {
+        status: 200, headers: { 'content-type': 'application/json' },
+    });
+    const out = await toolsFor(fetchImpl).get('lookup_ips').handler({ ips: Object.keys(answers) });
+    const { results, coverage } = out.structuredContent;
+
+    assert.deepEqual(results, answers);
+    assert.deepEqual(coverage.not_included, LOOKUP_GATED_MEMBERS.filter((m) => !(m in capped)));
+    assert.match(coverage.note, /do not all carry the same fields/);
+    assert.match(coverage.note, /cap_reached: true/);
+    assert.match(coverage.note, /overage cap/);
+    assert.doesNotMatch(coverage.note, /real negative result/);
+});
+
 // A free-plan key's batch is refused with a 402 and its addresses looked up one at
 // a time, so its daily trial can run out between them: the first answer then has
 // every field and the next only Unlimited's.
@@ -218,6 +269,7 @@ test('a bogon is answered in the full documented shape', async () => {
     assert.deepEqual(out.structuredContent.coverage.not_included, [],
         'nothing is uncovered in a locally synthesized answer');
     assert.ok(!('trial_expired' in body), 'a bogon was never served, so it carries no trial marker');
+    assert.ok(!('cap_reached' in body), 'a bogon was never served, so it carries no cap marker');
 });
 
 // A server listening on :: logs every IPv4 visitor as ::ffff:a.b.c.d, and a model triaging that

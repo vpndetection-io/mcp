@@ -9,7 +9,7 @@
       "url": "https://vpndetection.io"
     },
     "termsOfService": "https://vpndetection.io/terms",
-    "version": "2026.11.16"
+    "version": "2026.11.17"
   },
   "servers": [
     {
@@ -260,7 +260,40 @@
                         "domain": "m247global.com",
                         "type": "hosting",
                         "prefix": "146.70.116.0/24"
-                      }
+                      },
+                      "cap_reached": false
+                    }
+                  },
+                  "capReached": {
+                    "summary": "A key on a paid plan past its organization's overage cap, with Unlimited's fields",
+                    "value": {
+                      "ip": "146.70.116.130",
+                      "is_bogon": false,
+                      "is_vpn": true,
+                      "is_relay": false,
+                      "is_tor": false,
+                      "relay": {},
+                      "tor": {},
+                      "location": {
+                        "continent": "EU",
+                        "continent_name": "Europe",
+                        "country": "AT",
+                        "country_name": "Austria",
+                        "timezone": "Europe/Vienna",
+                        "currency_code": "EUR",
+                        "currency_name": "Euro",
+                        "currency_symbol": "€",
+                        "flag_emoji": "🇦🇹",
+                        "flag_unicode": "U+1F1E6 U+1F1F9"
+                      },
+                      "asn": {
+                        "asn": 9009,
+                        "name": "M247 Europe SRL",
+                        "domain": "m247global.com",
+                        "type": "hosting",
+                        "prefix": "146.70.116.0/24"
+                      },
+                      "cap_reached": true
                     }
                   },
                   "bogon": {
@@ -304,7 +337,8 @@
                         "domain": "",
                         "type": "",
                         "prefix": ""
-                      }
+                      },
+                      "cap_reached": false
                     }
                   }
                 }
@@ -379,11 +413,11 @@
             }
           },
           "429": {
-            "description": "Either a rate limit or a paid plan's overage cap. `Retry-After` is\npresent for the former and absent for the latter, and is the only\nway to tell them apart.\n",
+            "description": "A rate limit, always with `Retry-After`. A paid plan's overage cap is\nnever a `429`: it answers `200` with Unlimited's fields and\n`cap_reached` `true`.\n",
             "headers": {
               "Retry-After": {
-                "description": "Seconds to wait before retrying. Present ONLY when the rejection\nis a rate limit; its absence means the overage cap is reached and\nretrying will not help.\n",
-                "required": false,
+                "description": "Seconds to wait before retrying.",
+                "required": true,
                 "schema": {
                   "type": "integer"
                 }
@@ -405,12 +439,6 @@
                     "summary": "Unlimited, a burst, sent with Retry-After",
                     "value": {
                       "error": "per-minute limit for Unlimited lookups exceeded; retry shortly, or use a paid plan"
-                    }
-                  },
-                  "overageCapReached": {
-                    "summary": "Paid plan's overage cap reached, no Retry-After",
-                    "value": {
-                      "error": "overage cap reached; raise or remove it in Billing"
                     }
                   }
                 }
@@ -552,11 +580,11 @@
             }
           },
           "429": {
-            "description": "Either a rate limit or a paid plan's overage cap. `Retry-After` is\npresent for the former and absent for the latter, and is the only\nway to tell them apart.\n",
+            "description": "A rate limit, always with `Retry-After`. A paid plan's overage cap is\nnever a `429`: it answers `200` with Unlimited's fields and\n`cap_reached` `true`.\n",
             "headers": {
               "Retry-After": {
-                "description": "Seconds to wait before retrying. Present ONLY when the rejection\nis a rate limit; its absence means the overage cap is reached and\nretrying will not help.\n",
-                "required": false,
+                "description": "Seconds to wait before retrying.",
+                "required": true,
                 "schema": {
                   "type": "integer"
                 }
@@ -578,12 +606,6 @@
                     "summary": "Unlimited, a burst, sent with Retry-After",
                     "value": {
                       "error": "per-minute limit for Unlimited lookups exceeded; retry shortly, or use a paid plan"
-                    }
-                  },
-                  "overageCapReached": {
-                    "summary": "Paid plan's overage cap reached, no Retry-After",
-                    "value": {
-                      "error": "overage cap reached; raise or remove it in Billing"
                     }
                   }
                 }
@@ -625,7 +647,7 @@
           "Lookup"
         ],
         "summary": "Batch",
-        "description": "Answers up to 1000 addresses in one call. Each distinct string in `ips`\nis one lookup: it costs exactly what `GET /{ip}` costs for that address\nand comes back with exactly the fields that call would carry for your\nplan. Exact duplicates collapse to one entry and one lookup.\n\nBoth maps in the answer are keyed by the string you sent, so nothing has\nto be lined up by position; the `ip` inside each result is the\nnormalized form. An address that could not be answered sits in `errors`\nwith the status and message the single lookup would have given, and\nnever disturbs the others: a string that is not an address is a `400`\nthere, and an overage cap reached part way through leaves the remaining\nentries as `429`s.\n\nThe call itself fails only for the reasons below, and a `429` on the\ncall always carries `Retry-After`: the batch is admitted or refused\nwhole by the rate limit, so a per-entry `429` is always the overage cap\nand never a throttle.\n\nA batch needs a paid plan: without a key the call is refused with `401`,\nand with a key on the free plan with `402`, unless it names one address,\nwhich is answered as `GET /{ip}` would answer it, under the same rate\nlimit. Unlimited looks up one address at a time.\n",
+        "description": "Answers up to 1000 addresses in one call. Each distinct string in `ips`\nis one lookup: it costs exactly what `GET /{ip}` costs for that address\nand comes back with exactly the fields that call would carry for your\nplan. Exact duplicates collapse to one entry and one lookup.\n\nBoth maps in the answer are keyed by the string you sent, so nothing has\nto be lined up by position; the `ip` inside each result is the\nnormalized form. An address that could not be answered sits in `errors`\nwith the status and message the single lookup would have given, and\nnever disturbs the others: a string that is not an address is a `400`\nthere. An overage cap reached part way through answers the remaining\nentries with Unlimited's fields and `cap_reached` `true`, in `results`.\n\nThe call itself fails only for the reasons below, and a `429` on the\ncall always carries `Retry-After`: the batch is admitted or refused\nwhole by the rate limit, never per entry.\n\nA batch needs a paid plan: without a key the call is refused with `401`,\nand with a key on the free plan with `402`, unless it names one address,\nwhich is answered as `GET /{ip}` would answer it, under the same rate\nlimit. Unlimited looks up one address at a time.\n",
         "security": [
           {
             "apiKeyQuery": []
@@ -707,7 +729,8 @@
                             "domain": "",
                             "type": "",
                             "prefix": ""
-                          }
+                          },
+                          "cap_reached": false
                         }
                       },
                       "errors": {
@@ -718,16 +741,41 @@
                       }
                     }
                   },
-                  "overageCapReached": {
-                    "summary": "A key on a paid plan whose overage cap was already reached",
+                  "capReached": {
+                    "summary": "A key on a paid plan whose overage cap was already reached, answered with Unlimited's fields",
                     "value": {
-                      "results": {},
-                      "errors": {
-                        "8.8.8.8": {
-                          "status": 429,
-                          "error": "overage cap reached; raise or remove it in Billing"
+                      "results": {
+                        "146.70.116.130": {
+                          "ip": "146.70.116.130",
+                          "is_bogon": false,
+                          "is_vpn": true,
+                          "is_relay": false,
+                          "is_tor": false,
+                          "relay": {},
+                          "tor": {},
+                          "location": {
+                            "continent": "EU",
+                            "continent_name": "Europe",
+                            "country": "AT",
+                            "country_name": "Austria",
+                            "timezone": "Europe/Vienna",
+                            "currency_code": "EUR",
+                            "currency_name": "Euro",
+                            "currency_symbol": "€",
+                            "flag_emoji": "🇦🇹",
+                            "flag_unicode": "U+1F1E6 U+1F1F9"
+                          },
+                          "asn": {
+                            "asn": 9009,
+                            "name": "M247 Europe SRL",
+                            "domain": "m247global.com",
+                            "type": "hosting",
+                            "prefix": "146.70.116.0/24"
+                          },
+                          "cap_reached": true
                         }
-                      }
+                      },
+                      "errors": {}
                     }
                   },
                   "lookupFailed": {
@@ -854,7 +902,7 @@
             }
           },
           "429": {
-            "description": "The rate limit refused the whole call. Always transient and always\nwith `Retry-After`; a reached overage cap is reported per entry in a\n`200` instead.\n",
+            "description": "The rate limit refused the whole call. Always transient and always\nwith `Retry-After`; a reached overage cap answers each entry in a\n`200` instead.\n",
             "headers": {
               "Retry-After": {
                 "description": "Seconds to wait before retrying the call.",
@@ -1354,14 +1402,23 @@
             }
           },
           "403": {
-            "description": "The key restricts which source addresses may use it, and this\nrequest did not come from one of them.\n",
+            "description": "The key restricts which source addresses may use it, and this\nrequest did not come from one of them; or the key was sent over\nplain HTTP, which is refused whatever the key.\n",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/EntitlementError"
                 },
-                "example": {
-                  "error": "source address not allowed for this API key"
+                "examples": {
+                  "source": {
+                    "value": {
+                      "error": "source address not allowed for this API key"
+                    }
+                  },
+                  "plain_http": {
+                    "value": {
+                      "error": "API key sent over plain HTTP; use https://"
+                    }
+                  }
                 }
               }
             }
@@ -2194,6 +2251,10 @@
           "trial_expired": {
             "type": "boolean",
             "description": "On every answer to a key on the free plan, and on no other: `false`\nwhile its organization's daily trial lasts (every field for the first\n100 lookups each UTC day), `true` once the answer has Unlimited's.\n"
+          },
+          "cap_reached": {
+            "type": "boolean",
+            "description": "On every answer to a key on a paid plan, and on no other: `false`\nwhile the answer has every field, `true` once its organization's\noverage cap is reached and the answer has Unlimited's. Lookups\nanswered past the cap are not billed; raising or removing the cap in\nBilling turns it `false` again.\n"
           }
         }
       },
@@ -2251,7 +2312,7 @@
         "properties": {
           "status": {
             "type": "integer",
-            "description": "The HTTP status `GET /{ip}` would have answered for this entry: `400`\nfor a string that is not an address, `429` for a reached overage cap,\n`500` when the VPN dataset could not be consulted. A `429` here is\nnever a throttle; the whole call is refused instead.\n",
+            "description": "The HTTP status `GET /{ip}` would have answered for this entry: `400`\nfor a string that is not an address, `500` when the VPN dataset could\nnot be consulted.\n",
             "example": 400
           },
           "error": {
@@ -2983,7 +3044,7 @@
             "type": "integer",
             "format": "int64",
             "nullable": true,
-            "description": "Where we stop serving. NULL means never, which is the normal state\nof an uncapped paid plan and is not the same as zero. Above the\nquota and below this, requests are served and billed as overage.\n"
+            "description": "Where full answers stop: past it, a paid key is answered with\nUnlimited's fields and `cap_reached: true`, uncharged, until the\nwindow ends or the cap is raised. NULL means never, which is the\nnormal state of an uncapped paid plan and is not the same as zero.\nAbove the quota and below this, requests are served and billed as\noverage.\n"
           },
           "window_start": {
             "type": "string",

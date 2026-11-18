@@ -21,11 +21,12 @@ const CLOSED_LIST = /\bnever gains a value\b/;
 const lookup = schema('LookupResponse');
 
 // Members that mark an answer rather than report on a dataset. `trial_expired` is
-// on a free-plan key's answers only, so it is neither something a plan covers nor
-// something whose absence means anything: it stays out of every coverage list,
-// and out of a bogon's synthesized body. Checked against the spec, so a rename
-// there fails this script rather than quietly turning the marker into a dataset.
-const markers = ['trial_expired'];
+// on a free-plan key's answers only and `cap_reached` on a paid key's, so neither
+// is something a plan covers nor something whose absence means anything: each
+// stays out of every coverage list, and out of a bogon's synthesized body. Checked
+// against the spec, so a rename there fails this script rather than quietly
+// turning the marker into a dataset.
+const markers = ['trial_expired', 'cap_reached'];
 for (const m of markers) {
     if (!(m in lookup.properties)) {
         throw new Error(`${m} is no longer a LookupResponse member: update the markers list`);

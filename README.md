@@ -109,9 +109,9 @@ Each lookup comes back with a `coverage` block beside it:
 
 ```json
 {
-  "result": { "ip": "45.83.91.1", "is_vpn": true, "is_relay": false, "is_tor": false, "...": "..." },
+  "result": { "ip": "45.83.91.1", "is_bogon": false, "is_vpn": true, "is_relay": false, "...": "..." },
   "coverage": {
-    "included": ["ip", "is_vpn", "is_relay", "is_tor", "relay", "tor", "location", "asn"],
+    "included": ["ip", "is_bogon", "is_vpn", "is_relay", "is_tor", "relay", "tor", "location", "asn"],
     "not_included": ["is_hosting", "is_cdn", "vpn", "hosting", "..."],
     "note": "The fields in not_included were not returned, because this API key's plan does not include them. ..."
   }
@@ -121,6 +121,8 @@ Each lookup comes back with a `coverage` block beside it:
 This matters more here than in a normal client library. A field missing from a result means your plan doesn't include it, never "we checked and found nothing" - and a model reading the result on its own will otherwise treat the absence as a negative answer. `coverage` states the difference explicitly so it can't.
 
 An answer to a key on the free plan also carries `trial_expired`: false while its organization's daily trial of every field lasts, and true once the answer is Unlimited's, which `coverage.note` then says.
+
+An answer to a key on a paid plan carries `cap_reached` the same way: false while the answer has every field, and true once its organization's overage cap is reached. Past the cap a lookup is answered with Unlimited's fields and not billed, and `coverage.note` says the cap left the other fields out, not the plan. Raising or removing the cap in Billing brings them back.
 
 ## Other Libraries
 
