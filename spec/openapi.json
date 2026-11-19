@@ -9,7 +9,7 @@
       "url": "https://vpndetection.io"
     },
     "termsOfService": "https://vpndetection.io/terms",
-    "version": "2026.11.17"
+    "version": "2026.11.18"
   },
   "servers": [
     {
@@ -969,6 +969,9 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/KeyOverHttp"
           }
         },
         "security": [
@@ -1048,7 +1051,7 @@
             "$ref": "#/components/responses/Unauthorized"
           },
           "403": {
-            "description": "Your organization holds no license for this database, or its term has ended",
+            "description": "Your organization holds no license for this database, or its term has ended (`NOT_LICENSED`); or the key was sent over plain HTTP (`KEY_OVER_HTTP`), so use `https://`",
             "content": {
               "application/json": {
                 "schema": {
@@ -1132,6 +1135,9 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/KeyOverHttp"
           },
           "404": {
             "$ref": "#/components/responses/UnknownDataset"
@@ -1220,7 +1226,14 @@
             "$ref": "#/components/responses/Unauthorized"
           },
           "403": {
-            "$ref": "#/components/responses/NotLicensed"
+            "description": "Your organization holds no license for this database, or its term has ended (`NOT_LICENSED`); or the key was sent over plain HTTP (`KEY_OVER_HTTP`), so use `https://`",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "404": {
             "$ref": "#/components/responses/UnknownDataset"
@@ -1287,6 +1300,9 @@
           },
           "401": {
             "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/KeyOverHttp"
           }
         },
         "security": [
@@ -3657,8 +3673,8 @@
           }
         }
       },
-      "NotLicensed": {
-        "description": "Your organization holds no license for this database, or its term has ended",
+      "KeyOverHttp": {
+        "description": "The key was sent over plain HTTP (`KEY_OVER_HTTP`), refused whatever it is. By then it has crossed in the clear, so use `https://` and replace a key that did",
         "content": {
           "application/json": {
             "schema": {
@@ -3698,7 +3714,7 @@
         }
       },
       "AccountForbidden": {
-        "description": "The credential does not hold the scope this endpoint requires. The\nmissing scope is deliberately not named.\n",
+        "description": "The credential does not hold the scope this endpoint requires\n(`FORBIDDEN`); the missing scope is deliberately not named. Or the\ncredential was sent over plain HTTP, refused whatever it is\n(`KEY_OVER_HTTP`): use `https://`.\n`rc`: `FORBIDDEN`, `KEY_OVER_HTTP`.\n",
         "content": {
           "application/json": {
             "schema": {
