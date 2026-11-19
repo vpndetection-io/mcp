@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.6.2 - 2026-11-19
+
+### Fixes
+
+- Say in my_entitlement where full answers stop ([`1d50cc7`](https://github.com/vpndetection-io/mcp/commit/1d50cc77e4bbd41ec9d2df99ee4ec2d75fc7c019))
+
 ## 6.6.1 - 2026-11-19
 
 ### Fixes
