@@ -101,7 +101,7 @@ Every tool is read-only. There is deliberately no download tool: the databases r
 
 **There is deliberately no `my_ip` tool, although every client library has one.** Over a hosted transport the address our edge observes belongs to whatever proxied the call - Claude's infrastructure, not the person asking - so the tool would answer confidently and wrongly for the only reading anyone would put on it. `my_entitlement` has no such problem and is the same answer from any transport, because it describes the credential rather than the connection. A test pins the tool's absence so it cannot be added back by accident.
 
-A paid plan's usage counts against the anniversary of the subscription, not the calendar month and not the billing period, and the free plan's against the UTC day. A null `hard_limit` means we never stop serving; it is not a limit of zero.
+A paid plan's usage counts against the anniversary of the subscription, not the calendar month and not the billing period, and the free plan's against the UTC day. `hard_limit` is where full answers stop, and a null one means they never do; it is not a limit of zero.
 
 ## Reading a result
 
