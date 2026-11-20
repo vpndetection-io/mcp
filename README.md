@@ -5,7 +5,7 @@
 
 The official [Model Context Protocol](https://modelcontextprotocol.io) server for the [VPNDetection](https://vpndetection.io) API.
 
-It gives an AI agent seven read-only tools for anonymity detection: whether an address belongs to a VPN, a residential, datacenter, mobile or public proxy, a Tor node, a privacy relay or web gateway, a hosting provider or a CDN, plus the database catalog and where your organization's license for each one stands.
+It gives an AI agent seven read-only tools for anonymity detection: whether an address belongs to a VPN, a residential, datacenter, mobile or public proxy, a Tor node, a privacy relay or web gateway, a hosting provider or a CDN; whether it is anycast, or a mobile carrier's or satellite operator's space; whether an SSH, mail or web server or an open DNS resolver answered on it, or a BitTorrent client was seen on it; plus the database catalog and where your organization's license for each one stands.
 
 ## Getting Started
 
@@ -50,7 +50,7 @@ Point it at `https://mcp.vpndetection.io/mcp`. A client that supports MCP author
 
 ### On your own machine
 
-**No API key needed to start.** Unlimited, the free plan, answers `ip`, `is_vpn`, Tor and relay detection, `location` and `asn`, with no daily or monthly cap, with a key or without one. Every paid plan answers every field: `is_hosting`, `is_cdn` and the four proxy flags as well, and the provider, confidence and last-seen detail behind each flag. A free account tries every field.
+**No API key needed to start.** Unlimited, the free plan, answers `ip`, `is_vpn`, Tor and relay detection, `is_anycast`, `hostname` (the reverse DNS name), country-level `location` and `asn` with the AS's country and RPKI status, with no daily or monthly cap, with a key or without one. Every paid plan answers every field: `is_hosting`, `is_cdn` and the four proxy flags as well, the carrier and satellite flags, the five service flags (SSH, SMTP, web, DNS resolver and BitTorrent), city-level `location`, the `company` and the `abuse` contact, and the provider, confidence and last-seen detail behind each flag. A free account tries every field.
 
 Add this to your MCP client's config:
 
@@ -101,7 +101,7 @@ Every tool is read-only. There is deliberately no download tool: the databases r
 
 **There is deliberately no `my_ip` tool, although every client library has one.** Over a hosted transport the address our edge observes belongs to whatever proxied the call - Claude's infrastructure, not the person asking - so the tool would answer confidently and wrongly for the only reading anyone would put on it. `my_entitlement` has no such problem and is the same answer from any transport, because it describes the credential rather than the connection. A test pins the tool's absence so it cannot be added back by accident.
 
-A paid plan's usage counts against the anniversary of the subscription, not the calendar month and not the billing period, and the free plan's against the UTC day. `hard_limit` is where full answers stop, and a null one means they never do; it is not a limit of zero.
+A paid plan's usage counts against the anniversary of the subscription, not the calendar month and not the billing period, and the free plan's counts its trial, over the window the answer gives. `hard_limit` is where full answers stop, and a null one means they never do; it is not a limit of zero.
 
 ## Reading a result
 
@@ -111,7 +111,7 @@ Each lookup comes back with a `coverage` block beside it:
 {
   "result": { "ip": "45.83.91.1", "is_bogon": false, "is_vpn": true, "is_relay": false, "...": "..." },
   "coverage": {
-    "included": ["ip", "is_bogon", "is_vpn", "is_relay", "is_tor", "relay", "tor", "location", "asn"],
+    "included": ["ip", "is_bogon", "is_vpn", "is_relay", "is_tor", "is_anycast", "relay", "tor", "location", "asn", "hostname"],
     "not_included": ["is_hosting", "is_cdn", "vpn", "hosting", "..."],
     "note": "The fields in not_included were not returned, because this API key's plan does not include them. ..."
   }

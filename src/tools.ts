@@ -135,7 +135,9 @@ export function createTools(ctx: ToolContext): ToolDef[] {
                 description: 'Classify a single IPv4 or IPv6 address: whether it belongs to a VPN, '
                     + 'a residential, datacenter, mobile or public proxy, a Tor node, a privacy relay '
                     + 'or web gateway, a hosting provider or a CDN, with the provider name where we '
-                    + 'have one. '
+                    + 'have one; whether it is anycast, or a mobile carrier\'s or satellite operator\'s '
+                    + 'space; and whether an SSH, mail or web server or an open DNS resolver answered '
+                    + 'on it, or a BitTorrent client was seen on it. '
                     + 'Private and reserved addresses are answered locally, without calling the API. '
                     + 'Always read `coverage.note` before concluding anything from a field that is '
                     + 'not in the result.',

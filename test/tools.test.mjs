@@ -773,6 +773,14 @@ const FLAG_WORDS = {
     is_relay: 'a privacy relay or web gateway',
     is_hosting: 'a hosting provider',
     is_cdn: 'a CDN',
+    is_anycast: 'anycast',
+    is_carrier: 'a mobile carrier',
+    is_satellite: 'satellite operator',
+    is_ssh: 'an SSH',
+    is_smtp: 'mail',
+    is_web: 'web server',
+    is_dns_resolver: 'an open DNS resolver',
+    is_bittorrent: 'a BitTorrent client',
 };
 
 // A flag read off the address alone, from no dataset, so no family: lookup_ip's

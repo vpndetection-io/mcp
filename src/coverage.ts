@@ -1,7 +1,7 @@
 import type { Result } from 'vpndetection';
 
 import {
-    LOOKUP_GATED_MEMBERS, LOOKUP_MARKERS, LOOKUP_MEMBERS, LOOKUP_RESULT_SCHEMA, type ObjectSchema,
+    LOOKUP_GATED_MEMBERS, LOOKUP_MARKERS, LOOKUP_MEMBERS, LOOKUP_RESULT_SCHEMA,
 } from './schema.gen.js';
 
 /**
@@ -61,8 +61,9 @@ const NOTE_MIXED = 'The answers in this batch do not all carry the same fields, 
  * SDK also sets it from a served `is_bogon`. Rebuilding the local one from the
  * spec's own property types avoids a second copy of the wire names here, and lands
  * on the documented bogon shape by construction - every flag present and false
- * but `is_bogon`, every detail object present and empty, and a location and AS of
- * empty strings and AS 0.
+ * but `is_bogon`, every detail object present and empty, `web` an empty list,
+ * `hostname` an empty string, and the location, AS, company and abuse contact
+ * with every member empty, zero or false.
  */
 export function wireBody(result: Result): Record<string, unknown> {
     const raw = result.raw as unknown as Record<string, unknown>;
@@ -76,28 +77,47 @@ export function wireBody(result: Result): Record<string, unknown> {
         if (name in out || LOOKUP_MARKERS.includes(name)) {
             continue;
         }
-        const type = (schema as { type?: string }).type;
-        if (type === 'boolean') {
-            out[name] = false;
-        } else if (type === 'object') {
-            out[name] = emptyObject(schema as ObjectSchema);
-        }
+        out[name] = emptyValue(schema as MemberSchema);
     }
     return out;
 }
 
-/**
- * A detail object is `{}` when its flag is false, while the location and the AS carry
- * every member they require even where nothing is known: an empty string, or AS 0.
- * The schema's own `required` list says which shape an object takes.
- */
-function emptyObject(schema: ObjectSchema): Record<string, unknown> {
-    const out: Record<string, unknown> = {};
-    for (const member of schema.required ?? []) {
-        const type = (schema.properties?.[member] as { type?: string } | undefined)?.type;
-        out[member] = type === 'integer' || type === 'number' ? 0 : '';
+/** The part of a member's schema a bogon's answer is built from. */
+interface MemberSchema {
+    type?: unknown;
+    properties?: Record<string, object>;
+    required?: string[];
+}
+
+/** What a bogon answers for a member of this type: false, zero, an empty string or list. */
+function emptyValue(schema: MemberSchema): unknown {
+    switch (schema.type) {
+        case 'boolean':
+            return false;
+        case 'integer':
+        case 'number':
+            return 0;
+        case 'array':
+            return [];
+        case 'object':
+            return emptyObject(schema);
+        default:
+            return '';
     }
-    return out;
+}
+
+/**
+ * A detail object is `{}` when its flag is false, while the location, the AS, the
+ * company and the abuse contact carry every member even where nothing is known. A
+ * detail object requires nothing, so the schema's own `required` list says which
+ * shape an object takes.
+ */
+function emptyObject(schema: MemberSchema): Record<string, unknown> {
+    if ((schema.required ?? []).length === 0) {
+        return {};
+    }
+    return Object.fromEntries(Object.entries(schema.properties ?? {})
+        .map(([member, prop]) => [member, emptyValue(prop as MemberSchema)]));
 }
 
 /**
@@ -131,7 +151,7 @@ export function coverageOf(body: Record<string, unknown>): Coverage {
  * would report every dataset as covered whatever the plan actually buys. Errors
  * carry no shape at all. With neither available there is nothing honest to say,
  * which is what `NOTE_UNKNOWN` says. Served answers can differ: a free-plan key's
- * daily trial can run out between its single lookups, and a paid key's overage cap
+ * trial can run out between its single lookups, and a paid key's overage cap
  * can be reached part way through a batch, either of which answers the rest with
  * Unlimited's fields. Reading the widest one would call every field checked, so the
  * narrowest one speaks for the batch and `NOTE_MIXED` says the answers differ.
