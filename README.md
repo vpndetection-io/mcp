@@ -50,7 +50,7 @@ Point it at `https://mcp.vpndetection.io/mcp`. A client that supports MCP author
 
 ### On your own machine
 
-**No API key needed to start.** Unlimited, the free plan, answers `ip`, `is_vpn`, Tor and relay detection, `location` and `asn`, with no daily or monthly cap, with a key or without one. Every paid plan answers every field: `is_hosting`, `is_cdn` and the four proxy flags as well, and the provider, confidence and last-seen detail behind each flag. A free account tries every field, 100 lookups a day.
+**No API key needed to start.** Unlimited, the free plan, answers `ip`, `is_vpn`, Tor and relay detection, `location` and `asn`, with no daily or monthly cap, with a key or without one. Every paid plan answers every field: `is_hosting`, `is_cdn` and the four proxy flags as well, and the provider, confidence and last-seen detail behind each flag. A free account tries every field.
 
 Add this to your MCP client's config:
 
@@ -120,7 +120,7 @@ Each lookup comes back with a `coverage` block beside it:
 
 This matters more here than in a normal client library. A field missing from a result means your plan doesn't include it, never "we checked and found nothing" - and a model reading the result on its own will otherwise treat the absence as a negative answer. `coverage` states the difference explicitly so it can't.
 
-An answer to a key on the free plan also carries `trial_expired`: false while its organization's daily trial of every field lasts, and true once the answer is Unlimited's, which `coverage.note` then says.
+An answer to a key on the free plan also carries `trial_expired`: false while its organization's trial of every field lasts, and true once the answer is Unlimited's, which `coverage.note` then says.
 
 An answer to a key on a paid plan carries `cap_reached` the same way: false while the answer has every field, and true once its organization's overage cap is reached. Past the cap a lookup is answered with Unlimited's fields and not billed, and `coverage.note` says the cap left the other fields out, not the plan. Raising or removing the cap in Billing brings them back.
 
