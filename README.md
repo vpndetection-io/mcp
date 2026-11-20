@@ -67,7 +67,7 @@ Add this to your MCP client's config:
 
 Requires Node.js 22 or newer.
 
-A key on a paid plan unlocks the provider name, the classification databases and the proxy families. Put it in the environment:
+A key on a paid plan unlocks every field. Put it in the environment:
 
 ```json
 {
