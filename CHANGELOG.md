@@ -2,6 +2,16 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.7.0 - 2026-11-20
+
+### Features
+
+- Re-pin the spec to 2026.11.20: network, service, company and abuse members ([`010905e`](https://github.com/vpndetection-io/mcp/commit/010905ecd7672150921a5b68a0d0bae14ea22693))
+
+### Fixes
+
+- Tool text and README: the free trial without a count ([`fcbbef9`](https://github.com/vpndetection-io/mcp/commit/fcbbef96ea8c70cade0e04985117d3ca0f60a4f6))
+
 ## 6.6.2 - 2026-11-19
 
 ### Fixes
