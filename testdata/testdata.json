@@ -1864,7 +1864,9 @@
           "name": "M247 Europe SRL",
           "domain": "m247global.com",
           "type": "hosting",
-          "prefix": "146.70.116.0/24"
+          "prefix": "146.70.116.0/24",
+          "country": "US",
+          "rpki_status": "valid"
         }
       },
       "expect": {
@@ -1912,7 +1914,9 @@
           "name": "M247 Europe SRL",
           "domain": "m247global.com",
           "type": "hosting",
-          "prefix": "146.70.116.0/24"
+          "prefix": "146.70.116.0/24",
+          "country": "US",
+          "rpki_status": "valid"
         }
       }
     },
@@ -1950,7 +1954,9 @@
           "name": "M247 Europe SRL",
           "domain": "m247global.com",
           "type": "hosting",
-          "prefix": "146.70.116.0/24"
+          "prefix": "146.70.116.0/24",
+          "country": "US",
+          "rpki_status": "valid"
         }
       },
       "expect": {
@@ -1997,7 +2003,9 @@
           "name": "M247 Europe SRL",
           "domain": "m247global.com",
           "type": "hosting",
-          "prefix": "146.70.116.0/24"
+          "prefix": "146.70.116.0/24",
+          "country": "US",
+          "rpki_status": "valid"
         }
       }
     },
@@ -2050,7 +2058,9 @@
           "name": "M247 Europe SRL",
           "domain": "m247global.com",
           "type": "hosting",
-          "prefix": "146.70.116.0/24"
+          "prefix": "146.70.116.0/24",
+          "country": "US",
+          "rpki_status": "valid"
         },
         "trial_expired": false
       },
@@ -2100,7 +2110,9 @@
           "name": "M247 Europe SRL",
           "domain": "m247global.com",
           "type": "hosting",
-          "prefix": "146.70.116.0/24"
+          "prefix": "146.70.116.0/24",
+          "country": "US",
+          "rpki_status": "valid"
         }
       }
     },
@@ -2132,7 +2144,9 @@
           "name": "M247 Europe SRL",
           "domain": "m247global.com",
           "type": "hosting",
-          "prefix": "146.70.116.0/24"
+          "prefix": "146.70.116.0/24",
+          "country": "US",
+          "rpki_status": "valid"
         },
         "trial_expired": true
       },
@@ -2181,7 +2195,9 @@
           "name": "M247 Europe SRL",
           "domain": "m247global.com",
           "type": "hosting",
-          "prefix": "146.70.116.0/24"
+          "prefix": "146.70.116.0/24",
+          "country": "US",
+          "rpki_status": "valid"
         }
       }
     },
@@ -2213,7 +2229,9 @@
           "name": "M247 Europe SRL",
           "domain": "m247global.com",
           "type": "hosting",
-          "prefix": "146.70.116.0/24"
+          "prefix": "146.70.116.0/24",
+          "country": "US",
+          "rpki_status": "valid"
         },
         "is_bogon": false,
         "cap_reached": true
@@ -2263,7 +2281,9 @@
           "name": "M247 Europe SRL",
           "domain": "m247global.com",
           "type": "hosting",
-          "prefix": "146.70.116.0/24"
+          "prefix": "146.70.116.0/24",
+          "country": "US",
+          "rpki_status": "valid"
         }
       }
     },
@@ -8072,7 +8092,9 @@
             "name": "M247 Europe SRL",
             "domain": "m247global.com",
             "type": "hosting",
-            "prefix": "146.70.116.0/24"
+            "prefix": "146.70.116.0/24",
+            "country": "US",
+            "rpki_status": "valid"
           }
         },
         "condition": {
@@ -8112,7 +8134,9 @@
             "name": "M247 Europe SRL",
             "domain": "m247global.com",
             "type": "hosting",
-            "prefix": "146.70.116.0/24"
+            "prefix": "146.70.116.0/24",
+            "country": "US",
+            "rpki_status": "valid"
           }
         },
         "condition": {
@@ -8155,7 +8179,9 @@
             "name": "M247 Europe SRL",
             "domain": "m247global.com",
             "type": "hosting",
-            "prefix": "146.70.116.0/24"
+            "prefix": "146.70.116.0/24",
+            "country": "US",
+            "rpki_status": "valid"
           }
         },
         "condition": {
@@ -8195,7 +8221,9 @@
             "name": "M247 Europe SRL",
             "domain": "m247global.com",
             "type": "hosting",
-            "prefix": "146.70.116.0/24"
+            "prefix": "146.70.116.0/24",
+            "country": "US",
+            "rpki_status": "valid"
           }
         },
         "condition": {
@@ -8235,7 +8263,9 @@
             "name": "M247 Europe SRL",
             "domain": "m247global.com",
             "type": "hosting",
-            "prefix": "146.70.116.0/24"
+            "prefix": "146.70.116.0/24",
+            "country": "US",
+            "rpki_status": "valid"
           }
         },
         "condition": {

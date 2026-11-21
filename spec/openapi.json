@@ -1687,12 +1687,10 @@
           "Account"
         ],
         "summary": "Identity",
-        "description": "The identity behind this credential: what it is, the organization it is\nscoped to, and the scopes it currently holds.\n\n`user` is present for an OAuth token and absent for an API key, which\nhas an organization but no person behind it. `credential.kind` says\nwhich you are holding, so a client can branch without guessing from a\nmissing field.\n\n`scopes` is what the credential may do now, so a client can check\nbefore it calls.\n",
+        "description": "The identity behind this credential: what it is, the organization it is\nscoped to, and the scopes it currently holds.\n\n`user` is present for an OAuth token and absent for an API key, which\nhas an organization but no person behind it. `credential.kind` says\nwhich you are holding, so a client can branch without guessing from a\nmissing field.\n\n`scopes` is what the credential may do now, so a client can check\nbefore it calls.\n\nNeeds the `account.read` scope.\n",
         "security": [
           {
-            "bearerAuth": [
-              "account.read"
-            ]
+            "bearerAuth": []
           }
         ],
         "responses": {
@@ -1742,12 +1740,10 @@
           "Organization"
         ],
         "summary": "Organization",
-        "description": "The organization this credential is scoped to.\n\nA credential belongs to one organization, so this takes no ID.\n",
+        "description": "The organization this credential is scoped to.\n\nA credential belongs to one organization, so this takes no ID.\n\nNeeds the `org.read` scope.\n",
         "security": [
           {
-            "bearerAuth": [
-              "org.read"
-            ]
+            "bearerAuth": []
           }
         ],
         "responses": {
@@ -1777,12 +1773,10 @@
           "Organization"
         ],
         "summary": "Members",
-        "description": "The members of the organization this credential is scoped to.\n\nRead-only. Members are invited by email from the console.\n",
+        "description": "The members of the organization this credential is scoped to.\n\nRead-only. Members are invited by email from the console.\n\nNeeds the `org.read` scope.\n",
         "security": [
           {
-            "bearerAuth": [
-              "org.read"
-            ]
+            "bearerAuth": []
           }
         ],
         "responses": {
@@ -1812,12 +1806,10 @@
           "API keys"
         ],
         "summary": "List",
-        "description": "Each key's metadata. A list never carries a secret, here or in the\nconsole: `reveal` reads one.\n\n`retrievable` says whether the secret could still be read back at all.\nA key issued before this product stored secrets recoverably was never\nkept, so `reveal` will refuse it permanently; rotating produces one\nthat can be read.\n",
+        "description": "Each key's metadata. A list never carries a secret, here or in the\nconsole: `reveal` reads one.\n\n`retrievable` says whether the secret could still be read back at all.\nA key issued before this product stored secrets recoverably was never\nkept, so `reveal` will refuse it permanently; rotating produces one\nthat can be read.\n\nNeeds the `apikeys.read` scope.\n",
         "security": [
           {
-            "bearerAuth": [
-              "apikeys.read"
-            ]
+            "bearerAuth": []
           }
         ],
         "responses": {
@@ -1845,12 +1837,10 @@
           "API keys"
         ],
         "summary": "Create",
-        "description": "Creates a key and returns its secret.\n\nStore the secret now. Reading it back later takes `reveal` and the\n`apikeys.reveal` scope.\n",
+        "description": "Creates a key and returns its secret.\n\nStore the secret now. Reading it back later takes `reveal` and the\n`apikeys.reveal` scope.\n\nNeeds the `apikeys.manage` scope.\n",
         "security": [
           {
-            "bearerAuth": [
-              "apikeys.manage"
-            ]
+            "bearerAuth": []
           }
         ],
         "requestBody": {
@@ -1896,10 +1886,7 @@
         "description": "Replaces the secret behind a key, keeping its ID, name and settings.\nThe previous secret stops working immediately. The new secret comes\nback in the answer, so this needs `apikeys.reveal` as well as\n`apikeys.manage`.\n",
         "security": [
           {
-            "bearerAuth": [
-              "apikeys.manage",
-              "apikeys.reveal"
-            ]
+            "bearerAuth": []
           }
         ],
         "parameters": [
@@ -1937,12 +1924,10 @@
           "API keys"
         ],
         "summary": "Revoke",
-        "description": "Stops the key working. Revocation is soft: the key stays listed with a\n`revoked_at`, because the organization still owns whatever it did while\nit was alive.\n",
+        "description": "Stops the key working. Revocation is soft: the key stays listed with a\n`revoked_at`, because the organization still owns whatever it did while\nit was alive.\n\nNeeds the `apikeys.manage` scope.\n",
         "security": [
           {
-            "bearerAuth": [
-              "apikeys.manage"
-            ]
+            "bearerAuth": []
           }
         ],
         "parameters": [
@@ -1980,12 +1965,10 @@
           "API keys"
         ],
         "summary": "Reveal",
-        "description": "Returns an existing key's secret.\n\nIt needs the `apikeys.reveal` scope, which `apikeys.manage` doesn't\ninclude.\n\nRefused with `NOT_RETRIEVABLE` for a key issued before we kept secrets.\nRotate that key instead.\n",
+        "description": "Returns an existing key's secret.\n\nIt needs the `apikeys.reveal` scope, which `apikeys.manage` doesn't\ninclude.\n\nRefused with `NOT_RETRIEVABLE` for a key issued before we kept secrets.\nRotate that key instead.\n\nNeeds the `apikeys.reveal` scope.\n",
         "security": [
           {
-            "bearerAuth": [
-              "apikeys.reveal"
-            ]
+            "bearerAuth": []
           }
         ],
         "parameters": [
@@ -2926,7 +2909,9 @@
           "name",
           "domain",
           "type",
-          "prefix"
+          "prefix",
+          "country",
+          "rpki_status"
         ],
         "properties": {
           "asn": {
@@ -3029,6 +3014,7 @@
           },
           "asn": {
             "type": "integer",
+            "format": "int64",
             "description": "The AS the operator announces it from.",
             "example": 14593
           },
