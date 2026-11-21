@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.7.1 - 2026-11-21
+
+### Fixes
+
+- Re-pin the spec: the AS's country and RPKI status are always served ([`dce6542`](https://github.com/vpndetection-io/mcp/commit/dce6542fd2b3b596e97e961991d4a25c66fad8cf))
+
 ## 6.7.0 - 2026-11-20
 
 ### Features
