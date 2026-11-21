@@ -13,7 +13,7 @@ We host it at `https://mcp.vpndetection.io/mcp`, and you sign in to it with your
 
 ### In Claude
 
-In claude.ai, the desktop app or Cowork, add `https://mcp.vpndetection.io/mcp` as a custom connector and choose **Use Claude's published identity** when asked. In Claude Code, install our plugin, which adds the server with skills:
+In claude.ai, the desktop app or Cowork, add VPNDetection from [Claude's connectors directory](https://claude.ai/directory/vpndetection), or add `https://mcp.vpndetection.io/mcp` yourself as a custom connector and choose **Use Claude's published identity** when asked. In Claude Code, install our plugin, which adds the server with skills:
 
 ```console
 /plugin marketplace add vpndetection-io/claude-plugin
