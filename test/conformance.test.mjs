@@ -73,11 +73,11 @@ test('an answer of the required members alone names every gated member as not co
 });
 
 // Every answer carries is_bogon, and a paid one location and asn beside every class,
-// and spec 2026.11.20's network and service members, company, hostname and abuse,
-// which the corpus's other max cases predate, so they are added here from the cases
-// that carry them.
+// spec 2026.11.20's network and service members, company, hostname and abuse, and
+// 2026.11.21's is_bot and bot, which the corpus's other max cases predate, so they
+// are added here from the cases that carry them.
 const { is_bogon: SERVED_IS_BOGON } = data.lookup.find((c) => c.name === 'max-full-shape').body;
-const PAID_SINCE_2026_11_20 = (() => {
+const NEWER_PAID_MEMBERS = (() => {
     const before = data.lookup.find((c) => c.name === 'max-full-shape').body;
     const now = data.lookup.find((c) => c.name === 'paid-satellite').body;
     return Object.fromEntries(Object.entries(now)
@@ -88,7 +88,7 @@ test('a max answer that found nothing reports full coverage, not absence', async
     const max = data.lookup.find((c) => c.name === 'max-nothing-found');
     const { location, asn } = data.lookup.find((c) => c.name === 'unlimited-location-asn').body;
     const body = {
-        ...max.body, ...PAID_SINCE_2026_11_20, is_bogon: SERVED_IS_BOGON, location: location, asn: asn,
+        ...max.body, ...NEWER_PAID_MEMBERS, is_bogon: SERVED_IS_BOGON, location: location, asn: asn,
     };
     const stub = serving(body);
     const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: body.ip });
@@ -131,7 +131,7 @@ test('an Unlimited answer names the flags a paid plan adds as not covered', asyn
 // covered nor one left out, and the result carries it verbatim.
 test("a free-plan key's full answer reports full coverage and keeps trial_expired", async () => {
     const trial = data.lookup.find((c) => c.name === 'trial-full-answer');
-    const body = { ...trial.body, ...PAID_SINCE_2026_11_20, is_bogon: SERVED_IS_BOGON };
+    const body = { ...trial.body, ...NEWER_PAID_MEMBERS, is_bogon: SERVED_IS_BOGON };
     const stub = serving(body);
     const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: body.ip });
     const { result, coverage } = out.structuredContent;
@@ -176,7 +176,7 @@ test("a paid key past its overage cap says the cap left the fields out, not the 
 test("a paid key's full answer reports full coverage and keeps cap_reached", async () => {
     const max = data.lookup.find((c) => c.name === 'max-full-shape');
     const { location, asn } = data.lookup.find((c) => c.name === 'cap-reached-answer').body;
-    const body = { ...max.body, ...PAID_SINCE_2026_11_20, location: location, asn: asn };
+    const body = { ...max.body, ...NEWER_PAID_MEMBERS, location: location, asn: asn };
     const stub = serving(body);
     const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: body.ip });
     const { result, coverage } = out.structuredContent;
@@ -281,8 +281,13 @@ test('a bogon is answered in the full documented shape', async () => {
     }
     assert.deepEqual(out.structuredContent.coverage.not_included, [],
         'nothing is uncovered in a locally synthesized answer');
-    assert.ok(!('trial_expired' in body), 'a bogon was never served, so it carries no trial marker');
-    assert.ok(!('cap_reached' in body), 'a bogon was never served, so it carries no cap marker');
+    const corpusNames = [
+        'ip', 'is_bogon', ...data.bogonResponse.flagsFalse, ...data.bogonResponse.emptyObjects,
+        ...named.map(([member]) => member),
+    ];
+    assert.deepEqual(Object.keys(body).sort(), corpusNames.sort(),
+        'a bogon carries what the corpus names and nothing else: no marker, since it was never served, '
+        + 'and no answer to a request parameter, since none was sent');
 });
 
 // A server listening on :: logs every IPv4 visitor as ::ffff:a.b.c.d, and a model triaging that

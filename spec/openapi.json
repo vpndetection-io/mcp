@@ -9,7 +9,7 @@
       "url": "https://vpndetection.io"
     },
     "termsOfService": "https://vpndetection.io/terms",
-    "version": "2026.11.20"
+    "version": "2026.11.21"
   },
   "servers": [
     {
@@ -80,6 +80,17 @@
                 "value": "2606:4700:4700::1111"
               }
             }
+          },
+          {
+            "in": "query",
+            "name": "user_agent",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 1024
+            },
+            "description": "The `User-Agent` header of the request you are deciding on. With\nevery field, on a paid plan or the trial, the answer then carries\n`user_agent`: the agent it names, and whether this address bears\nthat out. Never kept, and nothing sent with a lookup feeds our data.\n",
+            "example": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
           }
         ],
         "responses": {
@@ -99,6 +110,7 @@
                       "is_vpn": true,
                       "is_relay": false,
                       "is_tor": false,
+                      "is_bot": false,
                       "is_anycast": false,
                       "relay": {},
                       "tor": {},
@@ -136,6 +148,7 @@
                       "is_relay": false,
                       "is_tor": false,
                       "is_cdn": false,
+                      "is_bot": false,
                       "is_resproxy": false,
                       "is_dcproxy": false,
                       "is_mobproxy": false,
@@ -163,6 +176,7 @@
                       "relay": {},
                       "tor": {},
                       "cdn": {},
+                      "bot": {},
                       "resproxy": {},
                       "dcproxy": {},
                       "mobproxy": {},
@@ -233,6 +247,7 @@
                       "is_vpn": true,
                       "is_relay": false,
                       "is_tor": false,
+                      "is_bot": false,
                       "is_anycast": false,
                       "relay": {},
                       "tor": {},
@@ -271,6 +286,7 @@
                       "is_relay": false,
                       "is_tor": false,
                       "is_cdn": false,
+                      "is_bot": false,
                       "is_resproxy": false,
                       "is_dcproxy": false,
                       "is_mobproxy": false,
@@ -298,6 +314,7 @@
                       "relay": {},
                       "tor": {},
                       "cdn": {},
+                      "bot": {},
                       "resproxy": {},
                       "dcproxy": {},
                       "mobproxy": {},
@@ -368,6 +385,7 @@
                       "is_vpn": true,
                       "is_relay": false,
                       "is_tor": false,
+                      "is_bot": false,
                       "is_anycast": false,
                       "relay": {},
                       "tor": {},
@@ -406,6 +424,7 @@
                       "is_relay": false,
                       "is_tor": false,
                       "is_cdn": false,
+                      "is_bot": false,
                       "is_resproxy": false,
                       "is_dcproxy": false,
                       "is_mobproxy": false,
@@ -423,6 +442,7 @@
                       "relay": {},
                       "tor": {},
                       "cdn": {},
+                      "bot": {},
                       "resproxy": {},
                       "dcproxy": {},
                       "mobproxy": {},
@@ -631,6 +651,19 @@
         ],
         "summary": "My IP",
         "description": "Answers what is known about the address this request came from, which is\nthe same answer `GET /{ip}` gives for that address: the presented key\ndecides which fields come back, and the request counts against the same\nlimits.\n\nThe address is the one our edge observed, so a request through a proxy\nor a VPN reports the exit it left through rather than the machine that\nmade it. That is usually the point of asking.\n",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "user_agent",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 1024
+            },
+            "description": "The `User-Agent` header of the request you are deciding on. With\nevery field, on a paid plan or the trial, the answer then carries\n`user_agent`: the agent it names, and whether this address bears\nthat out. Never kept, and nothing sent with a lookup feeds our data.\n",
+            "example": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+          }
+        ],
         "responses": {
           "200": {
             "description": "The classification of your own address. Present fields are those\nyour plan includes; see the tier table in the API description.\n",
@@ -648,6 +681,7 @@
                       "is_vpn": true,
                       "is_relay": false,
                       "is_tor": false,
+                      "is_bot": false,
                       "is_anycast": false,
                       "relay": {},
                       "tor": {},
@@ -858,6 +892,7 @@
                           "is_relay": false,
                           "is_tor": false,
                           "is_cdn": false,
+                          "is_bot": false,
                           "is_resproxy": false,
                           "is_dcproxy": false,
                           "is_mobproxy": false,
@@ -875,6 +910,7 @@
                           "relay": {},
                           "tor": {},
                           "cdn": {},
+                          "bot": {},
                           "resproxy": {},
                           "dcproxy": {},
                           "mobproxy": {},
@@ -955,6 +991,7 @@
                           "is_vpn": true,
                           "is_relay": false,
                           "is_tor": false,
+                          "is_bot": false,
                           "is_anycast": false,
                           "relay": {},
                           "tor": {},
@@ -1265,7 +1302,7 @@
             "$ref": "#/components/responses/Unauthorized"
           },
           "403": {
-            "description": "Your organization holds no license for this database, or its term has ended (`NOT_LICENSED`); or the key was sent over plain HTTP (`KEY_OVER_HTTP`), so use `https://`",
+            "description": "Your organization holds no license for this database (`NOT_LICENSED`), or its license term has ended, so renew it (`LICENSE_EXPIRED`); or the key was sent over plain HTTP (`KEY_OVER_HTTP`), so use `https://`",
             "content": {
               "application/json": {
                 "schema": {
@@ -1440,7 +1477,7 @@
             "$ref": "#/components/responses/Unauthorized"
           },
           "403": {
-            "description": "Your organization holds no license for this database, or its term has ended (`NOT_LICENSED`); or the key was sent over plain HTTP (`KEY_OVER_HTTP`), so use `https://`",
+            "description": "Your organization holds no license for this database (`NOT_LICENSED`), or its license term has ended, so renew it (`LICENSE_EXPIRED`); or the key was sent over plain HTTP (`KEY_OVER_HTTP`), so use `https://`",
             "content": {
               "application/json": {
                 "schema": {
@@ -2367,6 +2404,10 @@
             "type": "boolean",
             "description": "Whether the address belongs to a CDN. Paid plans."
           },
+          "is_bot": {
+            "type": "boolean",
+            "description": "Whether an automated client uses the address, such as a search engine's or an AI company's crawler, an uptime monitor, an internet scanner or a webhook sender. `bot` says whose, what it does and whether its operator vouches for the address. Every answer, with or without a key."
+          },
           "is_resproxy": {
             "type": "boolean",
             "description": "Whether the address was seen in a residential proxy pool. Paid plans."
@@ -2454,6 +2495,14 @@
               }
             ],
             "description": "Detail for `is_cdn`. Empty when false. Paid plans."
+          },
+          "bot": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BotDetail"
+              }
+            ],
+            "description": "Detail for `is_bot`. Empty when false. Paid plans."
           },
           "resproxy": {
             "allOf": [
@@ -2559,6 +2608,14 @@
           "abuse": {
             "$ref": "#/components/schemas/AbuseContact"
           },
+          "user_agent": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/UserAgentVerdict"
+              }
+            ],
+            "description": "When the request sent `user_agent`, with every field: the agent it\nnames and whether this address bears it out. Absent otherwise.\n"
+          },
           "trial_expired": {
             "type": "boolean",
             "description": "On every answer to a key on the free plan, and on no other: `false`\nwhile its organization's trial of every field lasts, `true` once the\nanswer has Unlimited's.\n"
@@ -2587,6 +2644,17 @@
               "1.1.1.1",
               "2606:4700:4700::1111"
             ]
+          },
+          "user_agents": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 1024
+            },
+            "description": "Each address's `User-Agent`, keyed by the string it is sent as in\n`ips`. With every field, that address's answer then carries\n`user_agent`, as a single lookup's does. Never kept.\n",
+            "example": {
+              "66.249.66.1": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+            }
           }
         }
       },
@@ -2949,6 +3017,89 @@
             "type": "string",
             "description": "The announcement's RPKI status: valid, invalid or not_found.",
             "example": "not_found"
+          }
+        }
+      },
+      "UserAgentVerdict": {
+        "type": "object",
+        "required": [
+          "agent",
+          "kind",
+          "verdict"
+        ],
+        "properties": {
+          "agent": {
+            "type": "string",
+            "description": "The agent the user agent names, such as `Googlebot` or `Chrome`; `Unknown` where it names none.",
+            "example": "Googlebot"
+          },
+          "kind": {
+            "type": "string",
+            "description": "`browser`, `inapp`, `automation`, `bot`, `ai-bot`, `http-client` or\n`unknown`: what kind of client the user agent says it is.\n",
+            "example": "bot"
+          },
+          "verdict": {
+            "type": "string",
+            "enum": [
+              "verified",
+              "spoofed",
+              "unverifiable",
+              "not_bot"
+            ],
+            "description": "`verified`: the agent's operator vouches for this address as it.\n`spoofed`: the operator of a bot that publishes its addresses, or\nwhose registered space it uses, does not vouch for this one, or this\naddress posed as the bot before. `unverifiable`: a bot no published\nlist or registered space can confirm. `not_bot`: a browser, an app or\na script.\n",
+            "example": "verified"
+          }
+        }
+      },
+      "BotDetail": {
+        "type": "object",
+        "description": "Bot IP's row: whose bot uses the address, the bots it serves or claimed to be, what they do, and how that is known.",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "description": "The bot operator's ID, empty where no operator is known."
+          },
+          "provider_name": {
+            "type": "string",
+            "description": "The operator's name, empty where no operator is known."
+          },
+          "agents": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The bots the address serves, as their user agents name them (`Googlebot`, `GPTBot`); for an address that is not verified, the bots it claimed to be. One address can serve several, and `[]` means none is named."
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "What those bots do: `search_engine`, `ai_training`, `ai_search`, `ai_assistant`, `ai_agent`, `seo`, `ads`, `preview`, `feed`, `monitoring`, `archiver`, `scanner`, `link_security`, `webhook` or `other`; `[]` where unknown."
+          },
+          "verified": {
+            "type": "boolean",
+            "description": "Whether the operator vouches for the address, so the bots in `agents` really are its."
+          },
+          "identity": {
+            "type": "string",
+            "description": "`verified` (the operator vouches for the address), `declared` (it names itself a bot that cannot be verified), `spoofed` (it claimed a bot whose operator vouches for other addresses) or `undeclared` (it hides as a browser and behaves as automation)."
+          },
+          "verified_by": {
+            "type": "string",
+            "description": "How a verified address verified: `list` (the operator publishes it), `rdns` (its reverse DNS name ends in a suffix the operator documents and resolves back) or `owner` (the operator's own space, seen claiming its bot); empty when not verified."
+          },
+          "confidence": {
+            "type": "string",
+            "description": "`high`, `medium` or `low`: how sure we are the address is what the row says."
+          },
+          "first_seen": {
+            "type": "string",
+            "description": "The first day the address was seen as such."
+          },
+          "last_seen": {
+            "type": "string",
+            "description": "The last day it was."
           }
         }
       },

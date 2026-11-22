@@ -773,6 +773,7 @@ const FLAG_WORDS = {
     is_relay: 'a privacy relay or web gateway',
     is_hosting: 'a hosting provider',
     is_cdn: 'a CDN',
+    is_bot: 'a crawler or other bot',
     is_anycast: 'anycast',
     is_carrier: 'a mobile carrier',
     is_satellite: 'satellite operator',

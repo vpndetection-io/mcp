@@ -32,7 +32,12 @@ for (const m of markers) {
         throw new Error(`${m} is no longer a LookupResponse member: update the markers list`);
     }
 }
-const members = Object.keys(lookup.properties).filter((m) => !markers.includes(m));
+
+// A member named for one of the lookup's own query parameters (`user_agent`) answers
+// that parameter, not the plan, and no tool sends one: like a marker, it is in no
+// coverage list and no bogon's body.
+const echoes = queryParams('/{ip}').filter((m) => m in lookup.properties);
+const members = Object.keys(lookup.properties).filter((m) => !markers.includes(m) && !echoes.includes(m));
 
 // `ip` and `is_vpn` are the spec's required members, so they are served at every
 // tier and can never be part of an absence note.
@@ -52,6 +57,10 @@ ${gated.map((m) => `    '${m}',`).join('\n')}
 
 export const LOOKUP_MARKERS: readonly string[] = [
 ${markers.map((m) => `    '${m}',`).join('\n')}
+];
+
+export const LOOKUP_ECHOES: readonly string[] = [
+${echoes.map((m) => `    '${m}',`).join('\n')}
 ];
 
 export const SPEC_VERSION = '${spec.info.version}';
@@ -195,6 +204,16 @@ function queryParam(path, name) {
         throw new Error(`spec has no query parameter ?${name} on GET ${path}`);
     }
     return { path: path, name: name, schema: param.schema };
+}
+
+// The names of every query parameter GET `path` takes. Throws on a missing
+// operation, so a moved lookup fails this script rather than emptying the list.
+function queryParams(path) {
+    const operation = spec.paths[path]?.get;
+    if (operation === undefined) {
+        throw new Error(`spec has no GET ${path}`);
+    }
+    return (operation.parameters ?? []).filter((q) => q.in === 'query').map((q) => q.name);
 }
 
 function numeric(param, field) {

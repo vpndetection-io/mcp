@@ -5,7 +5,7 @@
 
 The official [Model Context Protocol](https://modelcontextprotocol.io) server for the [VPNDetection](https://vpndetection.io) API.
 
-It gives an AI agent seven read-only tools for anonymity detection: whether an address belongs to a VPN, a residential, datacenter, mobile or public proxy, a Tor node, a privacy relay or web gateway, a hosting provider or a CDN; whether it is anycast, or a mobile carrier's or satellite operator's space; whether an SSH, mail or web server or an open DNS resolver answered on it, or a BitTorrent client was seen on it; plus the database catalog and where your organization's license for each one stands.
+It gives an AI agent seven read-only tools for anonymity detection: whether an address belongs to a VPN, a residential, datacenter, mobile or public proxy, a Tor node, a privacy relay or web gateway, a hosting provider or a CDN; whether a crawler or other bot uses it, and whose; whether it is anycast, or a mobile carrier's or satellite operator's space; whether an SSH, mail or web server or an open DNS resolver answered on it, or a BitTorrent client was seen on it; plus the database catalog and where your organization's license for each one stands.
 
 ## Getting Started
 
@@ -50,7 +50,7 @@ Point it at `https://mcp.vpndetection.io/mcp`. A client that supports MCP author
 
 ### On your own machine
 
-**No API key needed to start.** Unlimited, the free plan, answers `ip`, `is_vpn`, Tor and relay detection, `is_anycast`, `hostname` (the reverse DNS name), country-level `location` and `asn` with the AS's country and RPKI status, with no daily or monthly cap, with a key or without one. Every paid plan answers every field: `is_hosting`, `is_cdn` and the four proxy flags as well, the carrier and satellite flags, the five service flags (SSH, SMTP, web, DNS resolver and BitTorrent), city-level `location`, the `company` and the `abuse` contact, and the provider, confidence and last-seen detail behind each flag. A free account tries every field.
+**No API key needed to start.** Unlimited, the free plan, answers `ip`, `is_vpn`, Tor and relay detection, `is_bot`, `is_anycast`, `hostname` (the reverse DNS name), country-level `location` and `asn` with the AS's country and RPKI status, with no daily or monthly cap, with a key or without one. Every paid plan answers every field: `is_hosting`, `is_cdn` and the four proxy flags as well, the carrier and satellite flags, the five service flags (SSH, SMTP, web, DNS resolver and BitTorrent), city-level `location`, the `company` and the `abuse` contact, whose bot uses the address in `bot`, and the provider, confidence and last-seen detail behind each flag. A free account tries every field.
 
 Add this to your MCP client's config:
 
@@ -111,7 +111,7 @@ Each lookup comes back with a `coverage` block beside it:
 {
   "result": { "ip": "45.83.91.1", "is_bogon": false, "is_vpn": true, "is_relay": false, "...": "..." },
   "coverage": {
-    "included": ["ip", "is_bogon", "is_vpn", "is_relay", "is_tor", "is_anycast", "relay", "tor", "location", "asn", "hostname"],
+    "included": ["ip", "is_bogon", "is_vpn", "is_relay", "is_tor", "is_bot", "is_anycast", "relay", "tor", "location", "asn", "hostname"],
     "not_included": ["is_hosting", "is_cdn", "vpn", "hosting", "..."],
     "note": "The fields in not_included were not returned, because this API key's plan does not include them. ..."
   }

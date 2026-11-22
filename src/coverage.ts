@@ -1,7 +1,7 @@
 import type { Result } from 'vpndetection';
 
 import {
-    LOOKUP_GATED_MEMBERS, LOOKUP_MARKERS, LOOKUP_MEMBERS, LOOKUP_RESULT_SCHEMA,
+    LOOKUP_ECHOES, LOOKUP_GATED_MEMBERS, LOOKUP_MARKERS, LOOKUP_MEMBERS, LOOKUP_RESULT_SCHEMA,
 } from './schema.gen.js';
 
 /**
@@ -72,9 +72,9 @@ export function wireBody(result: Result): Record<string, unknown> {
     }
     const out: Record<string, unknown> = { ip: result.ip, is_bogon: true };
     for (const [name, schema] of Object.entries(LOOKUP_RESULT_SCHEMA.properties ?? {})) {
-        // A marker is the API's word about the answer it served, and a bogon was
-        // never served.
-        if (name in out || LOOKUP_MARKERS.includes(name)) {
+        // A marker is the API's word about the answer it served, and an echo answers
+        // what the request sent: a bogon was never served, nor sent anything.
+        if (name in out || LOOKUP_MARKERS.includes(name) || LOOKUP_ECHOES.includes(name)) {
             continue;
         }
         out[name] = emptyValue(schema as MemberSchema);
