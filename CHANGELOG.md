@@ -2,6 +2,13 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.8.1 - 2026-11-23
+
+### Fixes
+
+- Re-pin the spec: a bot's operator is the one its claim named ([`0dd2cef`](https://github.com/vpndetection-io/mcp/commit/0dd2cef793f99d67b6f6eefd51b4fda54ef6947d))
+- Take a bogon's answer from the client SDK, which needs vpndetection 5.19.2 ([`6808c19`](https://github.com/vpndetection-io/mcp/commit/6808c195a75b3843107785e8f8ecf9edec5f77db))
+
 ## 6.8.0 - 2026-11-22
 
 ### Features
