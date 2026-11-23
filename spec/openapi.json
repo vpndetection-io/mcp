@@ -9,7 +9,7 @@
       "url": "https://vpndetection.io"
     },
     "termsOfService": "https://vpndetection.io/terms",
-    "version": "2026.11.21"
+    "version": "2026.11.22"
   },
   "servers": [
     {
@@ -1610,7 +1610,7 @@
                     }
                   },
                   "free": {
-                    "summary": "A key of an organization on the free plan, Unlimited: its usage is its trial, the lookups answered with every field, out of the quota the trial has. Nothing stops it past them, its lookups answering with Unlimited's fields, so there is no hard limit.",
+                    "summary": "A key of an organization on the free plan, Unlimited: its usage is its trial, the lookups answered with every field, out of the quota the trial has. Nothing stops it past them, its lookups answering with Unlimited's fields, so there is no hard limit",
                     "value": {
                       "org_id": "f32191d0-ef02-450e-a505-eb5814c35cab",
                       "apikey": {
@@ -1627,8 +1627,8 @@
                         "requests": 37,
                         "quota": 100,
                         "hard_limit": null,
-                        "window_start": "2026-11-11T00:00:00Z",
-                        "window_end": "2026-11-12T00:00:00Z"
+                        "window_start": "2026-11-01T00:00:00Z",
+                        "window_end": "2026-12-01T00:00:00Z"
                       }
                     }
                   }
@@ -3057,11 +3057,11 @@
         "properties": {
           "provider": {
             "type": "string",
-            "description": "The bot operator's ID, empty where no operator is known."
+            "description": "The bot operator's ID; for an address that is not verified, the operator its claim named. Empty where no operator is known."
           },
           "provider_name": {
             "type": "string",
-            "description": "The operator's name, empty where no operator is known."
+            "description": "That operator's name, empty where no operator is known."
           },
           "agents": {
             "type": "array",
