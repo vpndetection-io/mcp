@@ -1,8 +1,6 @@
 import type { Result } from 'vpndetection';
 
-import {
-    LOOKUP_ECHOES, LOOKUP_GATED_MEMBERS, LOOKUP_MARKERS, LOOKUP_MEMBERS, LOOKUP_RESULT_SCHEMA,
-} from './schema.gen.js';
+import { LOOKUP_GATED_MEMBERS, LOOKUP_MEMBERS } from './schema.gen.js';
 
 /**
  * What a lookup result did and did not cover.
@@ -53,71 +51,14 @@ const NOTE_MIXED = 'The answers in this batch do not all carry the same fields, 
 
 /**
  * The answer in the names the API publishes, which is what a model has read the
- * docs in and what this server's `outputSchema` declares.
- *
- * A served answer already carries it as `raw`, the API's `is_bogon` included. A
- * bogon the SDK answered locally does not: it lands on the SDK's own camelCase
- * members and leaves `raw` empty. So `isBogon` alone does not say which, since the
- * SDK also sets it from a served `is_bogon`. Rebuilding the local one from the
- * spec's own property types avoids a second copy of the wire names here, and lands
- * on the documented bogon shape by construction - every flag present and false
- * but `is_bogon`, every detail object present and empty, `web` an empty list,
- * `hostname` an empty string, and the location, AS, company and abuse contact
- * with every member empty, zero or false.
+ * docs in and what this server's `outputSchema` declares: the client SDK's `raw`.
+ * A served answer is the API's body, its `is_bogon` included, and a bogon the SDK
+ * answered locally is the documented bogon shape in the same names - every flag
+ * present and false but `is_bogon`, every detail object present and empty, and the
+ * location, AS, company and abuse contact with every member empty, zero or false.
  */
 export function wireBody(result: Result): Record<string, unknown> {
-    const raw = result.raw as unknown as Record<string, unknown>;
-    if (!result.isBogon || Object.keys(raw).length > 0) {
-        return raw;
-    }
-    const out: Record<string, unknown> = { ip: result.ip, is_bogon: true };
-    for (const [name, schema] of Object.entries(LOOKUP_RESULT_SCHEMA.properties ?? {})) {
-        // A marker is the API's word about the answer it served, and an echo answers
-        // what the request sent: a bogon was never served, nor sent anything.
-        if (name in out || LOOKUP_MARKERS.includes(name) || LOOKUP_ECHOES.includes(name)) {
-            continue;
-        }
-        out[name] = emptyValue(schema as MemberSchema);
-    }
-    return out;
-}
-
-/** The part of a member's schema a bogon's answer is built from. */
-interface MemberSchema {
-    type?: unknown;
-    properties?: Record<string, object>;
-    required?: string[];
-}
-
-/** What a bogon answers for a member of this type: false, zero, an empty string or list. */
-function emptyValue(schema: MemberSchema): unknown {
-    switch (schema.type) {
-        case 'boolean':
-            return false;
-        case 'integer':
-        case 'number':
-            return 0;
-        case 'array':
-            return [];
-        case 'object':
-            return emptyObject(schema);
-        default:
-            return '';
-    }
-}
-
-/**
- * A detail object is `{}` when its flag is false, while the location, the AS, the
- * company and the abuse contact carry every member even where nothing is known. A
- * detail object requires nothing, so the schema's own `required` list says which
- * shape an object takes.
- */
-function emptyObject(schema: MemberSchema): Record<string, unknown> {
-    if ((schema.required ?? []).length === 0) {
-        return {};
-    }
-    return Object.fromEntries(Object.entries(schema.properties ?? {})
-        .map(([member, prop]) => [member, emptyValue(prop as MemberSchema)]));
+    return result.raw as unknown as Record<string, unknown>;
 }
 
 /**
@@ -147,7 +88,7 @@ export function coverageOf(body: Record<string, unknown>): Coverage {
 /**
  * One coverage for a whole batch, taken from its narrowest served answer.
  *
- * A bogon is synthesized locally in the full shape, so reading coverage off one
+ * A bogon is answered locally in the full shape, so reading coverage off one
  * would report every dataset as covered whatever the plan actually buys. Errors
  * carry no shape at all. With neither available there is nothing honest to say,
  * which is what `NOTE_UNKNOWN` says. Served answers can differ: a free-plan key's

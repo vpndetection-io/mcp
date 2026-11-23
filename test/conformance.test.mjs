@@ -280,7 +280,7 @@ test('a bogon is answered in the full documented shape', async () => {
         assert.deepEqual(body[member], value, `${member} must be as the corpus names it`);
     }
     assert.deepEqual(out.structuredContent.coverage.not_included, [],
-        'nothing is uncovered in a locally synthesized answer');
+        'nothing is uncovered in a locally answered bogon');
     const corpusNames = [
         'ip', 'is_bogon', ...data.bogonResponse.flagsFalse, ...data.bogonResponse.emptyObjects,
         ...named.map(([member]) => member),

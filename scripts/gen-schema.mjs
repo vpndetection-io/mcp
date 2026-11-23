@@ -23,9 +23,8 @@ const lookup = schema('LookupResponse');
 // Members that mark an answer rather than report on a dataset. `trial_expired` is
 // on a free-plan key's answers only and `cap_reached` on a paid key's, so neither
 // is something a plan covers nor something whose absence means anything: each
-// stays out of every coverage list, and out of a bogon's synthesized body. Checked
-// against the spec, so a rename there fails this script rather than quietly
-// turning the marker into a dataset.
+// stays out of every coverage list. Checked against the spec, so a rename there
+// fails this script rather than quietly turning the marker into a dataset.
 const markers = ['trial_expired', 'cap_reached'];
 for (const m of markers) {
     if (!(m in lookup.properties)) {
@@ -35,7 +34,7 @@ for (const m of markers) {
 
 // A member named for one of the lookup's own query parameters (`user_agent`) answers
 // that parameter, not the plan, and no tool sends one: like a marker, it is in no
-// coverage list and no bogon's body.
+// coverage list.
 const echoes = queryParams('/{ip}').filter((m) => m in lookup.properties);
 const members = Object.keys(lookup.properties).filter((m) => !markers.includes(m) && !echoes.includes(m));
 
@@ -53,14 +52,6 @@ ${members.map((m) => `    '${m}',`).join('\n')}
 
 export const LOOKUP_GATED_MEMBERS: readonly string[] = [
 ${gated.map((m) => `    '${m}',`).join('\n')}
-];
-
-export const LOOKUP_MARKERS: readonly string[] = [
-${markers.map((m) => `    '${m}',`).join('\n')}
-];
-
-export const LOOKUP_ECHOES: readonly string[] = [
-${echoes.map((m) => `    '${m}',`).join('\n')}
 ];
 
 export const SPEC_VERSION = '${spec.info.version}';
@@ -155,8 +146,8 @@ function toJsonSchema(doc, node, seen = new Set()) {
 // The spec wraps each detail member as `allOf: [$ref]` purely to hang a
 // per-member description off a shared schema. Once the $ref is inlined the
 // wrapper is noise, and it hides the member's `type` one level down - which is
-// how a reader (or a bogon synthesizer) ends up thinking the member has no type
-// at all. The member's own description wins, since it is the more specific one.
+// how a reader ends up thinking the member has no type at all. The member's own
+// description wins, since it is the more specific one.
 function flattenSingleAllOf(node) {
     if (!Array.isArray(node.allOf) || node.allOf.length !== 1) {
         return node;
