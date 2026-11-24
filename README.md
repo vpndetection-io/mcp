@@ -87,8 +87,8 @@ A key on a paid plan unlocks every field. Put it in the environment:
 
 | Tool | What it answers |
 |---|---|
-| `lookup_ip` | Classify one address. |
-| `lookup_ips` | Classify a whole list of addresses in one call, keyed by address. A long list is batched for you. Needs a key on a paid plan; with a key on the free plan, a list of up to 10 addresses is looked up one address at a time instead. |
+| `lookup_ip` | Classify one address. Pass the `User-Agent` a client at that address sent as `user_agent`, and the answer's `user_agent` says whether the address bears it out, which tells a real crawler from one forging its agent. An answer without it did not check the agent. |
+| `lookup_ips` | Classify a whole list of addresses in one call, keyed by address. A long list is batched for you. `user_agents` takes one `User-Agent` per address, keyed as in `ips`, and checks each as `lookup_ip` does. Needs a key on a paid plan; with a key on the free plan, a list of up to 10 addresses is looked up one address at a time instead. |
 | `my_entitlement` | What this key is entitled to and what it has spent: plan, field tier, requests so far, allowance, and when it resets. |
 | `list_databases` | Every database we publish, with its `standing` for your organization: `licensed`, `expired` or `unlicensed`. |
 | `database_metadata` | A database's columns, sample rows, row count, build date and file sizes. |
