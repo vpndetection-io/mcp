@@ -170,7 +170,7 @@ importers:
         specifier: ^2.2.0
         version: 2.4.0
       vpndetection:
-        specifier: ^5.19.2
+        specifier: ^5.20.0
         version: 5.20.0
       zod:
         specifier: ^4.1.12
