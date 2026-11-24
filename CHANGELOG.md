@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.8.2 - 2026-11-24
+
+### Fixes
+
+- Re-pin the spec: every seen day is a date, which needs vpndetection 5.20.0 ([`5a3862f`](https://github.com/vpndetection-io/mcp/commit/5a3862f16ba49130f86380886ee284bfcd82cc27))
+
 ## 6.8.1 - 2026-11-23
 
 ### Fixes
