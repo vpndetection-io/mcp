@@ -50,7 +50,7 @@ Point it at `https://mcp.vpndetection.io/mcp`. A client that supports MCP author
 
 ### On your own machine
 
-**No API key needed to start.** Unlimited, the free plan, answers `ip`, `is_vpn`, Tor and relay detection, `is_bot`, `is_anycast`, `hostname` (the reverse DNS name), country-level `location` and `asn` with the AS's country and RPKI status, with no daily or monthly cap, with a key or without one. Every paid plan answers every field: `is_hosting`, `is_cdn` and the four proxy flags as well, the carrier and satellite flags, the five service flags (SSH, SMTP, web, DNS resolver and BitTorrent), city-level `location`, the `company` and the `abuse` contact, whose bot uses the address in `bot`, and the provider, confidence and last-seen detail behind each flag. A free account tries every field.
+**No API key needed to start.** Unlimited, the free plan, answers `ip`, `is_vpn`, Tor and relay detection, `is_bot`, `is_anycast`, `hostname` (the reverse DNS name), country-level `location` and `asn` with the AS's country and RPKI status, with no daily or monthly cap, with a key or without one. A paid plan answers every field: `is_hosting`, `is_cdn` and the four proxy flags as well, the carrier and satellite flags, the five service flags (SSH, SMTP, web, DNS resolver and BitTorrent), city-level `location`, the `company` and the `abuse` contact, whose bot uses the address in `bot`, and the provider, confidence and last-seen detail behind each flag. A free account tries every field.
 
 Add this to your MCP client's config:
 
