@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.9.1 - 2026-11-25
+
+### Fixes
+
+- Re-pin the spec: one paid plan, and the free plan's trial window ([`10c7b01`](https://github.com/vpndetection-io/mcp/commit/10c7b01bc8256b453eb3f02c8422289162bcb328))
+
 ## 6.9.0 - 2026-11-24
 
 ### Features
