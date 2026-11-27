@@ -50,7 +50,7 @@ Point it at `https://mcp.vpndetection.io/mcp`. A client that supports MCP author
 
 ### On your own machine
 
-**No API key needed to start.** Unlimited, the free plan, answers `ip`, `is_vpn`, Tor and relay detection, `is_bot`, `is_anycast`, `hostname` (the reverse DNS name), country-level `location` and `asn` with the AS's country and RPKI status, with no daily or monthly cap, with a key or without one. A paid plan answers every field: `is_hosting`, `is_cdn` and the four proxy flags as well, the carrier and satellite flags, the five service flags (SSH, SMTP, web, DNS resolver and BitTorrent), city-level `location`, the `company` and the `abuse` contact, whose bot uses the address in `bot`, and the provider, confidence and last-seen detail behind each flag. A free account tries every field.
+**No API key needed to start.** Unlimited, the free plan, answers `ip`, `is_vpn`, Tor and relay detection, `is_anycast`, `hostname` (the reverse DNS name), country-level `location` and `asn` with the AS's country and RPKI status, with no daily or monthly cap, with a key or without one. A paid plan answers every field: `is_hosting`, `is_cdn`, the four proxy flags and `is_bot` as well, the carrier and satellite flags, the five service flags (SSH, SMTP, web, DNS resolver and BitTorrent), city-level `location`, the AS's `type`, the `company` and the `abuse` contact, whose bot uses the address in `bot`, and the provider, confidence and last-seen detail behind each flag. A free account tries every field.
 
 Add this to your MCP client's config:
 
@@ -111,8 +111,8 @@ Each lookup comes back with a `coverage` block beside it:
 {
   "result": { "ip": "45.83.91.1", "is_bogon": false, "is_vpn": true, "is_relay": false, "...": "..." },
   "coverage": {
-    "included": ["ip", "is_bogon", "is_vpn", "is_relay", "is_tor", "is_bot", "is_anycast", "relay", "tor", "location", "asn", "hostname"],
-    "not_included": ["is_hosting", "is_cdn", "vpn", "hosting", "..."],
+    "included": ["ip", "is_bogon", "is_vpn", "is_relay", "is_tor", "is_anycast", "relay", "tor", "location", "asn", "hostname"],
+    "not_included": ["is_hosting", "is_cdn", "is_bot", "vpn", "hosting", "..."],
     "note": "The fields in not_included were not returned, because this API key's plan does not include them. ..."
   }
 }
