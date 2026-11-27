@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.9.2 - 2026-11-27
+
+### Fixes
+
+- Re-pin the spec: the network's type and is_bot are a paid plan's ([`f5af876`](https://github.com/vpndetection-io/mcp/commit/f5af876da49c9c101f91c2c57480f15e6e45be61))
+
 ## 6.9.1 - 2026-11-25
 
 ### Fixes
