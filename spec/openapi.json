@@ -9,7 +9,7 @@
       "url": "https://vpndetection.io"
     },
     "termsOfService": "https://vpndetection.io/terms",
-    "version": "2026.11.25"
+    "version": "2026.11.26"
   },
   "servers": [
     {
@@ -110,7 +110,6 @@
                       "is_vpn": true,
                       "is_relay": false,
                       "is_tor": false,
-                      "is_bot": false,
                       "is_anycast": false,
                       "relay": {},
                       "tor": {},
@@ -130,7 +129,6 @@
                         "asn": 9009,
                         "name": "M247 Europe SRL",
                         "domain": "m247global.com",
-                        "type": "hosting",
                         "prefix": "146.70.116.0/24",
                         "country": "RO",
                         "rpki_status": "not_found"
@@ -247,7 +245,6 @@
                       "is_vpn": true,
                       "is_relay": false,
                       "is_tor": false,
-                      "is_bot": false,
                       "is_anycast": false,
                       "relay": {},
                       "tor": {},
@@ -267,7 +264,6 @@
                         "asn": 9009,
                         "name": "M247 Europe SRL",
                         "domain": "m247global.com",
-                        "type": "hosting",
                         "prefix": "146.70.116.0/24",
                         "country": "RO",
                         "rpki_status": "not_found"
@@ -385,7 +381,6 @@
                       "is_vpn": true,
                       "is_relay": false,
                       "is_tor": false,
-                      "is_bot": false,
                       "is_anycast": false,
                       "relay": {},
                       "tor": {},
@@ -405,7 +400,6 @@
                         "asn": 9009,
                         "name": "M247 Europe SRL",
                         "domain": "m247global.com",
-                        "type": "hosting",
                         "prefix": "146.70.116.0/24",
                         "country": "RO",
                         "rpki_status": "not_found"
@@ -681,7 +675,6 @@
                       "is_vpn": true,
                       "is_relay": false,
                       "is_tor": false,
-                      "is_bot": false,
                       "is_anycast": false,
                       "relay": {},
                       "tor": {},
@@ -701,7 +694,6 @@
                         "asn": 9009,
                         "name": "M247 Europe SRL",
                         "domain": "m247global.com",
-                        "type": "hosting",
                         "prefix": "146.70.116.0/24",
                         "country": "RO",
                         "rpki_status": "not_found"
@@ -991,7 +983,6 @@
                           "is_vpn": true,
                           "is_relay": false,
                           "is_tor": false,
-                          "is_bot": false,
                           "is_anycast": false,
                           "relay": {},
                           "tor": {},
@@ -1011,7 +1002,6 @@
                             "asn": 9009,
                             "name": "M247 Europe SRL",
                             "domain": "m247global.com",
-                            "type": "hosting",
                             "prefix": "146.70.116.0/24",
                             "country": "RO",
                             "rpki_status": "not_found"
@@ -2406,7 +2396,7 @@
           },
           "is_bot": {
             "type": "boolean",
-            "description": "Whether an automated client uses the address, such as a search engine's or an AI company's crawler, an uptime monitor, an internet scanner or a webhook sender. `bot` says whose, what it does and whether its operator vouches for the address. Every answer, with or without a key."
+            "description": "Whether an automated client uses the address, such as a search engine's or an AI company's crawler, an uptime monitor, an internet scanner or a webhook sender. `bot` says whose, what it does and whether its operator vouches for the address. On a paid plan."
           },
           "is_resproxy": {
             "type": "boolean",
@@ -2976,7 +2966,6 @@
           "asn",
           "name",
           "domain",
-          "type",
           "prefix",
           "country",
           "rpki_status"
@@ -3000,7 +2989,7 @@
           },
           "type": {
             "type": "string",
-            "description": "The kind of network the AS runs: isp, hosting, education, government or business.",
+            "description": "The kind of network the AS runs: isp, hosting, education, government or business. On a paid plan.",
             "example": "hosting"
           },
           "prefix": {
