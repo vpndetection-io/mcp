@@ -50,7 +50,7 @@ Point it at `https://mcp.vpndetection.io/mcp`. A client that supports MCP author
 
 ### On your own machine
 
-**No API key needed to start.** Unlimited, the free plan, answers `ip`, `is_vpn`, Tor and relay detection, `is_anycast`, `hostname` (the reverse DNS name), country-level `location` and `asn` with the AS's country and RPKI status, with no daily or monthly cap, with a key or without one. A paid plan answers every field: `is_hosting`, `is_cdn`, the four proxy flags and `is_bot` as well, the carrier and satellite flags, the five service flags (SSH, SMTP, web, DNS resolver and BitTorrent), city-level `location`, the AS's `type`, the `company` and the `abuse` contact, whose bot uses the address in `bot`, and the provider, confidence and last-seen detail behind each flag. A free account tries every field.
+**No API key needed to try it.** Without one, the [free plan](https://vpndetection.io/pricing) answers `ip`, `is_vpn`, Tor and relay detection, `is_anycast`, `hostname` (the reverse DNS name), country-level `location` and `asn` with the AS's country and RPKI status. A free API key answers more: those fields on every lookup, and every field on your organization's first lookups each day. A paid plan answers every field: `is_hosting`, `is_cdn`, the four proxy flags and `is_bot` as well, the carrier and satellite flags, the five service flags (SSH, SMTP, web, DNS resolver and BitTorrent), city-level `location`, the AS's `type`, the `company` and the `abuse` contact, whose bot uses the address in `bot`, and the provider, confidence and last-seen detail behind each flag.
 
 Add this to your MCP client's config:
 
@@ -101,7 +101,7 @@ Every tool is read-only. There is deliberately no download tool: the databases r
 
 **There is deliberately no `my_ip` tool, although every client library has one.** Over a hosted transport the address our edge observes belongs to whatever proxied the call - Claude's infrastructure, not the person asking - so the tool would answer confidently and wrongly for the only reading anyone would put on it. `my_entitlement` has no such problem and is the same answer from any transport, because it describes the credential rather than the connection. A test pins the tool's absence so it cannot be added back by accident.
 
-A paid plan's usage counts against the anniversary of the subscription, not the calendar month and not the billing period, and the free plan's counts its trial, over the window the answer gives. `hard_limit` is where full answers stop, and a null one means they never do; it is not a limit of zero.
+A paid plan's usage counts against the anniversary of the subscription, not the calendar month and not the billing period, and the free plan's counts the UTC day's lookups answered with every field. `hard_limit` is where full answers stop, and a null one means they never do; it is not a limit of zero.
 
 ## Reading a result
 
@@ -120,9 +120,9 @@ Each lookup comes back with a `coverage` block beside it:
 
 This matters more here than in a normal client library. A field missing from a result means your plan doesn't include it, never "we checked and found nothing" - and a model reading the result on its own will otherwise treat the absence as a negative answer. `coverage` states the difference explicitly so it can't.
 
-An answer to a key on the free plan also carries `trial_expired`: false while its organization's trial of every field lasts, and true once the answer is Unlimited's, which `coverage.note` then says.
+An answer to a key on the free plan also carries `trial_expired`: false while its organization's lookups of the UTC day answer every field, and true once those are used up and the answer has the core fields, which `coverage.note` then says. A new UTC day brings every field back.
 
-An answer to a key on a paid plan carries `cap_reached` the same way: false while the answer has every field, and true once its organization's overage cap is reached. Past the cap a lookup is answered with Unlimited's fields and not billed, and `coverage.note` says the cap left the other fields out, not the plan. Raising or removing the cap in Billing brings them back.
+An answer to a key on a paid plan carries `cap_reached` the same way: false while the answer has every field, and true once its organization's overage cap is reached. Past the cap a lookup is answered with the core fields and not billed, and `coverage.note` says the cap left the other fields out, not the plan. Raising or removing the cap in Billing brings them back.
 
 ## Other Libraries
 

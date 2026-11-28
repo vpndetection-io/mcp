@@ -2,14 +2,14 @@
   "openapi": "3.0.3",
   "info": {
     "title": "VPNDetection API",
-    "description": "The VPNDetection API: classify any IP address, and download the databases\nbehind the answers.\n\nLookups need no API key: Unlimited, the free plan, answers any address with\nno daily or monthly cap, with a key or without one. The Data plan answers\nevery field, and a free account tries them. Unlimited's answers may be used\ncommercially, but not redistributed or used in a competing service\n(https://vpndetection.io/terms#no-key).\n\nSee https://docs.vpndetection.io for guides and https://github.com/vpndetection-io\nfor the official client libraries.\n",
+    "description": "The VPNDetection API: classify any IP address, and download the databases\nbehind the answers.\n\nLookups need no API key to try: the free plan answers each address's first\nlookups of the day without one. A free API key answers the core fields with\nno cap and your organization's first lookups each day with every field. The\nData plan answers every field on every lookup. The free plan's answers may be\nused commercially, but not redistributed or used in a competing service\n(https://vpndetection.io/terms#no-key).\n\nSee https://docs.vpndetection.io for guides and https://github.com/vpndetection-io\nfor the official client libraries.\n",
     "contact": {
       "name": "VPNDetection Support",
       "email": "support@vpndetection.io",
       "url": "https://vpndetection.io"
     },
     "termsOfService": "https://vpndetection.io/terms",
-    "version": "2026.11.26"
+    "version": "2026.11.28"
   },
   "servers": [
     {
@@ -62,7 +62,7 @@
           "Lookup"
         ],
         "summary": "Lookup",
-        "description": "Answers what is known about a single IPv4 or IPv6 address. Which fields\ncome back is decided by the presented key; with no key, on Unlimited,\nthe free plan, the answer is `ip`, `is_vpn`, the Tor and relay members,\n`is_anycast`, `hostname`, `location` and `asn`.\n",
+        "description": "Answers what is known about a single IPv4 or IPv6 address. Which fields\ncome back is decided by the presented key; with no key, on the free\nplan, the answer is `ip`, `is_vpn`, the Tor and relay members,\n`is_anycast`, `hostname`, `location` and `asn`.\n",
         "parameters": [
           {
             "in": "path",
@@ -89,7 +89,7 @@
               "type": "string",
               "maxLength": 1024
             },
-            "description": "The `User-Agent` header of the request you are deciding on. With\nevery field, on a paid plan or the trial, the answer then carries\n`user_agent`: the agent it names, and whether this address bears\nthat out. Never kept, and nothing sent with a lookup feeds our data.\n",
+            "description": "The `User-Agent` header of the request you are deciding on. With\nevery field, on a paid plan or a free key's full answers, the answer then carries\n`user_agent`: the agent it names, and whether this address bears\nthat out. Never kept, and nothing sent with a lookup feeds our data.\n",
             "example": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
           }
         ],
@@ -102,8 +102,8 @@
                   "$ref": "#/components/schemas/LookupResponse"
                 },
                 "examples": {
-                  "unlimited": {
-                    "summary": "Unlimited, no API key",
+                  "free": {
+                    "summary": "The free plan, no API key",
                     "value": {
                       "ip": "146.70.116.130",
                       "is_bogon": false,
@@ -136,8 +136,8 @@
                       "hostname": ""
                     }
                   },
-                  "trial": {
-                    "summary": "A free-plan key within its trial of every field",
+                  "freeKey": {
+                    "summary": "A free-plan key within its organization's full answers for the day",
                     "value": {
                       "ip": "146.70.116.130",
                       "is_bogon": false,
@@ -237,8 +237,8 @@
                       "trial_expired": false
                     }
                   },
-                  "trialExpired": {
-                    "summary": "A free-plan key past its trial, with Unlimited's fields",
+                  "freeKeyCore": {
+                    "summary": "A free-plan key past its organization's full answers for the day, with the core fields",
                     "value": {
                       "ip": "146.70.116.130",
                       "is_bogon": false,
@@ -374,7 +374,7 @@
                     }
                   },
                   "capReached": {
-                    "summary": "A key on a paid plan past its organization's overage cap, with Unlimited's fields",
+                    "summary": "A key on a paid plan past its organization's overage cap, with the core fields",
                     "value": {
                       "ip": "146.70.116.130",
                       "is_bogon": false,
@@ -571,11 +571,11 @@
             }
           },
           "429": {
-            "description": "A rate limit, always with `Retry-After`. A paid plan's overage cap is\nnever a `429` by itself: it answers `200` with Unlimited's fields and\n`cap_reached` `true`, and a burst past it is rate limited as an Unlimited one is.\n",
+            "description": "A rate limit with `Retry-After`, or without it a lookup with no key\npast its address's daily allowance, which a free API key answers past.\nA paid plan's overage cap is never a `429` by itself: it answers `200`\nwith the core fields and `cap_reached` `true`, and a burst past it is\nrate limited as a free one is.\n",
             "headers": {
               "Retry-After": {
-                "description": "Seconds to wait before retrying.",
-                "required": true,
+                "description": "Seconds to wait before retrying; absent on a spent allowance.",
+                "required": false,
                 "schema": {
                   "type": "integer"
                 }
@@ -593,10 +593,16 @@
                       "error": "rate limit exceeded"
                     }
                   },
-                  "unlimitedRateLimited": {
-                    "summary": "Unlimited, a burst, sent with Retry-After",
+                  "freeRateLimited": {
+                    "summary": "The free plan, a burst, sent with Retry-After",
                     "value": {
-                      "error": "rate limit for Unlimited lookups exceeded; retry shortly, or use a paid plan"
+                      "error": "rate limit for free lookups exceeded; retry shortly, or use a paid plan"
+                    }
+                  },
+                  "keylessSpent": {
+                    "summary": "No API key, past the address's lookups for the day, without Retry-After",
+                    "value": {
+                      "error": "lookups without an API key are used up for today; a free key answers on: https://app.vpndetection.io/auth/signup"
                     }
                   },
                   "cappedRateLimited": {
@@ -654,7 +660,7 @@
               "type": "string",
               "maxLength": 1024
             },
-            "description": "The `User-Agent` header of the request you are deciding on. With\nevery field, on a paid plan or the trial, the answer then carries\n`user_agent`: the agent it names, and whether this address bears\nthat out. Never kept, and nothing sent with a lookup feeds our data.\n",
+            "description": "The `User-Agent` header of the request you are deciding on. With\nevery field, on a paid plan or a free key's full answers, the answer then carries\n`user_agent`: the agent it names, and whether this address bears\nthat out. Never kept, and nothing sent with a lookup feeds our data.\n",
             "example": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
           }
         ],
@@ -667,8 +673,8 @@
                   "$ref": "#/components/schemas/LookupResponse"
                 },
                 "examples": {
-                  "unlimited": {
-                    "summary": "Unlimited, no API key",
+                  "free": {
+                    "summary": "The free plan, no API key",
                     "value": {
                       "ip": "146.70.116.130",
                       "is_bogon": false,
@@ -760,11 +766,11 @@
             }
           },
           "429": {
-            "description": "A rate limit, always with `Retry-After`. A paid plan's overage cap is\nnever a `429` by itself: it answers `200` with Unlimited's fields and\n`cap_reached` `true`, and a burst past it is rate limited as an Unlimited one is.\n",
+            "description": "A rate limit with `Retry-After`, or without it a lookup with no key\npast its address's daily allowance, which a free API key answers past.\nA paid plan's overage cap is never a `429` by itself: it answers `200`\nwith the core fields and `cap_reached` `true`, and a burst past it is\nrate limited as a free one is.\n",
             "headers": {
               "Retry-After": {
-                "description": "Seconds to wait before retrying.",
-                "required": true,
+                "description": "Seconds to wait before retrying; absent on a spent allowance.",
+                "required": false,
                 "schema": {
                   "type": "integer"
                 }
@@ -782,10 +788,16 @@
                       "error": "rate limit exceeded"
                     }
                   },
-                  "unlimitedRateLimited": {
-                    "summary": "Unlimited, a burst, sent with Retry-After",
+                  "freeRateLimited": {
+                    "summary": "The free plan, a burst, sent with Retry-After",
                     "value": {
-                      "error": "rate limit for Unlimited lookups exceeded; retry shortly, or use a paid plan"
+                      "error": "rate limit for free lookups exceeded; retry shortly, or use a paid plan"
+                    }
+                  },
+                  "keylessSpent": {
+                    "summary": "No API key, past the address's lookups for the day, without Retry-After",
+                    "value": {
+                      "error": "lookups without an API key are used up for today; a free key answers on: https://app.vpndetection.io/auth/signup"
                     }
                   },
                   "cappedRateLimited": {
@@ -833,7 +845,7 @@
           "Lookup"
         ],
         "summary": "Batch",
-        "description": "Answers up to 1000 addresses in one call. Each distinct string in `ips`\nis one lookup: it costs exactly what `GET /{ip}` costs for that address\nand comes back with exactly the fields that call would carry for your\nplan. Exact duplicates collapse to one entry and one lookup.\n\nBoth maps in the answer are keyed by the string you sent, so nothing has\nto be lined up by position; the `ip` inside each result is the\nnormalized form. An address that could not be answered sits in `errors`\nwith the status and message the single lookup would have given, and\nnever disturbs the others: a string that is not an address is a `400`\nthere. An overage cap reached part way through answers the remaining\nentries with Unlimited's fields and `cap_reached` `true`, in `results`.\n\nThe call itself fails only for the reasons below, and a `429` on the\ncall always carries `Retry-After`: the batch is admitted or refused\nwhole by the rate limit, never per entry.\n\nA batch needs a paid plan: without a key the call is refused with `401`,\nand with a key on the free plan with `402`, unless it names one address,\nwhich is answered as `GET /{ip}` would answer it, under the same rate\nlimit. Unlimited looks up one address at a time.\n",
+        "description": "Answers up to 1000 addresses in one call. Each distinct string in `ips`\nis one lookup: it costs exactly what `GET /{ip}` costs for that address\nand comes back with exactly the fields that call would carry for your\nplan. Exact duplicates collapse to one entry and one lookup.\n\nBoth maps in the answer are keyed by the string you sent, so nothing has\nto be lined up by position; the `ip` inside each result is the\nnormalized form. An address that could not be answered sits in `errors`\nwith the status and message the single lookup would have given, and\nnever disturbs the others: a string that is not an address is a `400`\nthere. An overage cap reached part way through answers the remaining\nentries with the core fields and `cap_reached` `true`, in `results`.\n\nThe call itself fails only for the reasons below, and a `429` on the\ncall carries `Retry-After` unless a lookup with no key is past its\naddress's daily allowance: the batch is admitted or refused whole,\nnever per entry.\n\nA batch needs a paid plan: without a key the call is refused with `401`,\nand with a key on the free plan with `402`, unless it names one address,\nwhich is answered as `GET /{ip}` would answer it, under the same rate\nlimit. The free plan looks up one address at a time.\n",
         "security": [
           {
             "apiKeyQuery": []
@@ -974,7 +986,7 @@
                     }
                   },
                   "capReached": {
-                    "summary": "A key on a paid plan whose overage cap was already reached, answered with Unlimited's fields",
+                    "summary": "A key on a paid plan whose overage cap was already reached, answered with the core fields",
                     "value": {
                       "results": {
                         "146.70.116.130": {
@@ -1137,11 +1149,11 @@
             }
           },
           "429": {
-            "description": "The rate limit refused the whole call. Always transient and always\nwith `Retry-After`; a reached overage cap answers each entry in a\n`200` instead, and a burst past it is rate limited as an Unlimited one is.\n",
+            "description": "The rate limit refused the whole call, transient and with\n`Retry-After`, or a batch of one address with no key is past its\naddress's daily allowance, without it; a reached overage cap answers\neach entry in a `200` instead, and a burst past it is rate limited as\na free one is.\n",
             "headers": {
               "Retry-After": {
-                "description": "Seconds to wait before retrying the call.",
-                "required": true,
+                "description": "Seconds to wait before retrying the call; absent on a spent allowance.",
+                "required": false,
                 "schema": {
                   "type": "integer"
                 }
@@ -1159,10 +1171,16 @@
                       "error": "rate limit exceeded"
                     }
                   },
-                  "unlimitedRateLimited": {
-                    "summary": "Unlimited's one address, a burst, sent with Retry-After",
+                  "freeRateLimited": {
+                    "summary": "The free plan's one address, a burst, sent with Retry-After",
                     "value": {
-                      "error": "rate limit for Unlimited lookups exceeded; retry shortly, or use a paid plan"
+                      "error": "rate limit for free lookups exceeded; retry shortly, or use a paid plan"
+                    }
+                  },
+                  "keylessSpent": {
+                    "summary": "No API key, past the address's lookups for the day, without Retry-After",
+                    "value": {
+                      "error": "lookups without an API key are used up for today; a free key answers on: https://app.vpndetection.io/auth/signup"
                     }
                   },
                   "cappedRateLimited": {
@@ -1569,7 +1587,7 @@
         "description": "Answers what the presented key is, what plan is behind it, and what has\nbeen spent against that plan's allowance in the current window.\n",
         "responses": {
           "200": {
-            "description": "The key's entitlements and consumption.",
+            "description": "The key's entitlements and consumption. On the free plan, Free,\nusage is the UTC day's lookups answered with every field, against\nits daily limit, and no hard limit, since nothing stops a lookup past\nit: its core fields have no cap. The daily limit is on the pricing\npage, never fixed here.\n",
             "content": {
               "application/json": {
                 "schema": {
@@ -1596,29 +1614,6 @@
                         "hard_limit": null,
                         "window_start": "2026-09-04T07:00:00Z",
                         "window_end": "2026-10-04T07:00:00Z"
-                      }
-                    }
-                  },
-                  "free": {
-                    "summary": "A key of an organization on the free plan, Unlimited: its usage is its trial, the lookups answered with every field while it lasts, against the trial's limit. Nothing stops it past the trial, its lookups answering with Unlimited's fields, so there is no hard limit",
-                    "value": {
-                      "org_id": "f32191d0-ef02-450e-a505-eb5814c35cab",
-                      "apikey": {
-                        "id": "10c2b437-3aa2-4a63-bd17-8e7c8c7f0def",
-                        "expires": null,
-                        "allowed_cidrs": []
-                      },
-                      "plan": {
-                        "key": "free",
-                        "name": "Unlimited",
-                        "tier": "free"
-                      },
-                      "usage": {
-                        "requests": 37,
-                        "quota": 250000,
-                        "hard_limit": null,
-                        "window_start": "2026-11-24T10:15:00Z",
-                        "window_end": "2026-12-08T10:15:00Z"
                       }
                     }
                   }
@@ -2608,11 +2603,11 @@
           },
           "trial_expired": {
             "type": "boolean",
-            "description": "On every answer to a key on the free plan, and on no other: `false`\nwhile its organization's trial of every field lasts, `true` once the\nanswer has Unlimited's.\n"
+            "description": "On every answer to a key on the free plan, and on no other: `false`\nwhile its organization's lookups of the UTC day answer every field,\n`true` once those are used up and the answer has the core fields.\n"
           },
           "cap_reached": {
             "type": "boolean",
-            "description": "On every answer to a key on a paid plan, and on no other: `false`\nwhile the answer has every field, `true` once its organization's\noverage cap is reached and the answer has Unlimited's. Lookups\nanswered past the cap are not billed; raising or removing the cap in\nBilling turns it `false` again.\n"
+            "description": "On every answer to a key on a paid plan, and on no other: `false`\nwhile the answer has every field, `true` once its organization's\noverage cap is reached and the answer has the core fields. Lookups\nanswered past the cap are not billed; raising or removing the cap in\nBilling turns it `false` again.\n"
           }
         }
       },
@@ -3934,12 +3929,12 @@
         "properties": {
           "key": {
             "type": "string",
-            "description": "The plan the organization is on, as an identifier that is never\nrenamed or reused: `free` for the free plan, or a paid plan's key.\nCompare against it and show `name`. On `free`, usage counts its\ntrial, the lookups answered with every field. The Data plan is a key\nper quota, `data_1` to `data_7`, each named Data.\n",
+            "description": "The plan the organization is on, as an identifier that is never\nrenamed or reused: `free` for the free plan, or a paid plan's key.\nCompare against it and show `name`. On `free`, usage counts the UTC\nday's lookups answered with every field. The Data plan is a key\nper quota (`data_1`, `data_2` and on), each named Data.\n",
             "example": "data_4"
           },
           "name": {
             "type": "string",
-            "description": "The plan's name, as the site and console show it: `Unlimited` for\nthe free plan. Show this rather than a name built from `key`: a\nplan's name can change, and its key never does.\n",
+            "description": "The plan's name, as the site and console show it: `Free` for\nthe free plan. Show this rather than a name built from `key`: a\nplan's name can change, and its key never does.\n",
             "example": "Data"
           },
           "tier": {
@@ -3978,17 +3973,17 @@
             "type": "integer",
             "format": "int64",
             "nullable": true,
-            "description": "Where full answers stop: past it, a paid key is answered with\nUnlimited's fields and `cap_reached: true`, uncharged, until the\nwindow ends or the cap is raised. NULL means never, which is the\nnormal state of an uncapped paid plan and is not the same as zero.\nAbove the quota and below this, requests are served and billed as\noverage.\n"
+            "description": "Where full answers stop: past it, a paid key is answered with\nthe core fields and `cap_reached: true`, uncharged, until the\nwindow ends or the cap is raised. NULL means never, which is the\nnormal state of an uncapped paid plan and is not the same as zero.\nAbove the quota and below this, requests are served and billed as\noverage.\n"
           },
           "window_start": {
             "type": "string",
             "format": "date-time",
-            "description": "When the current allowance period began. On the free plan, when\nits trial began, or now before a first lookup starts it.\n"
+            "description": "When the current allowance period began. On the free plan, the\nstart of the UTC day.\n"
           },
           "window_end": {
             "type": "string",
             "format": "date-time",
-            "description": "When the allowance next resets. On the free plan, when its trial\nends, which it does once.\n"
+            "description": "When the allowance next resets. On the free plan, the start of the\nnext UTC day.\n"
           }
         }
       },

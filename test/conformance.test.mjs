@@ -142,7 +142,7 @@ test("a free-plan key's full answer reports full coverage and keeps trial_expire
     assert.match(coverage.note, /real negative result/);
 });
 
-test("a free-plan key's spent trial says so beside what was not covered", async () => {
+test("a free-plan key's spent day says so beside what was not covered", async () => {
     const spent = data.lookup.find((c) => c.name === 'trial-expired-answer');
     const stub = serving(spent.body);
     const out = await toolsFor(stub.fetch).get('lookup_ip').handler({ ip: spent.body.ip });
@@ -152,12 +152,14 @@ test("a free-plan key's spent trial says so beside what was not covered", async 
     assert.ok(!coverage.included.includes('trial_expired'));
     assert.ok(!coverage.not_included.includes('trial_expired'));
     assert.ok(coverage.not_included.includes('is_hosting'));
-    assert.match(coverage.note, /trial/);
+    assert.match(coverage.note, /spent for today/);
+    assert.match(coverage.note, /new UTC day/);
+    assert.doesNotMatch(coverage.note, /Unlimited|trial/);
     assert.match(coverage.note, /not a negative result/);
 });
 
 // cap_reached says a paid key's organization is past the overage cap it set, so the
-// answer is Unlimited's: the cap left the fields out, never the plan, which has them.
+// answer has the core fields: the cap left the rest out, never the plan, which has them.
 test("a paid key past its overage cap says the cap left the fields out, not the plan", async () => {
     const capped = data.lookup.find((c) => c.name === 'cap-reached-answer');
     const stub = serving(capped.body);
@@ -169,7 +171,8 @@ test("a paid key past its overage cap says the cap left the fields out, not the 
     assert.ok(!coverage.not_included.includes('cap_reached'));
     assert.ok(coverage.not_included.includes('is_hosting'));
     assert.match(coverage.note, /overage cap/);
-    assert.doesNotMatch(coverage.note, /plan does not include/);
+    assert.match(coverage.note, /core fields/);
+    assert.doesNotMatch(coverage.note, /plan does not include|Unlimited/);
     assert.match(coverage.note, /not a negative result/);
 });
 
@@ -187,7 +190,7 @@ test("a paid key's full answer reports full coverage and keeps cap_reached", asy
     assert.match(coverage.note, /real negative result/);
 });
 
-// A cap reached part way through a batch answers the rest of it with Unlimited's
+// A cap reached part way through a batch answers the rest of it with the core
 // fields, in its results beside the full answers before it.
 test('a batch the overage cap stops part way through reports its narrowest answer', async () => {
     const full = data.lookup.find((c) => c.name === 'max-full-shape').body;
@@ -208,9 +211,9 @@ test('a batch the overage cap stops part way through reports its narrowest answe
 });
 
 // A free-plan key's batch is refused with a 402 and its addresses looked up one at
-// a time, so its trial can run out between them: the first answer then has
-// every field and the next only Unlimited's.
-test('a batch the trial runs out part way through reports its narrowest answer', async () => {
+// a time, so its full answers for the day can run out between them: the first
+// answer then has every field and the next only the core fields.
+test('a batch the day runs out part way through reports its narrowest answer', async () => {
     const answers = {
         '1.1.1.1': { ...data.lookup.find((c) => c.name === 'trial-full-answer').body, ip: '1.1.1.1' },
         '8.8.8.8': { ...data.lookup.find((c) => c.name === 'trial-expired-answer').body, ip: '8.8.8.8' },
@@ -236,7 +239,8 @@ test('a batch the trial runs out part way through reports its narrowest answer',
     const spent = answers['8.8.8.8'];
     assert.deepEqual(coverage.not_included, LOOKUP_GATED_MEMBERS.filter((m) => !(m in spent)));
     assert.match(coverage.note, /do not all carry the same fields/);
-    assert.match(coverage.note, /trial/);
+    assert.match(coverage.note, /spent for today/);
+    assert.doesNotMatch(coverage.note, /Unlimited/);
     assert.doesNotMatch(coverage.note, /real negative result/);
 });
 

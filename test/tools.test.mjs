@@ -133,6 +133,22 @@ test('an upstream failure becomes a tool execution error, not a throw', async ()
     assert.ok(JSON.parse(out.content[0].text).error.kind, 'the error carries a kind the model can act on');
 });
 
+// With no key, an address past its lookups for the day is a 429 with no Retry-After,
+// which retrying the same call cannot cure, so the model must not be told it can.
+test('a spent allowance without a key is not retryable, and says what answers on', async () => {
+    const spec = JSON.parse(readFileSync(new URL('../spec/openapi.json', import.meta.url), 'utf8'));
+    const { examples } = spec.paths['/{ip}'].get.responses['429'].content['application/json'];
+    const spent = examples.keylessSpent.value;
+    const lookup = toolsFor(serving(spent, 429)).find((d) => d.tool.name === 'lookup_ip');
+    const out = await lookup.handler({ ip: '146.70.116.130' });
+    const { error } = JSON.parse(out.content[0].text);
+
+    assert.equal(out.isError, true);
+    assert.equal(error.kind, 'quota_exceeded');
+    assert.equal(error.retryable, false);
+    assert.equal(error.message, spent.error);
+});
+
 // The hosted server depends on this package AND on `vpndetection`, so the two
 // can each resolve their own copy of the module. Two copies of a class are two
 // identities, so an `instanceof` check would quietly report every upstream
