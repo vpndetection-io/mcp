@@ -2,6 +2,12 @@
 
 What each release changed for you, newest first. Each line is a commit's summary, linked to its full description and diff. Releases before 5.3.4 are described by their release commits.
 
+## 6.9.3 - 2026-11-28
+
+### Fixes
+
+- Re-pin the spec to 2026.11.28: the free plan is Free, its full answers daily ([`2f9d8aa`](https://github.com/vpndetection-io/mcp/commit/2f9d8aa8a3ea2d66850eb36045902649afabd8cf))
+
 ## 6.9.2 - 2026-11-27
 
 ### Fixes
